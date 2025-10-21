@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useFormState } from 'react-dom';
+import { useActionState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { processAudio, type FormState } from '@/app/actions';
 
@@ -16,7 +16,7 @@ const initialState: FormState = {
 };
 
 export default function Home() {
-  const [state, formAction] = useFormState(processAudio, initialState);
+  const [state, formAction] = useActionState(processAudio, initialState);
   const [formKey, setFormKey] = React.useState(Date.now());
   const [summaryText, setSummaryText] = React.useState('');
   const { toast } = useToast();
