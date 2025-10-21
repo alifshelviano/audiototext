@@ -54,7 +54,7 @@ const transcribeAudioElevenLabsFlow = ai.defineFlow(
     // Call ElevenLabs API to transcribe audio
     const formData = new FormData();
     formData.append('file', new Blob([audioBuffer], { type: mimeType }), `audio.${mimeType.split('/')[1]}`);
-    formData.append('model_id', 'eleven_multilingual_v2');
+    formData.append('model_id', 'scribe_v1');
 
     const response = await fetch(
       'https://api.elevenlabs.io/v1/speech-to-text',
