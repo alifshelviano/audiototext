@@ -43,13 +43,17 @@ const transcribeAudioElevenLabsFlow = ai.defineFlow(
     // Extract base64 audio data
     const base64Audio = audioDataUri.split(',')[1];
     const audioBuffer = Buffer.from(base64Audio, 'base64');
+    
+    // Determine mime type
+    const mimeType = audioDataUri.substring(audioDataUri.indexOf(':') + 1, audioDataUri.indexOf(';'));
 
     // Call ElevenLabs API to transcribe audio
     const formData = new FormData();
-    formData.append('audio', new Blob([audioBuffer]));
+    formData.append('file', new Blob([audioBuffer], { type: mimeType }), `audio.${mimeType.split('/')[1]}`);
+    formData.append('model_id', 'eleven_multilingual_v2');
 
     const response = await fetch(
-      'https://api.elevenlabs.io/v1/speech-to-text/upload',
+      'https://api.elevenlabs.io/v1/speech-to-text',
       {
         method: 'POST',
         headers: {
@@ -60,8 +64,9 @@ const transcribeAudioElevenLabsFlow = ai.defineFlow(
     );
 
     if (!response.ok) {
+       const errorText = await response.text();
       throw new Error(
-        `ElevenLabs API error: ${response.status} ${response.statusText}`
+        `ElevenLabs API error: ${response.status} ${response.statusText} - ${errorText}`
       );
     }
 

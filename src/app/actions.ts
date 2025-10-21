@@ -4,7 +4,7 @@ import { summarizeTranscribedText } from '@/ai/flows/summarize-transcribed-text'
 import { transcribeAudioElevenLabs } from '@/ai/flows/transcribe-audio-eleven-labs';
 import { z } from 'zod';
 
-const elevenLabsApiKey = 'sk_c2e70bd2315899aa49a41a6faf0e0dfd4fe2c49092bafdc4';
+const elevenLabsApiKey = '7cc899913e75ea4a85dff2d5346940d28f8495a30e92fc1405b09fd33eb0b5f0';
 
 const processAudioSchema = z.object({
   audioDataUri: z.string().refine(val => val.startsWith('data:audio/'), {
