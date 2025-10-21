@@ -7,7 +7,7 @@ export function Header() {
       <div className="container flex h-14 items-center">
         <a className="flex items-center gap-2 font-semibold" href="#">
           <BrainCircuit className="h-6 w-6 text-primary" />
-          <span className="text-lg font-headline">AudioScribe AI</span>
+          <span className="text-lg font-bold">AudioScribe AI</span>
         </a>
       </div>
     </header>
