@@ -4,8 +4,6 @@ import { summarizeTranscribedText } from '@/ai/flows/summarize-transcribed-text'
 import { transcribeAudioElevenLabs } from '@/ai/flows/transcribe-audio-eleven-labs';
 import { z } from 'zod';
 
-const elevenLabsApiKey = '7cc899913e75ea4a85dff2d5346940d28f8495a30e92fc1405b09fd33eb0b5f0';
-
 const processAudioSchema = z.object({
   audioDataUri: z.string().refine(val => val.startsWith('data:audio/'), {
     message: 'Invalid audio data URI',
@@ -33,7 +31,6 @@ export async function processAudio(
     // 1. Transcribe Audio
     const transcriptionResult = await transcribeAudioElevenLabs({
       audioDataUri: validatedFields.data.audioDataUri,
-      elevenLabsApiKey,
     });
 
     if (!transcriptionResult.transcription || transcriptionResult.transcription.trim() === '') {

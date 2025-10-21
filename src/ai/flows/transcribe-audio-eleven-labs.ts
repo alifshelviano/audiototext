@@ -16,7 +16,6 @@ const TranscribeAudioElevenLabsInputSchema = z.object({
     .describe(
       'The audio file data as a data URI that must include a MIME type and use Base64 encoding. Expected format: \'data:<mimetype>;base64,<encoded_data>\'.'
     ),
-  elevenLabsApiKey: z.string().describe('The ElevenLabs API key.'),
 });
 export type TranscribeAudioElevenLabsInput = z.infer<typeof TranscribeAudioElevenLabsInputSchema>;
 
@@ -38,7 +37,12 @@ const transcribeAudioElevenLabsFlow = ai.defineFlow(
     outputSchema: TranscribeAudioElevenLabsOutputSchema,
   },
   async input => {
-    const {audioDataUri, elevenLabsApiKey} = input;
+    const {audioDataUri} = input;
+    const elevenLabsApiKey = process.env.ELEVENLABS_API_KEY;
+
+    if (!elevenLabsApiKey) {
+      throw new Error('ElevenLabs API key is not configured. Please set the ELEVENLABS_API_KEY environment variable.');
+    }
 
     // Extract base64 audio data
     const base64Audio = audioDataUri.split(',')[1];
