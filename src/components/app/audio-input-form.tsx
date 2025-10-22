@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 
 type AudioInputFormProps = {
   onReset: () => void;
+  isPending: boolean;
 };
 
 function SubmitButton({ hasAudio }: { hasAudio: boolean }) {
@@ -32,7 +33,7 @@ function SubmitButton({ hasAudio }: { hasAudio: boolean }) {
   );
 }
 
-export function AudioInputForm({ onReset }: AudioInputFormProps) {
+export function AudioInputForm({ onReset, isPending }: AudioInputFormProps) {
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [isRecording, setIsRecording] = useState(false);
@@ -42,7 +43,6 @@ export function AudioInputForm({ onReset }: AudioInputFormProps) {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const hiddenAudioDataUriInputRef = useRef<HTMLInputElement>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
-  const { pending } = useFormStatus();
 
   const hasAudio = !!audioBlob || !!audioFile;
 
@@ -139,8 +139,8 @@ export function AudioInputForm({ onReset }: AudioInputFormProps) {
           <input type="hidden" name="audioDataUri" ref={hiddenAudioDataUriInputRef} />
           <Tabs defaultValue="record" className="flex-1 flex flex-col">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="record" disabled={pending}><Mic className="mr-2 h-4 w-4" /> Record</TabsTrigger>
-              <TabsTrigger value="upload" disabled={pending}><Upload className="mr-2 h-4 w-4" /> Upload</TabsTrigger>
+              <TabsTrigger value="record" disabled={isPending}><Mic className="mr-2 h-4 w-4" /> Record</TabsTrigger>
+              <TabsTrigger value="upload" disabled={isPending}><Upload className="mr-2 h-4 w-4" /> Upload</TabsTrigger>
             </TabsList>
             <div className="flex-1 mt-4">
               <TabsContent value="record" className="h-full">
@@ -188,8 +188,8 @@ export function AudioInputForm({ onReset }: AudioInputFormProps) {
           </Tabs>
           <div className="mt-6 flex flex-col sm:flex-row gap-2">
             <SubmitButton hasAudio={hasAudio} />
-            {hasAudio && !pending && (
-                <Button type="button" variant="outline" onClick={onReset} className="w-full sm:w-auto">
+            {(hasAudio || isPending) && (
+                <Button type="button" variant="outline" onClick={onReset} className="w-full sm:w-auto" disabled={isPending}>
                     <Trash2 className="h-4 w-4" />
                 </Button>
             )}

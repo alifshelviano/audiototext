@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { useFormStatus } from 'react-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -12,13 +11,10 @@ type SummaryDisplayProps = {
   summary: string;
   onSummaryChange: (value: string) => void;
   hasResult: boolean;
+  isPending: boolean;
 };
 
 function ProcessingState() {
-  const { pending } = useFormStatus();
-
-  if (!pending) return null;
-
   return (
     <div className="space-y-6">
       <div>
@@ -54,11 +50,11 @@ export function SummaryDisplay({
   summary,
   onSummaryChange,
   hasResult,
+  isPending
 }: SummaryDisplayProps) {
-    const { pending } = useFormStatus();
 
-    const showInitialState = !pending && !hasResult;
-    const showResults = !pending && hasResult;
+    const showInitialState = !isPending && !hasResult;
+    const showResults = !isPending && hasResult;
     
     return (
         <Card className="h-full">
@@ -67,7 +63,7 @@ export function SummaryDisplay({
             <CardDescription>Transcription and summary of your audio.</CardDescription>
         </CardHeader>
         <CardContent>
-            {pending && <ProcessingState />}
+            {isPending && <ProcessingState />}
             {showInitialState && <InitialState />}
             {showResults && (
                 <div className="space-y-6 animate-in fade-in-50">

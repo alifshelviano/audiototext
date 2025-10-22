@@ -17,9 +17,9 @@ const initialState: FormState = {
 };
 
 export default function Home() {
-  const [state, formAction] = useActionState(processAudio, initialState);
-  const [formKey, setFormKey] = React.useState(1);
+  const [state, formAction, isPending] = useActionState(processAudio, initialState);
   const [summaryText, setSummaryText] = React.useState('');
+  const formRef = React.useRef<HTMLFormElement>(null);
   const { toast } = useToast();
 
   React.useEffect(() => {
@@ -41,8 +41,12 @@ export default function Home() {
   }, [state.summary, state.transcription]);
   
   const handleReset = () => {
-    setFormKey(prevKey => prevKey + 1); 
+    formRef.current?.reset();
     setSummaryText('');
+    // A proper reset would involve clearing the action state, which is complex.
+    // For now, reloading the page is the simplest and most effective way to truly reset.
+    // A more advanced solution might involve a key swap on the form or a dedicated "reset" action.
+    window.location.reload();
   }
 
   return (
@@ -50,7 +54,7 @@ export default function Home() {
       <Header />
       <main className="flex-1 container mx-auto px-4 py-8 md:py-12">
         <ClientOnly>
-          <form action={formAction} key={formKey} className="space-y-8">
+          <form action={formAction} ref={formRef} className="space-y-8">
               <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
                 <div className="space-y-6 flex flex-col">
                   <div className="text-center lg:text-left">
@@ -61,13 +65,14 @@ export default function Home() {
                       Turn your spoken words into structured summaries. Record a new memo, upload an existing file, and let AI do the rest.
                     </p>
                   </div>
-                  <AudioInputForm onReset={handleReset} />
+                  <AudioInputForm onReset={handleReset} isPending={isPending}/>
                 </div>
                 <SummaryDisplay
                   transcription={state.transcription}
                   summary={summaryText}
                   onSummaryChange={setSummaryText}
                   hasResult={!!state.summary || !!state.transcription}
+                  isPending={isPending}
                 />
               </div>
           </form>
