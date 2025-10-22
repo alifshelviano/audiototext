@@ -30,6 +30,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  env: {
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+    ELEVENLABS_API_KEY: process.env.ELEVENLABS_API_KEY,
+    JWT_SECRET: process.env.JWT_SECRET,
+    MONGODB_URI: process.env.MONGODB_URI,
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+  },
 };
 
 export default nextConfig;
