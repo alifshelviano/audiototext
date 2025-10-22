@@ -1,4 +1,4 @@
-# **App Name**: AudioScribe AI
+# **App Name**: LISN
 
 ## Core Features:
 
