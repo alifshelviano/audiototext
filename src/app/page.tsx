@@ -8,7 +8,6 @@ import { processAudio, type FormState } from '@/app/actions';
 import { Header } from '@/components/app/header';
 import { AudioInputForm } from '@/components/app/audio-input-form';
 import { SummaryDisplay } from '@/components/app/summary-display';
-import { ClientOnly } from '@/components/app/client-only';
 
 const initialState: FormState = {
   summary: undefined,
@@ -19,6 +18,7 @@ const initialState: FormState = {
 export default function Home() {
   const [state, formAction, isPending] = useActionState(processAudio, initialState);
   const [summaryText, setSummaryText] = React.useState('');
+  const [formKey, setFormKey] = React.useState(Date.now());
   const formRef = React.useRef<HTMLFormElement>(null);
   const { toast } = useToast();
 
@@ -39,22 +39,22 @@ export default function Home() {
       setSummaryText('');
     }
   }, [state.summary, state.transcription]);
-  
+
   const handleReset = () => {
     formRef.current?.reset();
     setSummaryText('');
-    // A proper reset would involve clearing the action state, which is complex.
-    // For now, reloading the page is the simplest and most effective way to truly reset.
-    // A more advanced solution might involve a key swap on the form or a dedicated "reset" action.
-    window.location.reload();
+    // Resetting the form by changing the key is a reliable way to clear its state
+    setFormKey(Date.now());
+    // We also clear the server action state by calling it with no data.
+    // This is a bit of a workaround for the lack of a built-in reset for useActionState.
+    formAction(new FormData());
   }
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-background">
       <Header />
       <main className="flex-1 container mx-auto px-4 py-8 md:py-12">
-        <ClientOnly>
-          <form action={formAction} ref={formRef} className="space-y-8">
+          <form action={formAction} ref={formRef} key={formKey} className="space-y-8">
               <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
                 <div className="space-y-6 flex flex-col">
                   <div className="text-center lg:text-left">
@@ -76,7 +76,6 @@ export default function Home() {
                 />
               </div>
           </form>
-        </ClientOnly>
       </main>
     </div>
   );
