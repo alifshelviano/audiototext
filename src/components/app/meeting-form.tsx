@@ -6,7 +6,7 @@ import {createMeeting} from '@/app/meetings';
 import {Button} from '@/components/ui/button';
 import {QRCodeDisplay} from '@/components/app/qr-code-display';
 
-export function MeetingForm() {
+export function MeetingForm({onMeetingCreated}: {onMeetingCreated: () => void}) {
   const [meetingId, setMeetingId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -15,6 +15,7 @@ export function MeetingForm() {
     startTransition(async () => {
       const {meetingId} = await createMeeting();
       setMeetingId(meetingId);
+      onMeetingCreated();
     });
   };
 

@@ -4,16 +4,23 @@ import {z} from 'zod';
 import clientPromise from '@/lib/mongodb';
 import {summarizeTranscribedText} from '@/ai/flows/summarize-transcribed-text';
 import {transcribeAudioElevenLabs} from '@/ai/flows/transcribe-audio-eleven-labs';
+import {getServerSession} from 'next-auth/next';
+import {authOptions} from '@/app/api/auth/[...nextauth]/route';
 
 const createMeetingSchema = z.object({});
 
 export async function createMeeting() {
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user || !session.user.email) {
+    throw new Error('Unauthorized');
+  }
+
   const client = await clientPromise;
   const db = client.db('meetings');
   const meetings = db.collection('meetings');
 
   const meetingId = Math.random().toString(36).substring(2, 15);
-  await meetings.insertOne({_id: meetingId, transcripts: []});
+  await meetings.insertOne({_id: meetingId, transcripts: [], host: session.user.email});
 
   return {meetingId};
 }

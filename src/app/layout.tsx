@@ -1,6 +1,7 @@
 import type {Metadata} from 'next';
 import './globals.css';
-import { Toaster } from '@/components/ui/toaster';
+import {Toaster} from '@/components/ui/toaster';
+import AuthProvider from './AuthProvider';
 
 export const metadata: Metadata = {
   title: 'AudioScribe AI',
@@ -20,8 +21,10 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
-        {children}
-        <Toaster />
+        <AuthProvider>
+          {children}
+          <Toaster />
+        </AuthProvider>
       </body>
     </html>
   );
