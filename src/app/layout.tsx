@@ -1,28 +1,18 @@
-import type {Metadata} from 'next';
+'use client';
+
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
 import './globals.css';
-import { Toaster } from '@/components/ui/toaster';
+import { SessionProvider } from 'next-auth/react';
 
-export const metadata: Metadata = {
-  title: 'AudioScribe AI',
-  description: 'Record, Transcribe, and Summarize your audio with AI.',
-};
+const inter = Inter({ subsets: ['latin'] });
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="light">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
-      </head>
-      <body className="font-body antialiased">
-        {children}
-        <Toaster />
-      </body>
-    </html>
+    <SessionProvider>
+      <html lang="en">
+        <body className={inter.className}>{children}</body>
+      </html>
+    </SessionProvider>
   );
 }
