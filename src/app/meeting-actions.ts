@@ -14,15 +14,14 @@ export async function createMeeting(formData: FormData) {
   const meetingId = Math.random().toString(36).substring(2, 8);
   const { password } = createMeetingSchema.parse(Object.fromEntries(formData));
   const session = await auth();
-  const user = session?.user;
 
-  if (!user) {
+  if (!session?.user) {
     return { error: 'You must be logged in to create a meeting' };
   }
 
   const meeting = await db.meetings.create({
     meetingId,
-    userId: user.id,
+    userId: session.user.id,
     ...(password && { password }),
   });
 

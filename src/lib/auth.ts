@@ -1,4 +1,3 @@
-'use server';
 
 /**
  * @fileOverview Authentication
@@ -17,7 +16,7 @@ if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
   );
 }
 
-export const { handlers, signIn, signOut } = NextAuth({
+export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
@@ -47,8 +46,3 @@ export const { handlers, signIn, signOut } = NextAuth({
     strategy: 'jwt',
   },
 });
-
-export const auth = async () => {
-  const session = await NextAuth();
-  return session;
-};
