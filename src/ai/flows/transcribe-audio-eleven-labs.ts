@@ -8,7 +8,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 
 const TranscribeAudioElevenLabsInputSchema = z.object({
   audioDataUri: z
@@ -30,7 +30,7 @@ export async function transcribeAudioElevenLabs(
   return transcribeAudioElevenLabsFlow(input);
 }
 
-const transcribeAudioElevenLabsFlow = ai.defineFlow(
+export const transcribeAudioElevenLabsFlow = ai.defineFlow(
   {
     name: 'transcribeAudioElevenLabsFlow',
     inputSchema: TranscribeAudioElevenLabsInputSchema,

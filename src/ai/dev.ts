@@ -1,5 +1,11 @@
-import { config } from 'dotenv';
-config();
+import {transcribeAudioElevenLabsFlow} from './flows/transcribe-audio-eleven-labs';
+import {summarizeTranscribedTextFlow} from './flows/summarize-transcribed-text';
 
-import '@/ai/flows/transcribe-audio-eleven-labs.ts';
-import '@/ai/flows/summarize-transcribed-text.ts';
+// To start the flow, run `genkit start`
+// You can view the flow in the Genkit developer UI
+// To call the flow from your app, use the Genkit SDK
+// See https://firebase.google.com/docs/genkit/get-started
+
+export default {
+  flows: [transcribeAudioElevenLabsFlow, summarizeTranscribedTextFlow],
+};

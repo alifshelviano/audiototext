@@ -1,76 +1,53 @@
+
 'use client';
 
-import {Header} from '@/components/app/header';
-import {MeetingForm} from '@/components/app/meeting-form';
-import {useSession, signOut} from 'next-auth/react';
-import {useEffect, useState, useCallback} from 'react';
-import {useRouter} from 'next/navigation';
+import { Header } from '@/components/app/header';
+import { MeetingForm } from '@/components/app/meeting-form';
+import { useEffect, useState, useCallback } from 'react';
+
+// Define a type for your meeting objects
+interface Meeting {
+  id: string;
+  name: string;
+  time: string;
+}
 
 export default function Page() {
-  const {data: session, status} = useSession();
-  const router = useRouter();
-  const [meetings, setMeetings] = useState([]);
+  // Use the Meeting type to properly type your state
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
 
   const fetchMeetings = useCallback(() => {
-    if (status === 'authenticated') {
-      fetch('/api/meetings')
-        .then((res) => {
-          if (res.ok) {
-            return res.json();
-          }
-          return Promise.resolve([]); // Non-ok response, resolve with empty array
-        })
-        .then((data) => {
-          setMeetings(Array.isArray(data) ? data : []); // Ensure data is an array
-        })
-        .catch((error) => {
-          console.error('Failed to fetch meetings:', error);
-          setMeetings([]); // Set to empty array on any error
-        });
-    }
-  }, [status]);
+    fetch('/api/meetings')
+      .then((res) => res.json())
+      .then((data) => setMeetings(Array.isArray(data) ? data : []));
+  }, []);
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login');
-    }
     fetchMeetings();
-  }, [status, router, fetchMeetings]);
-
-  if (status === 'loading') {
-    return <div>Loading...</div>;
-  }
-
-  if (!session) {
-    return null;
-  }
+  }, [fetchMeetings]);
 
   return (
-    <main className="flex flex-col h-screen">
+    <main className="bg-background min-h-screen antialiased">
       <Header />
-      <div className="flex flex-1 overflow-hidden">
-        <div className="flex-1 overflow-y-auto p-8">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-2xl font-bold">Welcome, {session.user?.name}</h1>
-            <button
-              onClick={() => signOut({callbackUrl: '/login'})}
-              className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
-            >
-              Sign Out
-            </button>
+      <div className="container mx-auto p-4">
+        <div className="grid gap-12 md:grid-cols-2">
+          <div className="flex flex-col gap-4">
+            <h2 className="text-2xl font-bold">Create a New Meeting</h2>
+            <MeetingForm onMeetingCreated={fetchMeetings} />
           </div>
-          <MeetingForm onMeetingCreated={fetchMeetings} />
-          <div className="mt-8">
-            <h2 className="text-xl font-bold mb-4">Your Meetings</h2>
-            <ul className="space-y-4">
-              {Array.isArray(meetings) && meetings.map((meeting: any) => (
-                <li key={meeting._id} className="bg-white p-4 rounded-lg shadow-md">
-                  <a href={`/meeting/${meeting._id}`} className="text-blue-500 hover:underline">
-                    {meeting._id}
-                  </a>
-                </li>
-              ))}
-            </ul>
+          <div className="flex flex-col gap-4">
+            <h2 className="text-2xl font-bold">Existing Meetings</h2>
+            <div className="bg-card p-4 rounded-lg shadow-sm border">
+              <ul className="space-y-2">
+                {meetings.map((meeting) => (
+                  <li key={meeting.id}>
+                    <a href={`/meeting/${meeting.id}/join`} className="text-blue-500 hover:underline">
+                      {meeting.name} - {new Date(meeting.time).toLocaleString()}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       </div>

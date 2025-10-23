@@ -1,53 +1,50 @@
 'use server';
 
-/**
- * @fileOverview Summarizes transcribed text using Gemini.
- *
- * - summarizeTranscribedText - A function that takes transcribed text as input and returns a summary.
- * - SummarizeTranscribedTextInput - The input type for the summarizeTranscribedText function.
- * - SummarizeTranscribedTextOutput - The return type for the summarizeTranscribedText function.
- */
-
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
+import {getMeeting} from '@/app/meetings';
 
 const SummarizeTranscribedTextInputSchema = z.object({
-  transcribedText: z
-    .string()
-    .describe('The transcribed text to be summarized.'),
+  meetingId: z.string().describe('The ID of the meeting to summarize.'),
 });
 export type SummarizeTranscribedTextInput = z.infer<
   typeof SummarizeTranscribedTextInputSchema
 >;
 
 const SummarizeTranscribedTextOutputSchema = z.object({
-  summary: z.string().describe('A concise summary of the transcribed text.'),
+    summary: z.string().describe('The summarized text.'),
 });
 export type SummarizeTranscribedTextOutput = z.infer<
-  typeof SummarizeTranscribedTextOutputSchema
+    typeof SummarizeTranscribedTextOutputSchema
 >;
 
-export async function summarizeTranscribedText(
-  input: SummarizeTranscribedTextInput
-): Promise<SummarizeTranscribedTextOutput> {
-  return summarizeTranscribedTextFlow(input);
-}
-
-const prompt = ai.definePrompt({
-  name: 'summarizeTranscribedTextPrompt',
-  input: {schema: SummarizeTranscribedTextInputSchema},
-  output: {schema: SummarizeTranscribedTextOutputSchema},
-  prompt: `Summarize the following text: {{{transcribedText}}}`,
-});
-
-const summarizeTranscribedTextFlow = ai.defineFlow(
+export const summarizeTranscribedTextFlow = ai.defineFlow(
   {
     name: 'summarizeTranscribedTextFlow',
     inputSchema: SummarizeTranscribedTextInputSchema,
     outputSchema: SummarizeTranscribedTextOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
+  async (input: SummarizeTranscribedTextInput): Promise<SummarizeTranscribedTextOutput> => {
+    const meeting = await getMeeting({meetingId: input.meetingId});
+    const transcribedText = meeting?.transcripts
+      ?.map((t: any) => `${t.name}: ${t.transcript}`)
+      .join('\n');
+
+    if (!transcribedText) {
+        return {summary: 'No transcripts to summarize.'};
+    }
+
+    const prompt = `Summarize the following meeting transcripts:\n\n${transcribedText}`;
+
+    const llmResponse = await ai.generate({prompt});
+    const summary = llmResponse.text;
+
+    return {summary};
   }
 );
+
+export async function summarizeTranscribedText(
+    input: SummarizeTranscribedTextInput
+    ): Promise<SummarizeTranscribedTextOutput> {
+    return summarizeTranscribedTextFlow(input);
+}
