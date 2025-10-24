@@ -17,7 +17,7 @@
 
   # Options for setting up your workspace.
   # Check https://devenv.sh/basics/options/ for all options.
-  options = {};
+  un  = {};
 
   # Settings for the browser extension.
   # Check https://devenv.sh/guides/browser-extension/ for all options.
