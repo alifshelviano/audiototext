@@ -1,7 +1,25 @@
 'use server';
 
+import {summarizeTranscribedText} from '@/ai/flows/summarize-transcribed-text';
 import clientPromise from '@/lib/mongodb';
-import {InsertOneResult, ObjectId} from 'mongodb';
+import {InsertOneResult, ObjectId, Document} from 'mongodb';
+
+// Define interfaces for type safety
+export interface Transcript {
+  name: string;
+  transcript: string;
+  summary?: string;
+  createdAt: Date;
+}
+
+export interface Meeting extends Document {
+  name: string;
+  time: string;
+  createdAt: Date;
+  transcripts: Transcript[];
+  summary?: string;
+  summaryCreatedAt?: Date;
+}
 
 export async function createMeeting(meetingData: {
   name: string;
@@ -9,10 +27,13 @@ export async function createMeeting(meetingData: {
 }): Promise<InsertOneResult<Document>> {
   const client = await clientPromise;
   const db = client.db();
-  // Add validation or sanitation as needed
-  const result = await db.collection('meetings').insertOne({
+  const meetingsCollection = db.collection<Meeting>('meetings');
+
+  // Create a new meeting with an empty transcripts array
+  const result = await meetingsCollection.insertOne({
     ...meetingData,
     createdAt: new Date(),
+    transcripts: [],
   });
   return result;
 }
@@ -20,8 +41,9 @@ export async function createMeeting(meetingData: {
 export async function getMeetings() {
   const client = await clientPromise;
   const db = client.db();
-  const meetings = await db.collection('meetings').find({}).sort({time: -1}).toArray();
-  return meetings.map((meeting) => ({
+  const meetingsCollection = db.collection<Meeting>('meetings');
+  const meetings = await meetingsCollection.find({}).sort({time: -1}).toArray();
+  return meetings.map(meeting => ({
     id: meeting._id.toHexString(),
     name: meeting.name,
     time: meeting.time,
@@ -36,8 +58,9 @@ export async function getMeeting({meetingId}: {meetingId: string}) {
 
   const client = await clientPromise;
   const db = client.db();
+  const meetingsCollection = db.collection<Meeting>('meetings');
 
-  const meeting = await db.collection('meetings').findOne({
+  const meeting = await meetingsCollection.findOne({
     _id: new ObjectId(meetingId),
   });
 
@@ -50,6 +73,7 @@ export async function getMeeting({meetingId}: {meetingId: string}) {
     name: meeting.name,
     time: meeting.time,
     transcripts: meeting.transcripts || [],
+    summary: meeting.summary,
   };
 }
 
@@ -58,36 +82,38 @@ export async function addTranscriptToMeeting({
   transcript,
 }: {
   meetingId: string;
-  transcript: {
-    name: string;
-    transcript: string;
-    summary?: string;
-    createdAt: Date;
-  };
+  transcript: Transcript;
 }) {
   const client = await clientPromise;
   const db = client.db();
-  const result = await db.collection('meetings').updateOne(
-    {_id: new ObjectId(meetingId)},
-    {$push: {transcripts: transcript}}
-  );
-  return result;
-}
+  const meetingsCollection = db.collection<Meeting>('meetings');
 
-export async function addSummaryToMeeting({
-  meetingId,
-  transcriptName,
-  summary,
-}: {
-  meetingId: string;
-  transcriptName: string;
-  summary: string;
-}) {
-  const client = await clientPromise;
-  const db = client.db();
-  const result = await db.collection('meetings').updateOne(
-    {_id: new ObjectId(meetingId), 'transcripts.name': transcriptName},
-    {$set: {'transcripts.$.summary': summary}}
+  // 1. Fetch the existing meeting
+  const currentMeeting = await getMeeting({meetingId});
+  if (!currentMeeting) {
+    throw new Error('Meeting not found');
+  }
+
+  // 2. Update the transcripts array in memory
+  const updatedTranscripts = [...currentMeeting.transcripts, transcript];
+
+  // 3. Generate the summary from the updated transcripts
+  const transcribedText = updatedTranscripts
+    .map(t => `${t.name}: ${t.transcript}`)
+    .join('\n');
+  const {summary} = await summarizeTranscribedText({transcribedText: transcribedText || ''});
+
+  // 4. Perform a single update with $set
+  const result = await meetingsCollection.updateOne(
+    {_id: new ObjectId(meetingId)},
+    {
+      $set: {
+        transcripts: updatedTranscripts,
+        summary: summary,
+        summaryCreatedAt: new Date(),
+      },
+    }
   );
+
   return result;
 }

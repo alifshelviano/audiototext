@@ -2,10 +2,9 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
-import {getMeeting} from '@/app/meetings';
 
 const SummarizeTranscribedTextInputSchema = z.object({
-  meetingId: z.string().describe('The ID of the meeting to summarize.'),
+  transcribedText: z.string().describe('The transcribed text to summarize.'),
 });
 export type SummarizeTranscribedTextInput = z.infer<
   typeof SummarizeTranscribedTextInputSchema
@@ -25,16 +24,12 @@ export const summarizeTranscribedTextFlow = ai.defineFlow(
     outputSchema: SummarizeTranscribedTextOutputSchema,
   },
   async (input: SummarizeTranscribedTextInput): Promise<SummarizeTranscribedTextOutput> => {
-    const meeting = await getMeeting({meetingId: input.meetingId});
-    const transcribedText = meeting?.transcripts
-      ?.map((t: any) => `${t.name}: ${t.transcript}`)
-      .join('\n');
 
-    if (!transcribedText) {
+    if (!input.transcribedText) {
         return {summary: 'No transcripts to summarize.'};
     }
 
-    const prompt = `Summarize the following meeting transcripts:\n\n${transcribedText}`;
+    const prompt = `Summarize the following meeting transcripts:\n\n${input.transcribedText}`;
 
     const llmResponse = await ai.generate({prompt});
     const summary = llmResponse.text;

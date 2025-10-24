@@ -1,14 +1,13 @@
 'use client';
 
-import {useState, useRef, useTransition, useEffect} from 'react';
+import {useState, useRef, useTransition} from 'react';
 import {useForm} from 'react-hook-form';
 import {z} from 'zod';
 import {zodResolver} from '@hookform/resolvers/zod';
-import {addTranscriptToMeeting, addSummaryToMeeting} from '@/app/meetings';
+import {addTranscriptToMeeting} from '@/app/meetings';
 import {Button} from '@/components/ui/button';
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
-import {summarizeTranscribedText} from '@/ai/flows/summarize-transcribed-text';
 import {transcribeAudioElevenLabs} from '@/ai/flows/transcribe-audio-eleven-labs';
 
 const formSchema = z.object({
@@ -133,18 +132,14 @@ export function AudioInputForm({meetingId}: AudioInputFormProps) {
       const {transcription} = await transcribeAudioElevenLabs({audioDataUri});
       await addTranscriptToMeeting({
         meetingId,
-        transcript: transcription,
-        name: form.getValues('name'),
+        transcript: {
+          name: form.getValues('name'),
+          transcript: transcription,
+          createdAt: new Date(),
+        },
       });
     });
   }
-
-  const handleSummarize = () => {
-    startTransition(async () => {
-      const {summary} = await summarizeTranscribedText({meetingId});
-      await addSummaryToMeeting({meetingId, summary});
-    });
-  };
 
   return (
     <Form {...form}>
@@ -173,12 +168,10 @@ export function AudioInputForm({meetingId}: AudioInputFormProps) {
               Stop Recording
             </Button>
           )}
-          <Button onClick={handleSummarize} disabled={isPending}>
-            Summarize
-          </Button>
           {isPending && <p>Processing...</p>}
         </div>
       </div>
     </Form>
   );
 }
+                      
