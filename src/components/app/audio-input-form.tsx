@@ -8,7 +8,7 @@ import {addTranscriptToMeeting} from '@/app/meetings';
 import {Button} from '@/components/ui/button';
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
-import {transcribeAudioElevenLabs} from '@/ai/flows/transcribe-audio-eleven-labs';
+import {transcribeAudioOpenAI} from '@/ai/flows/transcribe-audio-openai';
 
 const formSchema = z.object({
   name: z.string().min(2, {message: 'Name must be at least 2 characters.'}),
@@ -127,10 +127,27 @@ export function AudioInputForm({meetingId}: AudioInputFormProps) {
     }
   };
 
-  async function onSubmit(audioDataUri: string) {
-    startTransition(async () => {
-      const {transcription} = await transcribeAudioElevenLabs({audioDataUri});
-      await addTranscriptToMeeting({
+  // async function onSubmit(audioDataUri: string) {
+  //   startTransition(async () => {
+  //     const {transcription} = await transcribeAudioOpenAI({audioDataUri});
+  //     await addTranscriptToMeeting({
+  //       meetingId,
+  //       transcript: {
+  //         name: form.getValues('name'),
+  //         transcript: transcription,
+  //         createdAt: new Date(),
+  //       },
+  //     });
+  //   });
+  // }
+
+  // In your AudioInputForm
+async function onSubmit(audioDataUri: string) {
+  startTransition(async () => {
+    try {
+      const {transcription} = await transcribeAudioOpenAI({audioDataUri});
+      
+      const result = await addTranscriptToMeeting({
         meetingId,
         transcript: {
           name: form.getValues('name'),
@@ -138,8 +155,18 @@ export function AudioInputForm({meetingId}: AudioInputFormProps) {
           createdAt: new Date(),
         },
       });
-    });
-  }
+
+      if (result.success) {
+        console.log('Transcript added successfully');
+        form.reset();
+      } else {
+        console.error('Failed to add transcript:', result.error);
+      }
+    } catch (error) {
+      console.error('Error in transcription process:', error);
+    }
+  });
+}
 
   return (
     <Form {...form}>
@@ -174,4 +201,3 @@ export function AudioInputForm({meetingId}: AudioInputFormProps) {
     </Form>
   );
 }
-                      
