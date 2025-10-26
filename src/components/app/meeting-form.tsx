@@ -1,73 +1,132 @@
 'use client';
 
-import {useState, useTransition} from 'react';
-import {useRouter} from 'next/navigation';
-import {createMeeting} from '@/app/meetings';
-import {Button} from '@/components/ui/button';
-import {Input} from '@/components/ui/input';
-import {Label} from '@/components/ui/label';
-import {QRCodeDisplay} from '@/components/app/qr-code-display';
+import { useState } from 'react';
 
-export function MeetingForm({onMeetingCreated}: {onMeetingCreated: () => void}) {
-  const [meetingId, setMeetingId] = useState<string | null>(null);
+interface MeetingFormProps {
+  onMeetingCreated: (meetingId: string) => void;
+}
+
+export function MeetingForm({ onMeetingCreated }: MeetingFormProps) {
   const [name, setName] = useState('');
-  const [time, setTime] = useState('');
-  const [isPending, startTransition] = useTransition();
-  const router = useRouter();
+  const [time, setTime] = useState(getDefaultTime());
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleCreateMeeting = () => {
-    startTransition(async () => {
-      const {meetingId} = await createMeeting({name, time});
-      setMeetingId(meetingId);
-      onMeetingCreated();
-    });
-  };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
 
-  const handleJoinMeeting = () => {
-    if (meetingId) {
-      router.push(`/meeting/${meetingId}`);
+    try {
+      const response = await fetch('/api/meetings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, time }),
+      });
+
+      // Check if response is OK
+      if (!response.ok) {
+        let errorMessage = 'Failed to create meeting';
+        
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch {
+          // If response is not JSON, get text
+          const errorText = await response.text();
+          errorMessage = errorText || errorMessage;
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      // Parse successful response
+      const data = await response.json();
+
+      // Call the callback with the meeting ID
+      if (data.meetingId) {
+        onMeetingCreated(data.meetingId);
+      } else if (data.id) {
+        onMeetingCreated(data.id);
+      } else {
+        throw new Error('No meeting ID returned from server');
+      }
+
+      // Reset form
+      setName('');
+      setTime(getDefaultTime());
+
+    } catch (err: any) {
+      console.error('Meeting creation error:', err);
+      setError(err.message || 'Failed to create meeting. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  if (meetingId) {
-    const meetingUrl = `${window.location.origin}/meeting/${meetingId}`;
-    return (
-      <div className="flex flex-col items-center space-y-4">
-        <QRCodeDisplay url={meetingUrl} />
-        <p className="text-lg font-medium">Or join by sharing this link:</p>
-        <a href={meetingUrl} className="text-blue-500 hover:underline">
-          {meetingUrl}
-        </a>
-        <Button onClick={handleJoinMeeting} className="mt-4">
-          Join Meeting
-        </Button>
-      </div>
-    );
+  // Generate default time (current time + 1 hour)
+  function getDefaultTime() {
+    const now = new Date();
+    now.setHours(now.getHours() + 1);
+    return now.toISOString().slice(0, 16);
   }
 
   return (
-    <div className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-800 text-sm">{error}</p>
+        </div>
+      )}
+      
       <div>
-        <Label htmlFor="name">Meeting Name</Label>
-        <Input
+        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+          Meeting Name *
+        </label>
+        <input
           id="name"
+          type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Enter meeting name"
+          placeholder="e.g., Team Standup, Project Review..."
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          required
+          disabled={isLoading}
         />
       </div>
+      
       <div>
-        <Label htmlFor="time">Time</Label>
-        <Input
+        <label htmlFor="time" className="block text-sm font-medium text-gray-700 mb-1">
+          Meeting Time *
+        </label>
+        <input
           id="time"
           type="datetime-local"
           value={time}
           onChange={(e) => setTime(e.target.value)}
+          min={new Date().toISOString().slice(0, 16)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          required
+          disabled={isLoading}
         />
       </div>
-      <Button onClick={handleCreateMeeting} disabled={isPending || !name || !time}>
-        {isPending ? 'Creating Meeting...' : 'Create New Meeting'}
-      </Button>
-    </div>
+      
+      <button
+        type="submit"
+        disabled={isLoading || !name || !time}
+        className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+      >
+        {isLoading ? (
+          <span className="flex items-center justify-center gap-2">
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            Creating Meeting Room...
+          </span>
+        ) : (
+          'Create Meeting Room'
+        )}
+      </button>
+    </form>
   );
 }

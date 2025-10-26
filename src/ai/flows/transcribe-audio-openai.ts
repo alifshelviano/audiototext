@@ -57,7 +57,7 @@ const transcribeAudioOpenAIFlow = ai.defineFlow(
     formData.append('file', new Blob([audioBuffer], { type: mimeType }), `audio.${fileExtension}`);
     formData.append('model', 'whisper-large-v3');
     formData.append('return_timestamps', 'true'); // Required for long audio
-    formData.append('language', 'indonesian'); // ganti bahasa indonesian/english/korean
+    formData.append('language', 'indonesian'); // change language auto ? indonesian/english/korean
 
     console.log('Sending audio to Elice Whisper with timestamps enabled...');
 
@@ -145,7 +145,7 @@ const transcribeAudioOpenAIFlow = ai.defineFlow(
 
     // Clean up the transcription - remove any repeated phrases or artifacts
     if (transcription) {
-      // Basic cleaning for repeated phrases (like the "it's so colorful" issue)
+      // Basic cleaning for repeated phrases 
       const words = transcription.split(' ');
       const uniqueWords: string[] = [];
       let repeatCount = 0;
@@ -168,6 +168,6 @@ const transcribeAudioOpenAIFlow = ai.defineFlow(
     console.log('Final transcription length:', transcription.length);
     console.log('Transcription preview:', transcription.substring(0, 200) + '...');
 
-    return {transcription};
+    return {transcription: transcription || ''};
   }
 );
