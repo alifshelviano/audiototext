@@ -99,16 +99,19 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   callbacks: {
-    async jwt({ token, user, account }) {
-      // Initial sign in
+    // This callback ensures the user ID is always in the token's subject
+    async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
+        // On sign-in, `user` is passed. We persist the user's database ID to the token's `sub` claim.
+        token.sub = user.id;
       }
       return token;
     },
+    // This callback makes the user ID available in the client-side session object
     async session({ session, token }) {
-      if (token) {
-        session.user.id = token.id as string;
+      if (session.user && token.sub) {
+        // We expose the user ID (from the token's subject) to the session object
+        session.user.id = token.sub;
       }
       return session;
     },

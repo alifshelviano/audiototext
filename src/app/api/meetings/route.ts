@@ -1,8 +1,15 @@
-import { NextResponse } from 'next/server';
-import { createMeeting, getMeetings } from '@/app/meetings';
 
-export async function POST(req: Request) {
+import { NextRequest, NextResponse } from 'next/server';
+import { createMeeting, getMeetings } from '@/app/meetings';
+import { getToken } from 'next-auth/jwt';
+
+export async function POST(req: NextRequest) {
   try {
+    const token = await getToken({ req });
+    if (!token || !token.sub) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+
     const { name, time } = await req.json();
 
     if (!name || !time) {
@@ -13,7 +20,7 @@ export async function POST(req: Request) {
     }
 
     // Use the server action to create the meeting
-    const { meetingId } = await createMeeting({ name, time });
+    const { meetingId } = await createMeeting({ name, time, ownerId: token.sub });
 
     return NextResponse.json(
       { 
