@@ -37,7 +37,10 @@ export default function MeetingPage() {
         <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
           <h1 className="text-3xl font-bold mb-2 text-center text-gray-800">{meeting.name}</h1>
           <p className="text-center text-gray-500 mb-6">{new Date(meeting.time).toLocaleString()}</p>
-          <QRCodeDisplay url={meetingUrl} />
+          <div className="flex flex-col items-center">
+            <QRCodeDisplay url={meetingUrl} />
+            <a href={meetingUrl} className="text-blue-600 hover:underline mt-4">{meetingUrl}</a>
+          </div>
         </div>
       </div>
     </main>

@@ -728,13 +728,14 @@
 
 import {useEffect, useState, useCallback, useRef} from 'react';
 import {useRouter, usePathname} from 'next/navigation';
+import { QRCodeDisplay } from '@/components/app/qr-code-display';
 import {getMeeting} from '@/app/meetings';
 import { analyzeMeeting, shouldAutoAnalyze } from '@/lib/meeting-analysis';
 import { RecordingControls } from '@/components/app/recording-controls';
 import { Header } from '@/components/app/header';
 import { Sidebar } from '@/components/app/sidebar';
 import { 
-  Mic, MessageSquare, BarChart, FileText, Clock, Users, Calendar, 
+  Mic, MessageSquare, BarChart, FileText, Clock, Users, Calendar, Share2,
   ChevronDown, ChevronUp, Download, Mail, Calendar as CalendarIcon,
   RefreshCw, CheckCircle, AlertCircle, Heart, Smile, Frown, Meh,
   TrendingUp, TrendingDown, Minus, Zap
@@ -823,6 +824,7 @@ export default function JoinMeetingPage() {
   const [analysisStatus, setAnalysisStatus] = useState<'idle' | 'analyzing' | 'success' | 'error'>('idle');
   const [lastAnalysisTime, setLastAnalysisTime] = useState<Date | null>(null);
   const transcriptsContainerRef = useRef<HTMLDivElement>(null);
+  const [showInviteModal, setShowInviteModal] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -1127,6 +1129,7 @@ export default function JoinMeetingPage() {
       default:
         return null;
     }
+    
   };
 
   const renderTranscripts = () => {
@@ -1734,8 +1737,8 @@ export default function JoinMeetingPage() {
                         </span>
                         
                         {showParticipants && (
-                          <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-200 z-50">
-                            <div className="p-4">
+                          <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-200 z-[100]">
+                            <div className="p-4 border border-red-500"> {/* Added temporary border */}
                               <h4 className="font-semibold text-gray-900 mb-3">Participants</h4>
                               <div className="space-y-2 max-h-60 overflow-y-auto">
                                 {uniqueParticipants.map((participant, index) => (
@@ -1753,6 +1756,16 @@ export default function JoinMeetingPage() {
                           </div>
                         )}
                       </div>
+                      {/* Invite Button */}
+                      <Button
+                        onClick={() => setShowInviteModal(true)}
+                        variant="outline"
+                        size="sm"
+                        className="ml-auto hover:bg-gray-100 border-gray-200"
+                      >
+                        <Share2 className="w-4 h-4 mr-2" />
+                        Invite
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -1913,6 +1926,46 @@ export default function JoinMeetingPage() {
               onTranscriptAdded={handleTranscriptAdded}
               compact={true}
             />
+          </div>
+        </div>
+      )}
+
+      {/* Invite Modal */}
+      {showInviteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-lg max-w-md w-full p-6 relative overflow-y-auto max-h-[90vh]">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4 pr-10">Invite to Meeting</h2>
+            <p className="text-gray-600 mb-6">Share this link with participants to join the meeting.</p>
+            
+            {/* QR Code and Link */}
+            <div className="flex flex-col items-center justify-center p-6 rounded-lg border border-gray-200 bg-white shadow-inner max-w-xs mx-auto">
+              {meetingId && typeof window !== 'undefined' && (
+                <>
+                  <div className="mb-4">
+
+                    {typeof window !== 'undefined' && meetingId && (
+                      <QRCodeDisplay 
+                        url={`${window.location.origin}/meeting/${meetingId}/join`} 
+                      />
+                    )}
+                    
+                  </div>
+                  <p className="text-sm font-semibold text-gray-700 mb-2 text-center">Meeting Join Link:</p>
+                  <a 
+                    href={`${window.location.origin}/meeting/${meetingId}/join`} 
+                    className="text-blue-600 hover:underline text-center break-all"
+                    target="_blank" // Open link in new tab
+                    rel="noopener noreferrer" // Security best practice
+                  >
+                    {`${window.location.origin}/meeting/${meetingId}/join`}
+                  </a>
+                </>
+              )}
+            </div> {/* End QR Code and Link container */}
+
+            {/* Corrected and kept the close button with '&times;' */}
+            <button onClick={() => setShowInviteModal(false)} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold pr-4">&times;</button>
+            
           </div>
         </div>
       )}
