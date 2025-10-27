@@ -47,8 +47,20 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     }
   };
 
-  const logout = () => {
-    signOut({ callbackUrl: '/login' });
+ const logout = async () => {
+    try {
+      // Clear the user state first
+      setUser(null);
+      // Then sign out
+      await signOut({ 
+        callbackUrl: '/login',
+        redirect: true 
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Force redirect to login page if there's an error
+      window.location.href = '/login';
+    }
   };
 
   return (
