@@ -543,66 +543,6 @@ export async function generateMeetingSummary({
   }
 }
 
-// export async function generateMeetingSummary({
-//   meetingId,
-//   transcripts
-// }: {
-//   meetingId: string;
-//   transcripts: any[];
-// }): Promise<{success: boolean; summary?: any; error?: string}> {
-//   try {
-//     if (!transcripts || transcripts.length === 0) {
-//       return {success: false, error: 'No transcripts available'};
-//     }
-
-//     // Combine all transcripts into a single text
-//     const combinedTranscript = transcripts
-//       .map((t: any) => `${t.name}: ${t.transcript}`)
-//       .join('\n\n');
-
-//     // Call the Gemini flow
-//     const result = await summarizeTranscribedText({
-//       transcribedText: combinedTranscript
-//     });
-
-//     // Parse the JSON summary
-//     let parsedSummary;
-//     try {
-//       parsedSummary = JSON.parse(result.summary);
-//     } catch (parseError) {
-//       console.error('Error parsing summary JSON:', parseError);
-//       // If it's not valid JSON, wrap it in a structured format
-//       parsedSummary = {
-//         meeting_summary: {
-//           title: "Meeting Analysis",
-//           date: new Date().toISOString().split('T')[0],
-//           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-//           participants: Array.from(new Set(transcripts.map((t: any) => t.name))),
-//           key_points: [result.summary],
-//           insights_decisions: [],
-//           action_items: [],
-//           summary_insights: ["AI analysis completed"]
-//         }
-//       };
-//     }
-
-//     // Save to database
-//     const updateResult = await updateMeetingSummary({
-//       meetingId,
-//       summary: parsedSummary
-//     });
-
-//     if (!updateResult.success) {
-//       return {success: false, error: updateResult.error};
-//     }
-
-//     return {success: true, summary: parsedSummary};
-//   } catch (error) {
-//     console.error('Error generating meeting summary:', error);
-//     return {success: false, error: 'Failed to generate meeting summary'};
-//   }
-// }
-
 // Additional utility functions
 export async function deleteMeeting(meetingId: string): Promise<{success: boolean}> {
   try {
