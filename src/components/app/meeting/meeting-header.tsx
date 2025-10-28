@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { Calendar, Clock, MessageSquare, Users, ChevronDown, ChevronUp } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Calendar, Clock, MessageSquare, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
 import type { MeetingData } from '@/types/meeting';
+import { ShareMeetingDialog } from './share-meeting-dialog';
 
 interface MeetingHeaderProps {
   meeting: MeetingData;
@@ -14,7 +15,20 @@ interface MeetingHeaderProps {
 
 export function MeetingHeader({ meeting, analysisStatus, lastAnalysisTime }: MeetingHeaderProps) {
   const [showParticipants, setShowParticipants] = useState(false);
+  const participantsRef = useRef<HTMLDivElement>(null);
   const uniqueParticipants = Array.from(new Set(meeting?.transcripts?.map((t: any) => t.name) || [])) as string[];
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (participantsRef.current && !participantsRef.current.contains(event.target as Node)) {
+        setShowParticipants(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [participantsRef]);
 
   const getStatusBadge = () => {
     switch (analysisStatus) {
@@ -45,7 +59,7 @@ export function MeetingHeader({ meeting, analysisStatus, lastAnalysisTime }: Mee
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-6 relative overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-6 relative">
       <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl -z-0"></div>
       
       <div className="relative z-10">
@@ -55,7 +69,10 @@ export function MeetingHeader({ meeting, analysisStatus, lastAnalysisTime }: Mee
               <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 {meeting.name}
               </h1>
-              {getStatusBadge()}
+              <div className="flex items-center gap-2">
+                {getStatusBadge()}
+                <ShareMeetingDialog meetingId={meeting.id} />
+              </div>
             </div>
             <div className="flex flex-wrap items-center gap-4 text-sm">
               <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg">
@@ -78,13 +95,14 @@ export function MeetingHeader({ meeting, analysisStatus, lastAnalysisTime }: Mee
               </div>
               <div 
                 className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors relative"
-                onMouseEnter={() => setShowParticipants(true)}
-                onMouseLeave={() => setShowParticipants(false)}
+                ref={participantsRef}
               >
-                <Users className="w-4 h-4 text-blue-600" />
-                <span className="text-gray-700 font-medium">
-                  {uniqueParticipants.length} participants
-                </span>
+                <div onClick={() => setShowParticipants(!showParticipants)} className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-blue-600" />
+                  <span className="text-gray-700 font-medium">
+                    {uniqueParticipants.length} participants
+                  </span>
+                </div>
                 
                 {showParticipants && (
                   <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-200 z-50">

@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 interface MeetingFormProps {
   onMeetingCreated: (meetingId: string) => void;
@@ -9,6 +11,7 @@ interface MeetingFormProps {
 export function MeetingForm({ onMeetingCreated }: MeetingFormProps) {
   const [name, setName] = useState('');
   const [time, setTime] = useState(getDefaultTime());
+  const [isPublic, setIsPublic] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -23,29 +26,22 @@ export function MeetingForm({ onMeetingCreated }: MeetingFormProps) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, time }),
+        body: JSON.stringify({ name, time, isPublic }),
       });
 
-      // Check if response is OK
       if (!response.ok) {
         let errorMessage = 'Failed to create meeting';
-        
         try {
           const errorData = await response.json();
           errorMessage = errorData.message || errorMessage;
         } catch {
-          // If response is not JSON, get text
           const errorText = await response.text();
           errorMessage = errorText || errorMessage;
         }
-        
         throw new Error(errorMessage);
       }
 
-      // Parse successful response
       const data = await response.json();
-
-      // Call the callback with the meeting ID
       if (data.meetingId) {
         onMeetingCreated(data.meetingId);
       } else if (data.id) {
@@ -54,9 +50,9 @@ export function MeetingForm({ onMeetingCreated }: MeetingFormProps) {
         throw new Error('No meeting ID returned from server');
       }
 
-      // Reset form
       setName('');
       setTime(getDefaultTime());
+      setIsPublic(false);
 
     } catch (err: any) {
       console.error('Meeting creation error:', err);
@@ -66,7 +62,6 @@ export function MeetingForm({ onMeetingCreated }: MeetingFormProps) {
     }
   };
 
-  // Generate default time (current time + 1 hour)
   function getDefaultTime() {
     const now = new Date();
     now.setHours(now.getHours() + 1);
@@ -111,6 +106,18 @@ export function MeetingForm({ onMeetingCreated }: MeetingFormProps) {
           required
           disabled={isLoading}
         />
+      </div>
+      
+      <div className="flex items-center justify-between">
+        <Label htmlFor="is-public" className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
+          <Switch
+            id="is-public"
+            checked={isPublic}
+            onCheckedChange={setIsPublic}
+            disabled={isLoading}
+          />
+          <span>Make this a public meeting</span>
+        </Label>
       </div>
       
       <button

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Sidebar } from '@/components/app/sidebar';
 import { Header } from '@/components/app/header';
 import { Users, Briefcase } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
 interface Meeting {
   id: string;
@@ -16,6 +17,7 @@ interface Meeting {
 export default function Page() {
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { data: session, status } = useSession();
 
   const fetchMeetings = useCallback(async () => {
     try {
@@ -78,24 +80,26 @@ export default function Page() {
             </div>
 
             {/* New Meeting Card */}
-            <Link href="/meetings">
-              <div 
-                className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white cursor-pointer hover:from-green-600 hover:to-green-700 transition-all duration-200 h-full"
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                    <Users className="h-5 w-5" />
+            {status === 'authenticated' && (
+                <Link href="/meetings">
+                  <div 
+                    className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white cursor-pointer hover:from-green-600 hover:to-green-700 transition-all duration-200 h-full"
+                  >
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                        <Users className="h-5 w-5" />
+                      </div>
+                      <h3 className="font-semibold">Create New Meeting</h3>
+                    </div>
+                    <p className="text-green-100 text-sm mb-4">
+                      Create meeting room and invite teammates to collaborate
+                    </p>
+                    <div className="w-full bg-white text-green-600 py-2 px-4 rounded-lg font-medium hover:bg-green-50 transition-colors text-center">
+                      Create
+                    </div>
                   </div>
-                  <h3 className="font-semibold">Buat Meeting Baru</h3>
-                </div>
-                <p className="text-green-100 text-sm mb-4">
-                  Create meeting room and invite teammates to collaborate
-                </p>
-                <div className="w-full bg-white text-green-600 py-2 px-4 rounded-lg font-medium hover:bg-green-50 transition-colors text-center">
-                  Buat
-                </div>
-              </div>
-            </Link>
+                </Link>
+            )}
           </div>
         </main>
       </div>

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Home, List } from 'lucide-react';
+import { Home, List, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function Sidebar({className}: {className?: string}) {
@@ -12,6 +12,7 @@ export function Sidebar({className}: {className?: string}) {
   const navigation = [
     { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Meetings', href: '/history', icon: List },
+    { name: 'Public Meetings', href: '/public-meetings', icon: Globe },
   ];
 
   return (
@@ -34,7 +35,7 @@ export function Sidebar({className}: {className?: string}) {
           ))}
         </nav>
       </div>
-      <div className="p-4 border-t">
+      <div>
      
       </div>
     </div>

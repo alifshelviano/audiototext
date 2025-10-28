@@ -6,10 +6,14 @@ import { Sidebar } from '@/components/app/sidebar';
 import { MeetingForm } from '@/components/app/meeting-form';
 import { QRCodeDisplay } from '@/components/app/qr-code-display';
 import { Share2, Users } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 export default function MeetingsPage() {
   const [createdMeetingId, setCreatedMeetingId] = useState<string | null>(null);
   const [createdMeetingUrl, setCreatedMeetingUrl] = useState<string>('');
+  const { data: session, status } = useSession();
+  const router = useRouter();
 
   const handleMeetingCreated = (meetingId: string) => {
     const url = `${window.location.origin}/meeting/${meetingId}/join`;
@@ -21,6 +25,15 @@ export default function MeetingsPage() {
     setCreatedMeetingId(null);
     setCreatedMeetingUrl('');
   };
+
+  if (status === 'loading') {
+    return <div>Loading...</div>; 
+  }
+
+  if (status === 'unauthenticated') {
+    router.push('/login');
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
