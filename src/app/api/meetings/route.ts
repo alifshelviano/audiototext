@@ -1,8 +1,15 @@
 import { NextResponse } from 'next/server';
 import { createMeeting, getMeetings } from '@/app/meetings';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 
 export async function POST(req: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+
     const { name, time } = await req.json();
 
     if (!name || !time) {
@@ -12,14 +19,13 @@ export async function POST(req: Request) {
       );
     }
 
-    // Use the server action to create the meeting
-    const { meetingId } = await createMeeting({ name, time });
+    const { meetingId } = await createMeeting({ name, time, userId: session.user.id });
 
     return NextResponse.json(
       { 
         message: 'Meeting created successfully',
         meetingId: meetingId,
-        id: meetingId // Include both for compatibility
+        id: meetingId
       },
       { status: 201 }
     );
@@ -33,12 +39,28 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    // Use the server action to get meetings
-    const meetings = await getMeetings();
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+    
+    const { searchParams } = new URL(req.url);
+    const userId = searchParams.get('userId');
 
-    return NextResponse.json(meetings);
+    // If a userId is provided, filter meetings for that user
+    if (userId) {
+      if (userId !== session.user.id) {
+        return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+      }
+      const meetings = await getMeetings({ userId });
+      return NextResponse.json(meetings);
+    } else {
+      // If no userId is provided, return all meetings (or handle as per your app's logic)
+      const meetings = await getMeetings({});
+      return NextResponse.json(meetings);
+    }
 
   } catch (error: any) {
     console.error('Error fetching meetings:', error);
