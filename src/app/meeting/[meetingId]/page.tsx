@@ -1,24 +1,62 @@
 'use client';
 
-import {useEffect, useState} from 'react';
-import {usePathname} from 'next/navigation';
-import {getMeeting} from '@/app/meetings';
-import {QRCodeDisplay} from '@/components/app/qr-code-display';
-import {Header} from '@/components/app/header';
+import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { getMeeting } from '@/app/meetings';
+import { Header } from '@/components/app/header';
+import { MeetingHeader } from '@/components/app/meeting/meeting-header';
+import { TabNavigation } from '@/components/app/meeting/tab-navigation';
+import { TranscriptList } from '@/components/app/meeting/transcript-list';
+import { SummaryTab } from '@/components/app/meeting/summary-tab';
+import { InsightsTab } from '@/components/app/meeting/insights-tab';
+import { SentimentTab } from '@/components/app/meeting/sentiment-tab';
+import { MeetingChat } from '@/components/app/meeting/meeting-chat';
+import type { MeetingData } from '@/types/meeting';
 
 export default function MeetingPage() {
   const pathname = usePathname();
-  const meetingId = pathname.split('/').pop();
-  const [meeting, setMeeting] = useState<any>(null);
+  const meetingId = pathname.split('/').pop() as string;
+  const [meeting, setMeeting] = useState<MeetingData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [analysisStatus, setAnalysisStatus] = useState<'idle' | 'analyzing' | 'success' | 'error'>('idle');
+  const [lastAnalysisTime, setLastAnalysisTime] = useState<Date | null>(null);
+  const [activeTab, setActiveTab] = useState<'transcript' | 'summary' | 'insights' | 'sentiment' | 'chat'>('transcript');
 
-  useEffect(() => {
+  const fetchMeetingData = () => {
     if (meetingId) {
-      getMeeting({meetingId: meetingId as string})
+      setLoading(true);
+      getMeeting({ meetingId })
         .then(setMeeting)
         .finally(() => setLoading(false));
     }
+  };
+
+  useEffect(() => {
+    fetchMeetingData();
   }, [meetingId]);
+
+  const handleTabChange = (tab: 'transcript' | 'summary' | 'insights' | 'sentiment' | 'chat') => {
+    setActiveTab(tab);
+  };
+
+  const renderTabContent = () => {
+    if (!meeting) return null;
+
+    switch (activeTab) {
+      case 'transcript':
+        return <TranscriptList transcripts={meeting.transcripts || []} visibleCount={100} onLoadMore={() => {}} onShowLess={() => {}} />;
+      case 'summary':
+        return <SummaryTab meeting={meeting} isAnalyzing={analysisStatus === 'analyzing'} onReanalyze={() => {}} />;
+      case 'insights':
+        return <InsightsTab meeting={meeting} />;
+      case 'sentiment':
+        return <SentimentTab meeting={meeting} meetingId={meetingId} isAnalyzing={analysisStatus === 'analyzing'} onReanalyze={() => {}} onDataRefresh={fetchMeetingData} />;
+      case 'chat':
+        return <MeetingChat meetingId={meetingId} transcript={meeting.transcripts?.map(t => t.transcript).join('\n') || ''} summary={meeting.summary?.summary_text || ''} />;
+      default:
+        return null;
+    }
+  };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -28,18 +66,22 @@ export default function MeetingPage() {
     return <div>Meeting not found.</div>;
   }
 
-  const meetingUrl = `${window.location.origin}/meeting/${meetingId}/join`;
-
   return (
-    <main className="flex flex-col h-screen">
+    <div className="min-h-screen bg-gray-50">
       <Header />
-      <div className="flex flex-col items-center justify-center flex-1 p-8">
-        <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
-          <h1 className="text-3xl font-bold mb-2 text-center text-gray-800">{meeting.name}</h1>
-          <p className="text-center text-gray-500 mb-6">{new Date(meeting.time).toLocaleString()}</p>
-          <QRCodeDisplay url={meetingUrl} />
+      <main className="p-6">
+        <MeetingHeader 
+          meeting={meeting} 
+          analysisStatus={analysisStatus} 
+          lastAnalysisTime={lastAnalysisTime} 
+        />
+        <div className="mt-6 bg-white rounded-lg shadow-md">
+          <TabNavigation activeTab={activeTab} onTabChange={handleTabChange} />
+          <div className="p-6">
+            {renderTabContent()}
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }

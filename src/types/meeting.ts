@@ -9,7 +9,10 @@ export interface Transcript {
     name: string;
     time: string;
     transcripts: Transcript[];
-    summary?: any;
+    summary?: {
+        summary_text?: string;
+        meeting_summary?: MeetingSummary['meeting_summary'];
+    };
     lastAnalyzed?: Date;
   }
 

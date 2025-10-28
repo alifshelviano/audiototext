@@ -8,17 +8,18 @@ import { Header } from '@/components/app/header';
 import { Sidebar } from '@/components/app/sidebar';
 import { MeetingHeader } from '@/components/app/meeting/meeting-header';
 import { TabNavigation } from '@/components/app/meeting/tab-navigation';
-import { TranscriptTab } from '@/components/app/meeting/transcript-tab';
+import { TranscriptList } from '@/components/app/meeting/transcript-list';
 import { SummaryTab } from '@/components/app/meeting/summary-tab';
 import { InsightsTab } from '@/components/app/meeting/insights-tab';
 import { SentimentTab } from '@/components/app/meeting/sentiment-tab';
+import { MeetingChat } from '@/components/app/meeting/meeting-chat';
 import { FloatingRecordingControls } from '@/components/app/meeting/floating-recording-controls';
 import { useMeetingData } from '@/hooks/use-meeting-data';
 import type { MeetingData } from '@/types/meeting';
 import { AlertCircle } from 'lucide-react';
 
 export default function JoinMeetingPage() {
-  const [activeTab, setActiveTab] = useState<'transcript' | 'summary' | 'insights' | 'sentiment'>('transcript');
+  const [activeTab, setActiveTab] = useState<'transcript' | 'summary' | 'insights' | 'sentiment' | 'chat'>('transcript');
   const [isClient, setIsClient] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
@@ -154,18 +155,17 @@ function TabContent({
 }) {
   const tabContentProps = {
     meeting,
-    meetingId,
     isAnalyzing,
-    onReanalyze,
-    onDataRefresh
+    onReanalyze
   };
 
   return (
     <div className="flex flex-col" >
-      {activeTab === 'transcript' && <TranscriptTab {...tabContentProps} />}
+      {activeTab === 'transcript' && <TranscriptList transcripts={meeting.transcripts || []} visibleCount={100} onLoadMore={() => {}} onShowLess={() => {}} />}
       {activeTab === 'summary' && <SummaryTab {...tabContentProps} />}
-      {activeTab === 'insights' && <InsightsTab {...tabContentProps} />}
-      {activeTab === 'sentiment' && <SentimentTab {...tabContentProps} />}
+      {activeTab === 'insights' && <InsightsTab meeting={meeting} />}
+      {activeTab === 'sentiment' && <SentimentTab meeting={meeting} meetingId={meetingId} isAnalyzing={isAnalyzing} onReanalyze={onReanalyze} onDataRefresh={onDataRefresh} />}
+      {activeTab === 'chat' && <MeetingChat meetingId={meetingId} transcript={meeting.transcripts?.map(t => t.transcript).join('\n') || ''} summary={meeting.summary?.summary_text || ''} />}
     </div>
   );
 }

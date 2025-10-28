@@ -1,10 +1,10 @@
 'use client';
 
-import { FileText, BarChart, Zap, Heart } from 'lucide-react';
+import { FileText, BarChart, Zap, Heart, MessageCircle } from 'lucide-react';
 
 interface TabNavigationProps {
-  activeTab: 'transcript' | 'summary' | 'insights' | 'sentiment';
-  onTabChange: (tab: 'transcript' | 'summary' | 'insights' | 'sentiment') => void;
+  activeTab: 'transcript' | 'summary' | 'insights' | 'sentiment' | 'chat';
+  onTabChange: (tab: 'transcript' | 'summary' | 'insights' | 'sentiment' | 'chat') => void;
 }
 
 export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
@@ -13,6 +13,7 @@ export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
     { id: 'summary' as const, label: 'Summary', icon: BarChart },
     { id: 'insights' as const, label: 'Insights', icon: Zap },
     { id: 'sentiment' as const, label: 'Sentiment', icon: Heart },
+    { id: 'chat' as const, label: 'Chat', icon: MessageCircle },
   ];
 
   return (

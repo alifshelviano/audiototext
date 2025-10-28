@@ -1,14 +1,10 @@
 'use client';
 
 import { BarChart, Zap, Heart, CheckCircle, CalendarIcon, TrendingUp, TrendingDown } from 'lucide-react';
-import type { MeetingData } from '@/types/meeting';
+import type { MeetingData, Transcript } from '@/types/meeting';
 
 interface InsightsTabProps {
   meeting: MeetingData;
-  meetingId: string;
-  isAnalyzing: boolean;
-  onReanalyze: () => void;
-  onDataRefresh: () => void;
 }
 
 export function InsightsTab({ meeting }: InsightsTabProps) {
@@ -17,7 +13,7 @@ export function InsightsTab({ meeting }: InsightsTabProps) {
       return meeting.summary.meeting_summary;
     }
     
-    const participants = Array.from(new Set(meeting?.transcripts?.map((t: any) => t.name) || []));
+    const participants = Array.from(new Set(meeting?.transcripts?.map((t: Transcript) => t.name) || []));
     const meetingDate = new Date(meeting?.time || new Date());
     
     return {
@@ -35,7 +31,9 @@ export function InsightsTab({ meeting }: InsightsTabProps) {
         participant_emotions: [],
         emotional_highlights: [],
         tension_points: []
-      }
+      },
+      meeting_health_score: undefined,
+      next_meeting: undefined
     };
   };
 

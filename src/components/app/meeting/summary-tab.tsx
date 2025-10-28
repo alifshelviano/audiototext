@@ -4,29 +4,27 @@ import { Button } from '@/components/ui/button';
 import { Download, CalendarIcon, Mail, RefreshCw, FileText, ChevronDown } from 'lucide-react';
 import { SummaryContent } from '@/components/app/meeting/summary-content';
 import { ExportService } from '@/lib/export-service';
-import type { MeetingData } from '@/types/meeting';
+import type { MeetingData, MeetingSummary, EmotionAnalysis } from '@/types/meeting';
 import { useState } from 'react';
 
 interface SummaryTabProps {
   meeting: MeetingData;
-  meetingId: string;
   isAnalyzing: boolean;
   onReanalyze: () => void;
-  onDataRefresh: () => void;
 }
 
 export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProps) {
   const [isExporting, setIsExporting] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
 
-  const getStructuredSummary = () => {
+  const getStructuredSummary = (): MeetingSummary['meeting_summary'] => {
     if (meeting?.summary?.meeting_summary) {
       const summary = meeting.summary.meeting_summary;
       if (summary.emotion_analysis) {
         summary.emotion_analysis = {
           overall_sentiment: summary.emotion_analysis.overall_sentiment || 'neutral',
           overall_confidence: summary.emotion_analysis.overall_confidence || 0,
-          participant_emotions: summary.emotion_analysis.participant_emotions?.map((participant: any) => ({
+          participant_emotions: summary.emotion_analysis.participant_emotions?.map((participant) => ({
             participant: participant.participant || 'Unknown',
             sentiment: participant.sentiment || 'neutral',
             confidence: participant.confidence || 0,
@@ -40,7 +38,7 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
       return summary;
     }
     
-    const participants = Array.from(new Set(meeting?.transcripts?.map((t: any) => t.name) || []));
+    const participants = Array.from(new Set(meeting?.transcripts?.map((t) => t.name) || []));
     const meetingDate = new Date(meeting?.time || new Date());
     
     return {
