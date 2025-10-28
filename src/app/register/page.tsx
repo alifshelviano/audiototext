@@ -60,10 +60,13 @@ export default function RegisterPage() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="flex w-full max-w-5xl shadow-2xl rounded-2xl overflow-hidden mx-4">
+      <div className="flex flex-col md:flex-row w-full max-w-5xl shadow-2xl rounded-2xl overflow-hidden m-4">
         {/* Left side with the form */}
-        <div className="w-1/2 p-12 bg-white">
-          <h2 className="text-3xl font-bold text-blue-900 mb-8">Register</h2>
+        <div className="w-full md:w-1/2 p-8 sm:p-12 bg-white">
+           <div className="md:hidden text-center mb-6">
+             <h1 className="text-3xl font-bold text-blue-900">Create an Account</h1>
+          </div>
+          <h2 className="text-3xl font-bold text-blue-900 mb-8 hidden md:block">Register</h2>
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
               {error}
@@ -142,7 +145,7 @@ export default function RegisterPage() {
 
         {/* Right side with welcome message and background image */}
         <div
-          className="w-1/2 bg-cover bg-center p-12 flex flex-col justify-center items-start relative"
+          className="w-full md:w-1/2 bg-cover bg-center p-12 flex-col justify-center items-start relative hidden md:flex"
           style={{ backgroundImage: "url('/register-background.jpg')" }}
         >
           <div className="absolute inset-0 bg-white opacity-60"></div>

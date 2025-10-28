@@ -5,8 +5,6 @@ import {useRouter, usePathname} from 'next/navigation';
 import {getMeeting} from '@/app/meetings';
 import { analyzeMeeting, shouldAutoAnalyze } from '@/lib/meeting-analysis';
 import { RecordingControls } from '@/components/app/recording-controls';
-import { Header } from '@/components/app/header';
-import { Sidebar } from '@/components/app/sidebar';
 import { 
   Mic, MessageSquare, BarChart, FileText, Clock, Users, Calendar, 
   ChevronDown, ChevronUp, Download, Mail, Calendar as CalendarIcon,
@@ -492,231 +490,210 @@ useEffect(() => {
 
   if (!isClient || loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="flex">
-          <Sidebar />
-          <div className="flex-1 flex items-center justify-center p-8">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading meeting...</p>
-            </div>
+        <div className="flex-1 flex items-center justify-center p-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading meeting...</p>
           </div>
         </div>
-      </div>
     );
   }
 
   if (!meeting || !meetingId) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="flex">
-          <Sidebar />
-          <div className="flex-1 flex items-center justify-center p-8">
-            <div className="text-center">
-              <h1 className="text-2xl font-bold text-gray-800 mb-4">Meeting not found</h1>
-              <button 
-                onClick={() => router.push('/')}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Return Home
-              </button>
-            </div>
+        <div className="flex-1 flex items-center justify-center p-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-800 mb-4">Meeting not found</h1>
+            <button 
+              onClick={() => router.push('/')}
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Return Home
+            </button>
           </div>
         </div>
-      </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <div className="flex">
-        <Sidebar />
-        
-        <main className="flex-1 p-6">
-          <div className="max-w-7xl mx-auto">
-            {/* Compact Meeting Header */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-2">
-                    <h1 className="text-2xl font-bold text-gray-900">{meeting.name}</h1>
-                    {getStatusBadge()}
-                  </div>
-                  <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      <span>{new Date(meeting.time).toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      <span>{new Date(meeting.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <MessageSquare className="w-4 h-4" />
-                      <span>{meeting.transcripts?.length || 0} messages</span>
-                    </div>
-                    <div 
-                      className="flex items-center gap-1 cursor-pointer hover:bg-gray-100 px-2 py-1 rounded-lg transition-colors relative"
-                      onMouseEnter={() => setShowParticipants(true)}
-                      onMouseLeave={() => setShowParticipants(false)}
-                    >
-                      <Users className="w-4 h-4" />
-                      <span>{uniqueParticipants.length} participants</span>
-                      
-                      {showParticipants && (
-                        <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 z-50">
-                          <div className="p-4">
-                            <h4 className="font-semibold text-gray-900 mb-3">Participants</h4>
-                            <div className="space-y-2 max-h-60 overflow-y-auto">
-                              {uniqueParticipants.map((participant, index) => (
-                                <div key={index} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50">
-                                  <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
-                                    <span className="text-white text-xs font-semibold">
-                                      {participant.charAt(0).toUpperCase()}
-                                    </span>
-                                  </div>
-                                  <span className="text-sm text-gray-700">{participant}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
+    <div className="max-w-7xl mx-auto">
+      {/* Compact Meeting Header */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex items-center justify-between mb-2">
+              <h1 className="text-2xl font-bold text-gray-900">{meeting.name}</h1>
+              {getStatusBadge()}
             </div>
-
-            <div className="grid grid-cols-1 gap-6">
-              {/* Main Content */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                {/* Tab Navigation */}
-                <div className="border-b border-gray-200 bg-gray-50/50">
-                  <div className="flex">
-                    <button
-                      className={`flex items-center px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
-                        activeTab === 'transcript'
-                          ? 'text-blue-600 border-blue-600 bg-white'
-                          : 'text-gray-500 border-transparent hover:text-gray-700 hover:bg-white/50'
-                      }`}
-                      onClick={() => setActiveTab('transcript')}
-                    >
-                      <FileText className="w-4 h-4 mr-3" />
-                      Transcript
-                    </button>
-                    <button
-                      className={`flex items-center px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
-                        activeTab === 'summary'
-                          ? 'text-blue-600 border-blue-600 bg-white'
-                          : 'text-gray-500 border-transparent hover:text-gray-700 hover:bg-white/50'
-                      }`}
-                      onClick={() => setActiveTab('summary')}
-                    >
-                      <BarChart className="w-4 h-4 mr-3" />
-                      Summary
-                    </button>
-                    <button
-                      className={`flex items-center px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
-                        activeTab === 'insights'
-                          ? 'text-blue-600 border-blue-600 bg-white'
-                          : 'text-gray-500 border-transparent hover:text-gray-700 hover:bg-white/50'
-                      }`}
-                      onClick={() => setActiveTab('insights')}
-                    >
-                      <BarChart className="w-4 h-4 mr-3" />
-                      Insights
-                    </button>
+            <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
+              <div className="flex items-center gap-1">
+                <Calendar className="w-4 h-4" />
+                <span>{new Date(meeting.time).toLocaleDateString()}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Clock className="w-4 h-4" />
+                <span>{new Date(meeting.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <MessageSquare className="w-4 h-4" />
+                <span>{meeting.transcripts?.length || 0} messages</span>
+              </div>
+              <div 
+                className="flex items-center gap-1 cursor-pointer hover:bg-gray-100 px-2 py-1 rounded-lg transition-colors relative"
+                onMouseEnter={() => setShowParticipants(true)}
+                onMouseLeave={() => setShowParticipants(false)}
+              >
+                <Users className="w-4 h-4" />
+                <span>{uniqueParticipants.length} participants</span>
+                
+                {showParticipants && (
+                  <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 z-50">
+                    <div className="p-4">
+                      <h4 className="font-semibold text-gray-900 mb-3">Participants</h4>
+                      <div className="space-y-2 max-h-60 overflow-y-auto">
+                        {uniqueParticipants.map((participant, index) => (
+                          <div key={index} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50">
+                            <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                              <span className="text-white text-xs font-semibold">
+                                {participant.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                            <span className="text-sm text-gray-700">{participant}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                </div>
-
-                {/* Tab Content */}
-                <div className="flex flex-col" style={{ minHeight: '500px' }}>
-                  {activeTab === 'transcript' && (
-                    <div className="flex-1 flex flex-col relative">
-                      {/* Transcripts Area */}
-                      <div 
-                        ref={transcriptsContainerRef}
-                        className="flex-1 p-6 space-y-4 overflow-y-auto"
-                        style={{ maxHeight: 'calc(100vh - 300px)' }}
-                      >
-                        {renderTranscripts()}
-                      </div>
-
-                      {/* Floating Recording Controls */}
-                      <div className="sticky bottom-6 mx-6 mb-6">
-                        {meetingId && (
-                          <RecordingControls 
-                            meetingId={meetingId}
-                            onTranscriptAdded={handleTranscriptAdded}
-                            compact={true}
-                          />
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {activeTab === 'summary' && (
-                    <div className="p-6">
-                      <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-2xl font-semibold text-gray-800">Meeting Summary</h3>
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={handleAutoAnalyze}
-                            disabled={isAnalyzing || !meeting.transcripts?.length}
-                            variant="outline"
-                            size="sm"
-                          >
-                            <RefreshCw className={`w-4 h-4 mr-2 ${isAnalyzing ? 'animate-spin' : ''}`} />
-                            {isAnalyzing ? 'Analyzing...' : 'Re-analyze'}
-                          </Button>
-                          <Button
-                            onClick={exportToJson}
-                            variant="outline"
-                            size="sm"
-                            disabled={!meeting.summary}
-                          >
-                            <Download className="w-4 h-4 mr-2" />
-                            Export JSON
-                          </Button>
-                          <Button
-                            onClick={sendToGoogleCalendar}
-                            variant="outline"
-                            size="sm"
-                            disabled={!meeting.summary}
-                          >
-                            <CalendarIcon className="w-4 h-4 mr-2" />
-                            Google Calendar
-                          </Button>
-                          <Button
-                            onClick={sendEmailNotifications}
-                            variant="outline"
-                            size="sm"
-                            disabled={!meeting.summary}
-                          >
-                            <Mail className="w-4 h-4 mr-2" />
-                            Send Emails
-                          </Button>
-                        </div>
-                      </div>
-                      {renderSummaryContent()}
-                    </div>
-                  )}
-
-                  {activeTab === 'insights' && (
-                    <div className="p-6">
-                      <h3 className="text-2xl font-semibold text-gray-800 mb-6">Meeting Insights</h3>
-                      {renderInsightsContent()}
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
             </div>
           </div>
-        </main>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6">
+        {/* Main Content */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          {/* Tab Navigation */}
+          <div className="border-b border-gray-200 bg-gray-50/50">
+            <div className="flex">
+              <button
+                className={`flex items-center px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
+                  activeTab === 'transcript'
+                    ? 'text-blue-600 border-blue-600 bg-white'
+                    : 'text-gray-500 border-transparent hover:text-gray-700 hover:bg-white/50'
+                }`}
+                onClick={() => setActiveTab('transcript')}
+              >
+                <FileText className="w-4 h-4 mr-3" />
+                Transcript
+              </button>
+              <button
+                className={`flex items-center px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
+                  activeTab === 'summary'
+                    ? 'text-blue-600 border-blue-600 bg-white'
+                    : 'text-gray-500 border-transparent hover:text-gray-700 hover:bg-white/50'
+                }`}
+                onClick={() => setActiveTab('summary')}
+              >
+                <BarChart className="w-4 h-4 mr-3" />
+                Summary
+              </button>
+              <button
+                className={`flex items-center px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
+                  activeTab === 'insights'
+                    ? 'text-blue-600 border-blue-600 bg-white'
+                    : 'text-gray-500 border-transparent hover:text-gray-700 hover:bg-white/50'
+                }`}
+                onClick={() => setActiveTab('insights')}
+              >
+                <BarChart className="w-4 h-4 mr-3" />
+                Insights
+              </button>
+            </div>
+          </div>
+
+          {/* Tab Content */}
+          <div className="flex flex-col" style={{ minHeight: '500px' }}>
+            {activeTab === 'transcript' && (
+              <div className="flex-1 flex flex-col relative">
+                {/* Transcripts Area */}
+                <div 
+                  ref={transcriptsContainerRef}
+                  className="flex-1 p-6 space-y-4 overflow-y-auto"
+                  style={{ maxHeight: 'calc(100vh - 300px)' }}
+                >
+                  {renderTranscripts()}
+                </div>
+
+                {/* Floating Recording Controls */}
+                <div className="sticky bottom-6 mx-6 mb-6">
+                  {meetingId && (
+                    <RecordingControls 
+                      meetingId={meetingId}
+                      onTranscriptAdded={handleTranscriptAdded}
+                      compact={true}
+                    />
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'summary' && (
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-2xl font-semibold text-gray-800">Meeting Summary</h3>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleAutoAnalyze}
+                      disabled={isAnalyzing || !meeting.transcripts?.length}
+                      variant="outline"
+                      size="sm"
+                    >
+                      <RefreshCw className={`w-4 h-4 mr-2 ${isAnalyzing ? 'animate-spin' : ''}`} />
+                      {isAnalyzing ? 'Analyzing...' : 'Re-analyze'}
+                    </Button>
+                    <Button
+                      onClick={exportToJson}
+                      variant="outline"
+                      size="sm"
+                      disabled={!meeting.summary}
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Export JSON
+                    </Button>
+                    <Button
+                      onClick={sendToGoogleCalendar}
+                      variant="outline"
+                      size="sm"
+                      disabled={!meeting.summary}
+                    >
+                      <CalendarIcon className="w-4 h-4 mr-2" />
+                      Google Calendar
+                    </Button>
+                    <Button
+                      onClick={sendEmailNotifications}
+                      variant="outline"
+                      size="sm"
+                      disabled={!meeting.summary}
+                    >
+                      <Mail className="w-4 h-4 mr-2" />
+                      Send Emails
+                    </Button>
+                  </div>
+                </div>
+                {renderSummaryContent()}
+              </div>
+            )}
+
+            {activeTab === 'insights' && (
+              <div className="p-6">
+                <h3 className="text-2xl font-semibold text-gray-800 mb-6">Meeting Insights</h3>
+                {renderInsightsContent()}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

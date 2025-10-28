@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,14 +12,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { useAuth } from '@/app/AuthProvider';
@@ -28,14 +21,13 @@ import {
   Settings, 
   Bell, 
   Menu, 
-  Home, 
-  Mic2, 
-  History,
-  Sparkles,
-  Volume2
 } from 'lucide-react';
 
-export function Header() {
+interface HeaderProps {
+  onMenuClick: () => void;
+}
+
+export function Header({ onMenuClick }: HeaderProps) {
   const [notificationCount, setNotificationCount] = useState(3);
   const { user, logout } = useAuth();
 
@@ -48,66 +40,23 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-30 w-full border-b bg-blue-600 text-white">
       <div className="container flex h-16 items-center justify-between px-4">
         {/* Left Section - Logo & Navigation */}
-        <div className="flex items-center gap-6">
-          {/* Mobile Menu */}
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-[240px] sm:w-[300px]">
-              <SheetHeader>
-                <SheetTitle className="flex items-center gap-2">
-                  <Volume2 className="h-6 w-6 text-blue-600" />
-                  LISN
-                </SheetTitle>
-                <SheetDescription>
-                  Your intelligent meeting assistant
-                </SheetDescription>
-              </SheetHeader>
-              <nav className="flex flex-col gap-4 mt-8">
-                <Link href="/">
-                  <Button variant="ghost" className="w-full justify-start gap-2">
-                    <Home className="h-4 w-4" />
-                    Dashboard
-                  </Button>
-                </Link>
-                <Link href="/meetings">
-                  <Button variant="ghost" className="w-full justify-start gap-2">
-                    <Mic2 className="h-4 w-4" />
-                    Meetings
-                  </Button>
-                </Link>
-                <Link href="/history">
-                  <Button variant="ghost" className="w-full justify-start gap-2">
-                    <History className="h-4 w-4" />
-                    History
-                  </Button>
-                </Link>
-              </nav>
-            </SheetContent>
-          </Sheet>
+        <div className="flex items-center gap-2 md:gap-6">
+          {/* Menu Toggle */}
+          <Button variant="ghost" size="icon" onClick={onMenuClick} className="text-white hover:bg-blue-700 hover:text-white">
+            <Menu className="h-5 w-5" />
+            <span className="sr-only">Toggle sidebar</span>
+          </Button>
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="relative">
-              <Volume2 className="h-8 w-8 text-blue-600 transition-transform group-hover:scale-110" />
-              <div className="absolute -top-1 -right-1">
-                <Sparkles className="h-3 w-3 text-yellow-500 fill-yellow-500" />
-              </div>
-            </div>
-            <div className="flex flex-col">
-              <h1 className="font-bold text-2xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                LISN
+            
+            <div className="hidden md:flex flex-col">
+              <h1 className="font-bold text-2xl text-white">
+                
               </h1>
-              <p className="text-xs text-muted-foreground -mt-1 hidden sm:block">
-                Listen • Transcribe • Summarize
-              </p>
             </div>
           </Link>
         </div>
@@ -116,9 +65,9 @@ export function Header() {
         <div className="flex items-center gap-3">
           {/* Online Status */}
           {user && (
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-green-50 border border-green-200">
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 border border-green-200">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-xs font-medium text-green-700">Online</span>
+              <span className="text-xs font-medium text-green-800">Online</span>
             </div>
           )}
 
@@ -126,7 +75,7 @@ export function Header() {
           {user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative">
+                <Button variant="ghost" size="icon" className="relative text-white hover:bg-blue-700 hover:text-white">
                   <Bell className="h-5 w-5" />
                   {notificationCount > 0 && (
                     <Badge 
@@ -173,7 +122,7 @@ export function Header() {
               <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
                 <Avatar className="h-10 w-10 border-2 border-transparent hover:border-blue-200 transition-colors">
                   <AvatarImage src={user?.avatar} alt="Profile" />
-                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
+                  <AvatarFallback className="bg-gray-700 text-white font-semibold">
                     {user ? getUserInitials(user.name) : 'U'}
                   </AvatarFallback>
                 </Avatar>
@@ -210,13 +159,13 @@ export function Header() {
                 </>
               ) : (
                 <>
-                  <DropdownMenuItem className="cursor-pointer gap-2">
-                    <Link href="/login" className="w-full">
+                  <DropdownMenuItem asChild>
+                    <Link href="/login" className="w-full cursor-pointer">
                       Sign In
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer gap-2">
-                    <Link href="/register" className="w-full">
+                  <DropdownMenuItem asChild>
+                    <Link href="/register" className="w-full cursor-pointer">
                       Create Account
                     </Link>
                   </DropdownMenuItem>
