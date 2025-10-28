@@ -1,7 +1,7 @@
 'use client';
 
 import { Heart, Users, Smile, Frown, Meh, Minus, AlertCircle } from 'lucide-react';
-import type { MeetingData } from '@/types/meeting';
+import type { MeetingData} from '@/types/meeting';
 
 interface SentimentTabProps {
   meeting: MeetingData;

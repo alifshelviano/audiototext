@@ -15,6 +15,7 @@ interface SummaryTabProps {
   onDataRefresh: () => void;
 }
 
+
 export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProps) {
   const [isExporting, setIsExporting] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -22,6 +23,17 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
   const getStructuredSummary = () => {
     if (meeting?.summary?.meeting_summary) {
       const summary = meeting.summary.meeting_summary;
+      
+      // Ensure date/time from database is used as fallback
+      if (!summary.date || summary.date === '2024-10-27') { // Check for incorrect date
+        const meetingDate = new Date(meeting.time);
+        summary.date = meetingDate.toISOString().split('T')[0];
+        summary.time = meetingDate.toLocaleTimeString([], { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        });
+      }
+      
       if (summary.emotion_analysis) {
         summary.emotion_analysis = {
           overall_sentiment: summary.emotion_analysis.overall_sentiment || 'neutral',
@@ -40,6 +52,7 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
       return summary;
     }
     
+    // Fallback to actual meeting data from database
     const participants = Array.from(new Set(meeting?.transcripts?.map((t: any) => t.name) || []));
     const meetingDate = new Date(meeting?.time || new Date());
     

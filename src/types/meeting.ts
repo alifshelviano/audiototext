@@ -1,19 +1,39 @@
 export interface Transcript {
-    name: string;
-    transcript: string;
-    createdAt: Date;
-  }
-  
-  export interface MeetingData {
-    id: string;
-    name: string;
-    time: string;
-    transcripts: Transcript[];
-    summary?: any;
-    lastAnalyzed?: Date;
-  }
+  name: string;
+  transcript: string;
+  createdAt: Date;
+}
 
-  export interface EmotionAnalysis {
+export interface MeetingData {
+  id: string;
+  name: string;
+  time: string;
+  transcripts: Transcript[];
+  summary?: MeetingSummary;
+  lastAnalyzed?: Date;
+}
+
+// types/meeting.ts
+export interface Meeting {
+  id: string;
+  name: string;
+  description?: string;
+  scheduledTime: string;
+  createdAt: string;
+  createdBy: string;
+  creatorName: string;
+  status: 'scheduled' | 'ongoing' | 'completed' | 'cancelled';
+  settings: {
+    language: string;
+    visibility: 'public' | 'private';
+    autoRecord: boolean;
+    allowGuests: boolean;
+  };
+  participants: string[];
+  transcripts: any[];
+}
+
+export interface EmotionAnalysis {
   overall_sentiment: string;
   overall_confidence: number;
   participant_emotions: {
