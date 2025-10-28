@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { signIn, getSession } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import { FcGoogle } from 'react-icons/fc';
 
 export default function LoginPage() {
@@ -13,7 +13,6 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Handle error from query parameters (e.g., when redirected from NextAuth)
   useEffect(() => {
     const error = searchParams.get('error');
     if (error) {
@@ -44,15 +43,11 @@ export default function LoginPage() {
         redirect: false,
       });
 
-      console.log('SignIn result:', result);
-
       if (result?.error) {
-        // Error message is already set by NextAuth
         setError('Invalid email or password');
       } else if (result?.ok) {
-        // Success - redirect to home page
         router.push('/');
-        router.refresh(); // Refresh to update session state
+        router.refresh();
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -66,9 +61,9 @@ export default function LoginPage() {
     try {
       setIsLoading(true);
       setError('');
-      await signIn('google', { 
+      await signIn('google', {
         callbackUrl: '/',
-        redirect: true 
+        redirect: true,
       });
     } catch (error) {
       console.error('Google login error:', error);
@@ -78,86 +73,71 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-50">
-      <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200 w-96">
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Welcome Back</h1>
-          <p className="text-gray-600 mt-2">Sign in to your LISN account</p>
-        </div>
-        
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
-            {error}
-          </div>
-        )}
-
-        {/* Google OAuth Button */}
-        <button
-          onClick={handleGoogleLogin}
-          disabled={isLoading}
-          className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 transition-colors mb-6"
-        >
-          <FcGoogle className="h-5 w-5" />
-          <span>Continue with Google</span>
-        </button>
-
-        <div className="relative mb-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">Or continue with email</span>
-          </div>
+    <div className="flex items-center justify-center min-h-screen bg-white">
+      <div className="flex w-full max-w-4xl">
+        {/* Left side with welcome message */}
+        <div className="w-1/2 bg-gray-100 p-12 flex flex-col justify-center items-start">
+          <h1 className="text-4xl font-bold text-blue-900">Hello,</h1>
+          <h1 className="text-4xl font-bold text-blue-900 mb-4">Welcome to LISN</h1>
         </div>
 
-        <form onSubmit={handleCredentialsSubmit}>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email
+        {/* Right side with the form */}
+        <div className="w-1/2 p-12">
+          <h2 className="text-3xl font-bold text-blue-900 mb-8">Sign In</h2>
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
+              {error}
+            </div>
+          )}
+          <form onSubmit={handleCredentialsSubmit}>
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
+                EMAIL
               </label>
               <input
+                className="shadow appearance-none border-b-2 border-gray-300 w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-                disabled={isLoading}
-                placeholder="Enter your email"
               />
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Password
+            <div className="mb-6">
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
+                PASSWORD
               </label>
               <input
+                className="shadow appearance-none border-b-2 border-gray-300 w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+                id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-                disabled={isLoading}
-                placeholder="Enter your password"
               />
             </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mt-6"
-          >
-            {isLoading ? 'Signing in...' : 'Sign in with Email'}
-          </button>
-        </form>
-
-        <p className="text-center mt-6 text-gray-600">
-          Don't have an account?{' '}
-          <a href="/register" className="text-blue-600 hover:text-blue-700 font-medium">
-            Create account
-          </a>
-        </p>
+            <div className="flex flex-col items-center justify-between">
+              <button
+                className="bg-blue-900 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
+                type="submit"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Logging in...' : 'Log in'}
+              </button>
+              <button
+                className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow w-full mt-4 flex items-center justify-center"
+                onClick={handleGoogleLogin}
+                disabled={isLoading}
+              >
+                <FcGoogle className="mr-2" /> Sign in with Google
+              </button>
+              <p className="text-center mt-4">
+                Don't have an account?{' '}
+                <a href="/register" className="text-blue-600 hover:text-blue-800">
+                  Create account
+                </a>
+              </p>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
