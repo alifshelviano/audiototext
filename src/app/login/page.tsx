@@ -73,17 +73,22 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-white">
-      <div className="flex w-full max-w-4xl">
-        {/* Left side with welcome message */}
-        <div className="w-1/2 bg-gray-100 p-12 flex flex-col justify-center items-start">
-          <h1 className="text-4xl font-bold text-blue-900">Hello,</h1>
-          <h1 className="text-4xl font-bold text-blue-900 mb-4">Welcome to LISN</h1>
+    <div className="flex flex-col justify-center md:flex-row h-screen overflow-hidden">
+      {/* Welcome message side (hidden on mobile) */}
+      <div
+        className="hidden md:flex w-full md:w-1/2 h-full bg-cover bg-center justify-center items-center p-12 text-center"
+        style={{ backgroundImage: "url('/signin-background.jpg')" }}
+      >
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-blue-950">Hello,</h1>
+          <h1 className="text-4xl font-bold text-blue-950 mb-4">Welcome to LISN</h1>
         </div>
-
-        {/* Right side with the form */}
-        <div className="w-1/2 p-12">
-          <h2 className="text-3xl font-bold text-blue-900 mb-8">Sign In</h2>
+      </div>
+      
+      {/* Form side */}
+      <div className="w-full md:w-1/2 flex justify-center items-center p-4 md:p-8 lg:p-12 bg-white overflow-y-auto">
+        <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-200 w-full max-w-md">
+          <h2 className="text-3xl font-bold text-blue-900 mb-8 text-center">Sign In</h2>
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
               {error}
@@ -100,6 +105,7 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                required
               />
             </div>
             <div className="mb-6">
@@ -112,6 +118,7 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
               />
             </div>
             <div className="flex flex-col items-center justify-between">
