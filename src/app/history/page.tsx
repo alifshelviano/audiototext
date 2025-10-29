@@ -1,115 +1,9 @@
-// "use client";
-
-// import { useState, useEffect, useCallback } from "react";
-// import Link from "next/link";
-// import { Header } from "@/components/app/header";
-// import { Sidebar } from "@/components/app/sidebar";
-// import { Button } from "@/components/ui/button";
-// import { useSession } from "next-auth/react";
-// import { Trash2 } from "lucide-react";
-
-// interface Meeting {
-//   id: string;
-//   name: string;
-//   time: string;
-// }
-
-// export default function HistoryPage() {
-//   const { data: session, status } = useSession();
-//   const [meetings, setMeetings] = useState<Meeting[]>([]);
-//   const [isLoading, setIsLoading] = useState(true);
-
-//   const fetchMeetings = useCallback(async (userId: string) => {
-//     try {
-//       setIsLoading(true);
-//       const res = await fetch(`/api/meetings?userId=${userId}`);
-//       if (!res.ok) {
-//         throw new Error("Failed to fetch meetings");
-//       }
-//       const data = await res.json();
-//       setMeetings(Array.isArray(data) ? data : []);
-//     } catch (error) {
-//       console.error("Error fetching meetings:", error);
-//       setMeetings([]);
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   }, []);
-
-//   useEffect(() => {
-//     if (status === "authenticated" && session?.user?.id) {
-//       fetchMeetings(session.user.id);
-//     }
-//   }, [status, session, fetchMeetings]);
-
-//   const handleDelete = async (meetingId: string) => {
-//     if (!confirm("Are you sure you want to delete this meeting?")) {
-//       return;
-//     }
-
-//     try {
-//       const res = await fetch(`/api/meetings/${meetingId}`, {
-//         method: "DELETE",
-//       });
-
-//       if (!res.ok) {
-//         throw new Error("Failed to delete meeting");
-//       }
-
-//       // Remove the deleted meeting from the state
-//       setMeetings(meetings.filter((meeting) => meeting.id !== meetingId));
-//     } catch (error) {
-//       console.error("Error deleting meeting:", error);
-//       // Handle error (e.g., show a toast message)
-//     }
-//   };
-
-//   return (
-//     <div className="min-h-screen bg-gray-50">
-//       <Header />
-//       <div className="flex">
-//         <Sidebar />
-//         <main className="flex-1 p-6">
-//           <div className="mb-8">
-//             <h1 className="text-3xl font-bold text-gray-900 mb-2">Meeting History</h1>
-//             <p className="text-gray-600">Browse and review your past meetings.</p>
-//           </div>
-
-//           {isLoading ? (
-//             <p>Loading meetings...</p>
-//           ) : meetings.length > 0 ? (
-//             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-//               {meetings.map((meeting) => (
-//                 <div key={meeting.id} className="bg-white rounded-lg shadow-md p-6 flex flex-col">
-//                   <div className="flex-grow">
-//                     <h2 className="text-lg font-semibold mb-2">{meeting.name}</h2>
-//                     <p className="text-gray-600 mb-4">{new Date(meeting.time).toLocaleString()}</p>
-//                   </div>
-//                   <div className="flex justify-between items-center mt-4">
-//                     <Link href={`/meeting/${meeting.id}/join`}>
-//                       <Button>View Details</Button>
-//                     </Link>
-//                     <Button variant="destructive" size="icon" onClick={() => handleDelete(meeting.id)}>
-//                       <Trash2 className="h-4 w-4" />
-//                     </Button>
-//                   </div>
-//                 </div>
-//               ))}
-//             </div>
-//           ) : (
-//             <p>No meetings found.</p>
-//           )}
-//         </main>
-//       </div>
-//     </div>
-//   );
-// }
-
 // app/history/page.tsx
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Header } from "@/components/app/header";
 import { Sidebar } from "@/components/app/sidebar";
 import { Button } from "@/components/ui/button";
@@ -128,10 +22,18 @@ interface Meeting {
 
 export default function HistoryPage() {
   const { data: session, status } = useSession();
+  const router = useRouter();
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingMeeting, setEditingMeeting] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ name: "", time: "" });
+
+  // Redirect to login if unauthenticated
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+    }
+  }, [status, router]);
 
   const fetchMeetings = useCallback(async (userId: string) => {
     try {
@@ -156,6 +58,19 @@ export default function HistoryPage() {
     }
   }, [status, session, fetchMeetings]);
 
+  // Show nothing while redirecting or checking authentication
+  if (status === "loading" || status === "unauthenticated") {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Rest of your component code...
   const handleDelete = async (meetingId: string) => {
     if (!confirm("Are you sure you want to delete this meeting? This action cannot be undone.")) {
       return;
@@ -248,46 +163,6 @@ export default function HistoryPage() {
   const hasSummary = (meeting: Meeting) => {
     return meeting.summary && Object.keys(meeting.summary).length > 0;
   };
-
-  if (status === "loading") {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="flex">
-          <Sidebar />
-          <main className="flex-1 p-6">
-            <div className="animate-pulse">
-              <div className="h-8 bg-gray-200 rounded w-1/4 mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="bg-white rounded-lg shadow-md p-6 h-48">
-                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-                    <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
-                    <div className="h-4 bg-gray-200 rounded w-1/4 mb-6"></div>
-                    <div className="h-10 bg-gray-200 rounded"></div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </main>
-        </div>
-      </div>
-    );
-  }
-
-  if (status === "unauthenticated") {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Please sign in to view your meeting history</h1>
-          <Link href="/login">
-            <Button>Sign In</Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">

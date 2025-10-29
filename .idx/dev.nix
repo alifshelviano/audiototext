@@ -10,7 +10,10 @@
   ];
 
   # Sets environment variables in the workspace
-  env = {};
+  env = {
+    # Load the API key from the .env file
+    ML_API_KEY = builtins.readFile ../.env;
+  };
   idx = {
     # Search for the extensions you want on https://open-vsx.org/ and use "publisher.id"
     extensions = [

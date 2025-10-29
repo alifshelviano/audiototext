@@ -39,8 +39,7 @@ async function getSentimentClassifier() {
       // Use the multilingual sentiment analysis model
       sentimentClassifier = await pipeline(
         "text-classification",
-        // 'Xenova/twitter-roberta-base-sentiment-latest', // Multilingual model
-        'Xenova/bert-multilingual-passage-reranking-msmarco', // Multilingual model
+        'Xenova/twitter-roberta-base-sentiment-latest', // Multilingual model
         {
           quantized: true,
           progress_callback: (data: any) => {
