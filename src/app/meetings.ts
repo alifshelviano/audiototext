@@ -361,11 +361,43 @@ export interface Meeting {
   passkey?: string; // Only for private meetings
 }
 
-export async function createMeeting(meetingData: { name: string; time: string; userId: string; isPublic: boolean; language: "english" | "indonesian" | "korean"; passkey?: string }): Promise<{ meetingId: string }> {
+// export async function createMeeting(meetingData: { name: string; time: string; userId: string; isPublic: boolean; language: "english" | "indonesian" | "korean"; passkey?: string }): Promise<{ meetingId: string }> {
+//   try {
+//     const client = await clientPromise;
+//     const db = client.db();
+//     const meetingsCollection = db.collection<Meeting>("meetings");
+
+//     const meeting = {
+//       ...meetingData,
+//       createdAt: new Date(),
+//       transcripts: [],
+//     };
+
+//     const result = await meetingsCollection.insertOne(meeting);
+
+//     if (!result.acknowledged) {
+//       throw new Error("Failed to create meeting");
+//     }
+
+//     return { meetingId: result.insertedId.toString() };
+//   } catch (error) {
+//     console.error("Error creating meeting:", error);
+//     throw new Error("Failed to create meeting");
+//   }
+// }
+
+export async function createMeeting(meetingData: {
+  name: string;
+  time: string;
+  userId: string;
+  isPublic: boolean;
+  language: 'english' | 'indonesian' | 'korean';
+  passkey?: string;
+}): Promise<{meetingId: string}> {
   try {
     const client = await clientPromise;
     const db = client.db();
-    const meetingsCollection = db.collection<Meeting>("meetings");
+    const meetingsCollection = db.collection<Meeting>('meetings');
 
     const meeting = {
       ...meetingData,
@@ -374,17 +406,21 @@ export async function createMeeting(meetingData: { name: string; time: string; u
     };
 
     const result = await meetingsCollection.insertOne(meeting);
-
+    
     if (!result.acknowledged) {
-      throw new Error("Failed to create meeting");
+      throw new Error('Failed to create meeting');
     }
 
-    return { meetingId: result.insertedId.toString() };
+    // Return the string representation of the MongoDB ObjectId
+    const meetingId = result.insertedId.toString();
+    
+    return {meetingId};
   } catch (error) {
-    console.error("Error creating meeting:", error);
-    throw new Error("Failed to create meeting");
+    console.error('Error creating meeting:', error);
+    throw new Error('Failed to create meeting');
   }
 }
+
 
 // export async function getMeetings({ userId }: { userId?: string }): Promise<
 //   Array<{
