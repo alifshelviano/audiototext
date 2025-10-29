@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { BarChart, Zap, Heart, CheckCircle, CalendarIcon, TrendingUp, TrendingDown } from 'lucide-react';
-import type { MeetingData, Transcript } from '@/types/meeting';
+import { BarChart, Zap, Heart, CheckCircle, CalendarIcon, TrendingUp, TrendingDown } from "lucide-react";
+import type { MeetingData, Transcript } from "@/models/Meeting";
 
 interface InsightsTabProps {
   meeting: MeetingData;
@@ -12,36 +12,36 @@ export function InsightsTab({ meeting }: InsightsTabProps) {
     if (meeting?.summary?.meeting_summary) {
       return meeting.summary.meeting_summary;
     }
-    
+
     const participants = Array.from(new Set(meeting?.transcripts?.map((t: Transcript) => t.name) || []));
     const meetingDate = new Date(meeting?.time || new Date());
-    
+
     return {
-      title: meeting?.name || 'Untitled Meeting',
-      date: meetingDate.toISOString().split('T')[0],
-      time: `${meetingDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} WIB`,
+      title: meeting?.name || "Untitled Meeting",
+      date: meetingDate.toISOString().split("T")[0],
+      time: `${meetingDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} WIB`,
       participants,
       key_points: ["Automatic analysis in progress..."],
       insights_decisions: [],
       action_items: [],
       summary_insights: ["Analysis pending"],
       emotion_analysis: {
-        overall_sentiment: 'neutral',
+        overall_sentiment: "neutral",
         overall_confidence: 0,
         participant_emotions: [],
         emotional_highlights: [],
-        tension_points: []
+        tension_points: [],
       },
       meeting_health_score: undefined,
-      next_meeting: undefined
+      next_meeting: undefined,
     };
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600 bg-green-50';
-    if (score >= 60) return 'text-blue-600 bg-blue-50';
-    if (score >= 40) return 'text-yellow-600 bg-yellow-50';
-    return 'text-red-600 bg-red-50';
+    if (score >= 80) return "text-green-600 bg-green-50";
+    if (score >= 60) return "text-blue-600 bg-blue-50";
+    if (score >= 40) return "text-yellow-600 bg-yellow-50";
+    return "text-red-600 bg-red-50";
   };
 
   const getScoreIcon = (score: number) => {
@@ -78,22 +78,20 @@ export function InsightsTab({ meeting }: InsightsTabProps) {
               </div>
               <h4 className="text-lg font-bold text-indigo-900">Meeting Health Score</h4>
             </div>
-            
+
             {/* Overall Score */}
             <div className="bg-white/70 rounded-xl p-6 mb-6 text-center">
-              <div className="text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                {structuredSummary.meeting_health_score.overall_score}
-              </div>
+              <div className="text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">{structuredSummary.meeting_health_score.overall_score}</div>
               <p className="text-gray-600 font-medium">Overall Health Score</p>
             </div>
 
             {/* Score Breakdown */}
             <div className="grid grid-cols-2 gap-4 mb-6">
               {[
-                { label: 'Engagement', score: structuredSummary.meeting_health_score.engagement_score },
-                { label: 'Productivity', score: structuredSummary.meeting_health_score.productivity_score },
-                { label: 'Collaboration', score: structuredSummary.meeting_health_score.collaboration_score },
-                { label: 'Clarity', score: structuredSummary.meeting_health_score.clarity_score }
+                { label: "Engagement", score: structuredSummary.meeting_health_score.engagement_score },
+                { label: "Productivity", score: structuredSummary.meeting_health_score.productivity_score },
+                { label: "Collaboration", score: structuredSummary.meeting_health_score.collaboration_score },
+                { label: "Clarity", score: structuredSummary.meeting_health_score.clarity_score },
               ].map((metric, index) => (
                 <div key={index} className={`${getScoreColor(metric.score)} rounded-xl p-4`}>
                   <div className="flex items-center justify-between mb-2">
@@ -206,9 +204,7 @@ export function InsightsTab({ meeting }: InsightsTabProps) {
 
   return (
     <div className="p-6 overflow-y-auto">
-      <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-6">
-        Meeting Insights
-      </h3>
+      <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-6">Meeting Insights</h3>
       {renderInsightsContent()}
     </div>
   );

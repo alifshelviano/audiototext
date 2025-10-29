@@ -11,7 +11,7 @@ export function Sidebar({className}: {className?: string}) {
 
   const navigation = [
     { name: 'Dashboard', href: '/', icon: Home },
-    { name: 'Meetings', href: '/history', icon: List },
+    { name: 'History', href: '/history', icon: List },
     { name: 'Public Meetings', href: '/public-meetings', icon: Globe },
   ];
 

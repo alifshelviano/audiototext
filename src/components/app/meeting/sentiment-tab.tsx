@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { Heart, Users, Smile, Frown, Meh, Minus, AlertCircle } from 'lucide-react';
-import type { MeetingData } from '@/types/meeting';
+import { Heart, Users, Smile, Frown, Meh, Minus, AlertCircle } from "lucide-react";
+import type { MeetingData } from "@/models/Meeting";
 
 interface SentimentTabProps {
   meeting: MeetingData;
@@ -17,30 +17,31 @@ export function SentimentTab({ meeting }: SentimentTabProps) {
       const summary = meeting.summary.meeting_summary;
       if (summary.emotion_analysis) {
         summary.emotion_analysis = {
-          overall_sentiment: summary.emotion_analysis.overall_sentiment || 'neutral',
+          overall_sentiment: summary.emotion_analysis.overall_sentiment || "neutral",
           overall_confidence: summary.emotion_analysis.overall_confidence || 0,
-          participant_emotions: summary.emotion_analysis.participant_emotions?.map((participant: any) => ({
-            participant: participant.participant || 'Unknown',
-            sentiment: participant.sentiment || 'neutral',
-            confidence: participant.confidence || 0,
-            statements: participant.statements || 0,
-            emotionalTone: participant.emotionalTone || 'neutral'
-          })) || [],
+          participant_emotions:
+            summary.emotion_analysis.participant_emotions?.map((participant: any) => ({
+              participant: participant.participant || "Unknown",
+              sentiment: participant.sentiment || "neutral",
+              confidence: participant.confidence || 0,
+              statements: participant.statements || 0,
+              emotionalTone: participant.emotionalTone || "neutral",
+            })) || [],
           emotional_highlights: summary.emotion_analysis.emotional_highlights || [],
-          tension_points: summary.emotion_analysis.tension_points || []
+          tension_points: summary.emotion_analysis.tension_points || [],
         };
       }
       return summary;
     }
-    
+
     return {
       emotion_analysis: {
-        overall_sentiment: 'neutral',
+        overall_sentiment: "neutral",
         overall_confidence: 0,
         participant_emotions: [],
         emotional_highlights: [],
-        tension_points: []
-      }
+        tension_points: [],
+      },
     };
   };
 
@@ -48,13 +49,13 @@ export function SentimentTab({ meeting }: SentimentTabProps) {
     if (!sentiment) {
       return <Minus className="w-5 h-5 text-gray-500" />;
     }
-    
+
     switch (sentiment.toLowerCase()) {
-      case 'positive':
+      case "positive":
         return <Smile className="w-5 h-5 text-green-500" />;
-      case 'negative':
+      case "negative":
         return <Frown className="w-5 h-5 text-red-500" />;
-      case 'mixed':
+      case "mixed":
         return <Meh className="w-5 h-5 text-yellow-500" />;
       default:
         return <Minus className="w-5 h-5 text-gray-500" />;
@@ -89,26 +90,19 @@ export function SentimentTab({ meeting }: SentimentTabProps) {
             </div>
             <h4 className="text-lg font-bold text-pink-900">Overall Meeting Sentiment</h4>
           </div>
-          
+
           <div className="bg-white/70 rounded-xl p-6 text-center">
             <div className="flex items-center justify-center gap-4 mb-4">
               {getSentimentIcon(emotionAnalysis.overall_sentiment)}
               <div>
-                <div className="text-3xl font-bold text-gray-900 capitalize">
-                  {emotionAnalysis.overall_sentiment}
-                </div>
-                <div className="text-sm text-gray-600">
-                  {Math.round(emotionAnalysis.overall_confidence * 100)}% confidence
-                </div>
+                <div className="text-3xl font-bold text-gray-900 capitalize">{emotionAnalysis.overall_sentiment}</div>
+                <div className="text-sm text-gray-600">{Math.round(emotionAnalysis.overall_confidence * 100)}% confidence</div>
               </div>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-3">
-              <div 
+              <div
                 className={`h-3 rounded-full transition-all ${
-                  emotionAnalysis.overall_sentiment === 'positive' ? 'bg-green-500' :
-                  emotionAnalysis.overall_sentiment === 'negative' ? 'bg-red-500' :
-                  emotionAnalysis.overall_sentiment === 'mixed' ? 'bg-yellow-500' :
-                  'bg-gray-500'
+                  emotionAnalysis.overall_sentiment === "positive" ? "bg-green-500" : emotionAnalysis.overall_sentiment === "negative" ? "bg-red-500" : emotionAnalysis.overall_sentiment === "mixed" ? "bg-yellow-500" : "bg-gray-500"
                 }`}
                 style={{ width: `${emotionAnalysis.overall_confidence * 100}%` }}
               ></div>
@@ -125,33 +119,31 @@ export function SentimentTab({ meeting }: SentimentTabProps) {
               </div>
               <h4 className="text-lg font-bold text-gray-900">Participant Emotions</h4>
             </div>
-            
+
             <div className="space-y-4">
               {emotionAnalysis.participant_emotions.map((participant: any, index: number) => (
                 <div key={index} className="bg-gradient-to-r from-gray-50 to-gray-100/50 rounded-xl p-5 border border-gray-200">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-md">
-                        <span className="text-white text-sm font-bold">
-                          {(participant.participant || 'Unknown').charAt(0).toUpperCase()}
-                        </span>
+                        <span className="text-white text-sm font-bold">{(participant.participant || "Unknown").charAt(0).toUpperCase()}</span>
                       </div>
                       <div>
-                        <h5 className="font-semibold text-gray-900">{participant.participant || 'Unknown'}</h5>
+                        <h5 className="font-semibold text-gray-900">{participant.participant || "Unknown"}</h5>
                         <p className="text-xs text-gray-500">{participant.statements || 0} statements</p>
                       </div>
                     </div>
                     {getSentimentIcon(participant.sentiment)}
                   </div>
-                  
+
                   <div className="grid grid-cols-3 gap-3 text-sm">
                     <div className="bg-white rounded-lg p-3">
                       <span className="text-gray-600 text-xs block mb-1">Sentiment</span>
-                      <span className="font-semibold text-gray-900 capitalize">{participant.sentiment || 'neutral'}</span>
+                      <span className="font-semibold text-gray-900 capitalize">{participant.sentiment || "neutral"}</span>
                     </div>
                     <div className="bg-white rounded-lg p-3">
                       <span className="text-gray-600 text-xs block mb-1">Tone</span>
-                      <span className="font-semibold text-gray-900 capitalize">{participant.emotionalTone || 'neutral'}</span>
+                      <span className="font-semibold text-gray-900 capitalize">{participant.emotionalTone || "neutral"}</span>
                     </div>
                     <div className="bg-white rounded-lg p-3">
                       <span className="text-gray-600 text-xs block mb-1">Confidence</span>
@@ -209,9 +201,7 @@ export function SentimentTab({ meeting }: SentimentTabProps) {
 
   return (
     <div className="p-6 overflow-y-auto">
-      <h3 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent mb-6">
-        Sentiment Analysis
-      </h3>
+      <h3 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent mb-6">Sentiment Analysis</h3>
       {renderSentimentContent()}
     </div>
   );

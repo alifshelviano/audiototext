@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { FileText, Zap, CheckCircle, CalendarIcon } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import type { MeetingData } from '@/types/meeting';
+import { FileText, Zap, CheckCircle, CalendarIcon } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import type { MeetingData } from "@/models/Meeting";
 
 interface SummaryContentProps {
   meeting: MeetingData;
@@ -14,44 +14,42 @@ export function SummaryContent({ meeting }: SummaryContentProps) {
       const summary = meeting.summary.meeting_summary;
       if (summary.emotion_analysis) {
         summary.emotion_analysis = {
-          overall_sentiment: summary.emotion_analysis.overall_sentiment || 'neutral',
+          overall_sentiment: summary.emotion_analysis.overall_sentiment || "neutral",
           overall_confidence: summary.emotion_analysis.overall_confidence || 0,
-          participant_emotions: summary.emotion_analysis.participant_emotions?.map((participant: any) => ({
-            participant: participant.participant || 'Unknown',
-            sentiment: participant.sentiment || 'neutral',
-            confidence: participant.confidence || 0,
-            statements: participant.statements || 0,
-            emotionalTone: participant.emotionalTone || 'neutral'
-          })) || [],
+          participant_emotions:
+            summary.emotion_analysis.participant_emotions?.map((participant: any) => ({
+              participant: participant.participant || "Unknown",
+              sentiment: participant.sentiment || "neutral",
+              confidence: participant.confidence || 0,
+              statements: participant.statements || 0,
+              emotionalTone: participant.emotionalTone || "neutral",
+            })) || [],
           emotional_highlights: summary.emotion_analysis.emotional_highlights || [],
-          tension_points: summary.emotion_analysis.tension_points || []
+          tension_points: summary.emotion_analysis.tension_points || [],
         };
       }
       return summary;
     }
-    
+
     const participants = Array.from(new Set(meeting?.transcripts?.map((t: any) => t.name) || []));
     const meetingDate = new Date(meeting?.time || new Date());
-    
+
     return {
-      title: meeting?.name || 'Untitled Meeting',
-      date: meetingDate.toISOString().split('T')[0],
-      time: `${meetingDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} WIB`,
+      title: meeting?.name || "Untitled Meeting",
+      date: meetingDate.toISOString().split("T")[0],
+      time: `${meetingDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} WIB`,
       participants,
-      key_points: [
-        "Automatic analysis in progress...",
-        "Please wait for AI to process the transcripts"
-      ],
+      key_points: ["Automatic analysis in progress...", "Please wait for AI to process the transcripts"],
       insights_decisions: [],
       action_items: [],
       summary_insights: ["Analysis pending"],
       emotion_analysis: {
-        overall_sentiment: 'neutral',
+        overall_sentiment: "neutral",
         overall_confidence: 0,
         participant_emotions: [],
         emotional_highlights: [],
-        tension_points: []
-      }
+        tension_points: [],
+      },
     };
   };
 
@@ -67,10 +65,7 @@ export function SummaryContent({ meeting }: SummaryContentProps) {
         </div>
         <h3 className="text-2xl font-bold text-gray-800 mb-2">No analysis yet</h3>
         <p className="text-gray-500 mb-6 max-w-md mx-auto">
-          {meeting?.transcripts?.length && meeting.transcripts.length > 0 
-            ? 'Generate AI-powered insights from your meeting transcripts' 
-            : 'Add some transcripts first to generate analysis'
-          }
+          {meeting?.transcripts?.length && meeting.transcripts.length > 0 ? "Generate AI-powered insights from your meeting transcripts" : "Add some transcripts first to generate analysis"}
         </p>
       </div>
     );
@@ -99,7 +94,7 @@ export function SummaryContent({ meeting }: SummaryContentProps) {
           </div>
           <div className="col-span-2 bg-white/60 rounded-xl p-4">
             <span className="font-semibold text-blue-700 block mb-1">Participants</span>
-            <p className="text-blue-900">{structuredSummary.participants.join(', ')}</p>
+            <p className="text-blue-900">{structuredSummary.participants.join(", ")}</p>
           </div>
         </div>
       </div>
@@ -115,9 +110,7 @@ export function SummaryContent({ meeting }: SummaryContentProps) {
         <ul className="space-y-3">
           {structuredSummary.key_points.map((point: string, index: number) => (
             <li key={index} className="flex items-start gap-3 text-gray-700 bg-gray-50 p-4 rounded-xl hover:bg-gray-100 transition-colors">
-              <span className="flex-shrink-0 w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                {index + 1}
-              </span>
+              <span className="flex-shrink-0 w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-full flex items-center justify-center text-xs font-bold">{index + 1}</span>
               <span className="pt-0.5">{point}</span>
             </li>
           ))}
@@ -142,12 +135,11 @@ export function SummaryContent({ meeting }: SummaryContentProps) {
                     👤 {item.assigned_to} • 📅 {item.deadline}
                   </p>
                 </div>
-                <Badge className={`ml-4 ${
-                  item.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                  item.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
-                  item.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
+                <Badge
+                  className={`ml-4 ${
+                    item.status === "Completed" ? "bg-green-100 text-green-800" : item.status === "In Progress" ? "bg-blue-100 text-blue-800" : item.status === "Pending" ? "bg-yellow-100 text-yellow-800" : "bg-gray-100 text-gray-800"
+                  }`}
+                >
                   {item.status}
                 </Badge>
               </div>

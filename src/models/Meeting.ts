@@ -1,22 +1,24 @@
-export interface Transcript {
-    name: string;
-    transcript: string;
-    createdAt: Date;
-  }
-  
-  export interface MeetingData {
-    id: string;
-    name: string;
-    time: string;
-    transcripts: Transcript[];
-    summary?: {
-        summary_text?: string;
-        meeting_summary?: MeetingSummary['meeting_summary'];
-    };
-    lastAnalyzed?: Date;
-  }
+import { ObjectId } from "mongodb";
 
-  export interface EmotionAnalysis {
+export interface Transcript {
+  name: string;
+  transcript: string;
+  createdAt: Date;
+}
+
+export interface MeetingData {
+  id: string;
+  name: string;
+  time: string;
+  transcripts: Transcript[];
+  summary?: {
+    summary_text?: string;
+    meeting_summary?: MeetingSummary["meeting_summary"];
+  };
+  lastAnalyzed?: Date;
+}
+
+export interface EmotionAnalysis {
   overall_sentiment: string;
   overall_confidence: number;
   participant_emotions: {
@@ -56,7 +58,7 @@ export interface MeetingSummary {
       task: string;
       assigned_to: string;
       deadline: string;
-      status: 'Not Started' | 'In Progress' | 'Completed' | 'Pending';
+      status: "Not Started" | "In Progress" | "Completed" | "Pending";
     }[];
     next_meeting?: {
       date: string;
