@@ -79,7 +79,7 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error('Email and password are required');
+          return null;
         }
         
         const result = await verifyUser(credentials.email, credentials.password);
@@ -88,8 +88,7 @@ export const authOptions: NextAuthOptions = {
           return result.user;
         }
 
-        // Throw error with message for better error handling
-        throw new Error(result.error || 'Authentication failed');
+        return null;
       },
     }),
   ],
