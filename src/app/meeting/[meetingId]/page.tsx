@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { getMeeting } from "@/app/meetings";
-import { Header } from "@/components/app/header";
+import { DashboardLayout } from "@/components/app/dashboard-layout";
 import { MeetingHeader } from "@/components/app/meeting/meeting-header";
 import { TabNavigation } from "@/components/app/meeting/tab-navigation";
 import { TranscriptList } from "@/components/app/meeting/transcript-list";
@@ -58,24 +58,26 @@ export default function MeetingPage() {
     }
   };
 
+  let content;
   if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!meeting) {
-    return <div>Meeting not found.</div>;
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <main className="p-6">
+    content = <div>Loading...</div>;
+  } else if (!meeting) {
+    content = <div>Meeting not found.</div>;
+  } else {
+    content = (
+      <>
         <MeetingHeader meeting={meeting} analysisStatus={analysisStatus} lastAnalysisTime={lastAnalysisTime} />
         <div className="mt-6 bg-white rounded-lg shadow-md">
           <TabNavigation activeTab={activeTab} onTabChange={handleTabChange} />
           <div className="p-6">{renderTabContent()}</div>
         </div>
-      </main>
-    </div>
+      </>
+    );
+  }
+
+  return (
+    <DashboardLayout>
+      {content}
+    </DashboardLayout>
   );
 }
