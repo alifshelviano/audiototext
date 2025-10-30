@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import Link from 'next/link';
-import { Users, Briefcase, Key, ArrowRight, X } from 'lucide-react';
-import { useSession } from 'next-auth/react';
+import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+import { Users, Briefcase, Key, ArrowRight, X } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { DashboardLayout } from "@/components/app/dashboard-layout";
-import { CreateMeetingDialog } from '@/components/app/create-meeting-dialog';
+import { CreateMeetingDialog } from "@/components/app/create-meeting-dialog";
 
 interface Meeting {
   id: string;
@@ -18,26 +18,33 @@ export default function Page() {
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showJoinModal, setShowJoinModal] = useState(false);
-  const [meetingId, setMeetingId] = useState('');
-  const [passkey, setPasskey] = useState('');
+  const [meetingId, setMeetingId] = useState("");
+  const [passkey, setPasskey] = useState("");
   const [isJoining, setIsJoining] = useState(false);
-  const [joinError, setJoinError] = useState('');
+  const [joinError, setJoinError] = useState("");
   const { data: session, status } = useSession();
 
   const fetchMeetings = useCallback(async () => {
     try {
       setIsLoading(true);
-      const res = await fetch('/api/meetings');
+
+      // Only fetch meetings if user is authenticated
+      if (status !== "authenticated") {
+        setMeetings([]);
+        return;
+      }
+
+      const res = await fetch("/api/meetings?userOnly=true");
 
       if (!res.ok) {
-        throw new Error('Failed to fetch meetings');
+        throw new Error("Failed to fetch meetings");
       }
 
       const data = await res.json();
       const meetingsData = Array.isArray(data) ? data : [];
       setMeetings(meetingsData);
     } catch (error) {
-      console.error('Error fetching meetings:', error);
+      console.error("Error fetching meetings:", error);
       setMeetings([]);
     } finally {
       setIsLoading(false);
@@ -51,36 +58,39 @@ export default function Page() {
   const handleJoinMeeting = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsJoining(true);
-    setJoinError('');
+    setJoinError("");
 
     try {
       const findMeetingRes = await fetch(`/api/meetings/find-by-passkey?passkey=${passkey}`);
 
       if (!findMeetingRes.ok) {
-        throw new Error('Invalid passkey or meeting not found');
+        throw new Error("Invalid passkey or meeting not found");
       }
 
       const meetingData = await findMeetingRes.json();
 
       if (!meetingData.meetingId) {
-        throw new Error('Meeting not found');
+        throw new Error("Meeting not found");
       }
 
       window.location.href = `/meeting/${meetingData.meetingId}/join`;
     } catch (error: any) {
-      console.error('Error joining meeting:', error);
-      setJoinError(error.message || 'Failed to join meeting. Please check the passkey.');
+      console.error("Error joining meeting:", error);
+      setJoinError(error.message || "Failed to join meeting. Please check the passkey.");
     } finally {
       setIsJoining(false);
     }
   };
 
   const resetJoinForm = () => {
-    setMeetingId('');
-    setPasskey('');
-    setJoinError('');
+    setMeetingId("");
+    setPasskey("");
+    setJoinError("");
     setShowJoinModal(false);
   };
+
+  // Calculate total meetings created by the user
+  const userMeetingsCount = meetings.length;
 
   return (
     <DashboardLayout>
@@ -89,31 +99,37 @@ export default function Page() {
         <p className="text-gray-600">Here is a summary of your meetings and activities.</p>
       </div>
 
+      {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-              <Briefcase className="h-5 w-5" />
-            </div>
-            <h3 className="font-semibold">Total Meetings</h3>
-          </div>
-          <p className="text-purple-100 text-3xl font-bold mb-4">{isLoading ? '...' : meetings.length}</p>
-        </div>
-
-        {status === 'authenticated' && (
-            <Link href="/create-meetings">
-              <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white cursor-pointer hover:from-green-600 hover:to-green-700 transition-all duration-200 h-full">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                    <Users className="h-5 w-5" />
-                  </div>
-                  <h3 className="font-semibold">Create New Meeting</h3>
-                </div>
-                <p className="text-green-100 text-sm mb-4">Create meeting room and invite teammates to collaborate</p>
-                <div className="w-full bg-white text-green-600 py-2 px-4 rounded-lg font-medium hover:bg-green-50 transition-colors text-center">Create</div>
+        {/* Total Meetings Card - Only show if user is authenticated */}
+        {status === "authenticated" && (
+          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                <Briefcase className="h-5 w-5" />
               </div>
-            </Link>
-          )}
+              <h3 className="font-semibold">My Meetings</h3>
+            </div>
+            <p className="text-purple-100 text-3xl font-bold mb-4">{isLoading ? "..." : userMeetingsCount}</p>
+            <p className="text-purple-100 text-sm">Meetings you created</p>
+          </div>
+        )}
+
+        {/* Create Meeting Card */}
+        {status === "authenticated" && (
+          <Link href="/create-meetings">
+            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white cursor-pointer hover:from-green-600 hover:to-green-700 transition-all duration-200 h-full">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                  <Users className="h-5 w-5" />
+                </div>
+                <h3 className="font-semibold">Create New Meeting</h3>
+              </div>
+              <p className="text-green-100 text-sm mb-4">Create meeting room and invite teammates to collaborate</p>
+              <div className="w-full bg-white text-green-600 py-2 px-4 rounded-lg font-medium hover:bg-green-50 transition-colors text-center">Create</div>
+            </div>
+          </Link>
+        )}
 
         <div onClick={() => setShowJoinModal(true)} className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white cursor-pointer hover:from-blue-600 hover:to-blue-700 transition-all duration-200 h-full">
           <div className="flex items-center gap-3 mb-3">
@@ -179,7 +195,7 @@ export default function Page() {
                       Joining...
                     </span>
                   ) : (
-                    'Join Meeting'
+                    "Join Meeting"
                   )}
                 </button>
               </div>
@@ -216,7 +232,7 @@ export default function Page() {
               </div>
             </Link>
 
-            {status === 'authenticated' && (
+            {status === "authenticated" && (
               <Link href="/history">
                 <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
                   <div className="flex items-center gap-3">
