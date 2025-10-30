@@ -180,14 +180,14 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
             )}
           </div>
 
-          <Button onClick={sendToGoogleCalendar} variant="outline" size="sm" disabled={!meeting.summary} className="hover:bg-purple-50 border-purple-200">
+          {/* <Button onClick={sendToGoogleCalendar} variant="outline" size="sm" disabled={!meeting.summary} className="hover:bg-purple-50 border-purple-200">
             <CalendarIcon className="w-4 h-4 mr-2" />
             Calendar
           </Button>
           <Button onClick={sendEmailNotifications} variant="outline" size="sm" disabled={!meeting.summary} className="hover:bg-orange-50 border-orange-200">
             <Mail className="w-4 h-4 mr-2" />
             Email
-          </Button>
+          </Button> */}
         </div>
       </div>
       <SummaryContent meeting={meeting} />
