@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, RefObject } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,14 +11,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { useAuth } from '@/app/AuthProvider';
@@ -27,17 +19,43 @@ import {
   User, 
   Settings, 
   Bell, 
-  Menu, 
-  Home, 
-  Mic2, 
-  History,
-  Sparkles,
-  Volume2
+  Menu
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-export function Header() {
+// The props are now optional for pages that don't use the full dashboard layout
+interface HeaderProps {
+  toggleSidebar?: () => void;
+  mainContentRef?: RefObject<HTMLDivElement>;
+}
+
+export function Header({ toggleSidebar, mainContentRef }: HeaderProps) {
   const [notificationCount, setNotificationCount] = useState(3);
+  const [isScrolled, setIsScrolled] = useState(false);
   const { user, logout } = useAuth();
+
+  useEffect(() => {
+    const mainContent = mainContentRef?.current;
+
+    if (mainContent) {
+      const handleScroll = () => {
+        setIsScrolled(mainContent.scrollTop > 0);
+      };
+      mainContent.addEventListener('scroll', handleScroll, { passive: true });
+      return () => {
+        mainContent.removeEventListener('scroll', handleScroll);
+      };
+    } else {
+      // Fallback to window scroll for pages without mainContentRef
+      const handleScroll = () => {
+        setIsScrolled(window.scrollY > 0);
+      };
+      window.addEventListener('scroll', handleScroll, { passive: true });
+      return () => {
+        window.removeEventListener('scroll', handleScroll);
+      };
+    }
+  }, [mainContentRef]);
 
   const getUserInitials = (name: string) => {
     return name
@@ -48,85 +66,39 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header
+      className={cn(
+        'sticky top-0 z-40 w-full border-b text-white transition-colors duration-300',
+        isScrolled ? 'bg-blue-600/80 backdrop-blur-sm' : 'bg-blue-600'
+      )}
+    >
       <div className="container flex h-16 items-center justify-between px-4">
-        {/* Left Section - Logo & Navigation */}
-        <div className="flex items-center gap-6">
-          {/* Mobile Menu */}
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-[240px] sm:w-[300px]">
-              <SheetHeader>
-                <SheetTitle className="flex items-center gap-2">
-                  <Volume2 className="h-6 w-6 text-blue-600" />
-                  LISN
-                </SheetTitle>
-                <SheetDescription>
-                  Your intelligent meeting assistant
-                </SheetDescription>
-              </SheetHeader>
-              <nav className="flex flex-col gap-4 mt-8">
-                <Link href="/">
-                  <Button variant="ghost" className="w-full justify-start gap-2">
-                    <Home className="h-4 w-4" />
-                    Dashboard
-                  </Button>
-                </Link>
-                <Link href="/meetings">
-                  <Button variant="ghost" className="w-full justify-start gap-2">
-                    <Mic2 className="h-4 w-4" />
-                    Meetings
-                  </Button>
-                </Link>
-                <Link href="/history">
-                  <Button variant="ghost" className="w-full justify-start gap-2">
-                    <History className="h-4 w-4" />
-                    History
-                  </Button>
-                </Link>
-              </nav>
-            </SheetContent>
-          </Sheet>
-
-          {/* Logo */}
+        <div className="flex items-center gap-4">
+          {/* The sidebar toggle is only shown if the function is provided */}
+          {toggleSidebar && (
+            <Button variant="ghost" size="icon" onClick={toggleSidebar} className="text-white hover:text-gray-200">
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">Toggle sidebar</span>
+            </Button>
+          )}
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="relative">
-              <Volume2 className="h-8 w-8 text-blue-600 transition-transform group-hover:scale-110" />
-              <div className="absolute -top-1 -right-1">
-                <Sparkles className="h-3 w-3 text-yellow-500 fill-yellow-500" />
-              </div>
-            </div>
-            <div className="flex flex-col">
-              <h1 className="font-bold text-2xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                LISN
-              </h1>
-              <p className="text-xs text-muted-foreground -mt-1 hidden sm:block">
-                Listen • Transcribe • Summarize
-              </p>
-            </div>
+            <img src="/logo.png" alt="LISN Logo" className="h-8 w-auto" />
+            <h1 className="font-bold text-2xl text-white">LISN</h1>
           </Link>
         </div>
 
-        {/* Right Section - User Menu & Actions */}
         <div className="flex items-center gap-3">
-          {/* Online Status */}
           {user && (
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-green-50 border border-green-200">
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 border border-green-200">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-xs font-medium text-green-700">Online</span>
+              <span className="text-xs font-medium text-green-800">Online</span>
             </div>
           )}
 
-          {/* Notifications */}
           {user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative">
+                <Button variant="ghost" size="icon" className="relative text-white">
                   <Bell className="h-5 w-5" />
                   {notificationCount > 0 && (
                     <Badge 
@@ -167,13 +139,12 @@ export function Header() {
             </DropdownMenu>
           )}
 
-          {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
                 <Avatar className="h-10 w-10 border-2 border-transparent hover:border-blue-200 transition-colors">
                   <AvatarImage src={user?.avatar} alt="Profile" />
-                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
+                  <AvatarFallback className="bg-gray-200 text-blue-600 font-semibold">
                     {user ? getUserInitials(user.name) : 'U'}
                   </AvatarFallback>
                 </Avatar>
@@ -185,40 +156,25 @@ export function Header() {
                   <DropdownMenuLabel>
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium">{user.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {user.email}
-                      </p>
+                      <p className="text-xs text-muted-foreground">{user.email}</p>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="cursor-pointer gap-2">
-                    <User className="h-4 w-4" />
-                    <span>Profile</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer gap-2">
-                    <Settings className="h-4 w-4" />
-                    <span>Settings</span>
-                  </DropdownMenuItem>
+                  <DropdownMenuItem><User className="w-4 h-4 mr-2"/>Profile</DropdownMenuItem>
+                  <DropdownMenuItem><Settings className="w-4 h-4 mr-2"/>Settings</DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    className="cursor-pointer gap-2 text-red-600 focus:text-red-600"
-                    onClick={logout}
-                  >
-                    <LogOut className="h-4 w-4" />
-                    <span>Logout</span>
+                  <DropdownMenuItem onClick={logout} className="text-red-600 focus:text-red-600">
+                    <LogOut className="w-4 h-4 mr-2"/>
+                    Logout
                   </DropdownMenuItem>
                 </>
               ) : (
                 <>
-                  <DropdownMenuItem className="cursor-pointer gap-2">
-                    <Link href="/login" className="w-full">
-                      Sign In
-                    </Link>
+                  <DropdownMenuItem asChild>
+                    <Link href="/login">Sign In</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer gap-2">
-                    <Link href="/register" className="w-full">
-                      Create Account
-                    </Link>
+                  <DropdownMenuItem asChild>
+                    <Link href="/register">Create Account</Link>
                   </DropdownMenuItem>
                 </>
               )}
