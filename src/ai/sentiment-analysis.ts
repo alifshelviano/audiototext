@@ -36,11 +36,10 @@ async function getSentimentClassifier() {
     console.log("Initializing multilingual sentiment analysis model...");
 
     try {
-      // Use the multilingual sentiment analysis model
+      // Use a proper multilingual sentiment analysis model
       sentimentClassifier = await pipeline(
         "text-classification",
-        // 'Xenova/twitter-roberta-base-sentiment-latest', // Multilingual model
-        'Xenova/bert-multilingual-passage-reranking-msmarco', // Multilingual model
+        "Xenova/bert-base-multilingual-uncased-sentiment", // Proper multilingual sentiment model
         {
           quantized: true,
           progress_callback: (data: any) => {
@@ -56,8 +55,8 @@ async function getSentimentClassifier() {
       // Fallback to a different model if this one fails
       try {
         console.log("Trying fallback model...");
-        sentimentClassifier = await pipeline("text-classification", "Xenova/distilbert-base-uncased-finetuned-sst-2-english", { quantized: true });
-        console.log("Fallback sentiment model loaded successfully");
+        sentimentClassifier = await pipeline("text-classification", "Xenova/distilbert-base-multilingual-cased-sentiment", { quantized: true });
+        console.log("Fallback multilingual sentiment model loaded successfully");
       } catch (fallbackError) {
         console.error("Failed to load fallback model:", fallbackError);
         sentimentClassifier = null;
@@ -70,7 +69,7 @@ async function getSentimentClassifier() {
 /**
  * Analyze sentiment using multilingual model
  */
-async function analyzeSentiment(text: string): Promise<SentimentResult[]> {
+async function analyzeSentiment(text: string, language: "english" | "indonesian" | "korean" = "english"): Promise<SentimentResult[]> {
   if (!text?.trim()) {
     return [{ label: "neutral", score: 0.5 }];
   }
@@ -79,7 +78,7 @@ async function analyzeSentiment(text: string): Promise<SentimentResult[]> {
     const classifier = await getSentimentClassifier();
 
     if (!classifier) {
-      return analyzeSentimentFallback(text);
+      return analyzeSentimentFallback(text, language);
     }
 
     // Truncate text to avoid performance issues
@@ -88,7 +87,7 @@ async function analyzeSentiment(text: string): Promise<SentimentResult[]> {
     const results = await classifier(textToAnalyze);
 
     if (!results || results.length === 0) {
-      return analyzeSentimentFallback(text);
+      return analyzeSentimentFallback(text, language);
     }
 
     // Multilingual model typically returns standard sentiment labels
@@ -98,160 +97,160 @@ async function analyzeSentiment(text: string): Promise<SentimentResult[]> {
       let score = result.score;
 
       // Normalize labels to ensure consistency across different model outputs
-      if (label === "positif" || label === "positive" || label === "pos") {
+      if (label === "positif" || label === "positive" || label === "pos" || label === "labur" || label === "긍정") {
         label = "positive";
-      } else if (label === "negatif" || label === "negative" || label === "neg") {
+      } else if (label === "negatif" || label === "negative" || label === "neg" || label === "negatib" || label === "부정") {
         label = "negative";
-      } else if (label === "netral" || label === "neutral" || label === "neu") {
+      } else if (label === "netral" || label === "neutral" || label === "neu" || label === "중립") {
         label = "neutral";
       }
 
       // Apply confidence adjustments for meeting context
-      return adjustSentimentForMeetingContext(label, score, text);
+      return adjustSentimentForMeetingContext(label, score, text, language);
     });
 
     return transformedResults;
   } catch (error) {
     console.error("Error in multilingual sentiment analysis:", error);
-    return analyzeSentimentFallback(text);
+    return analyzeSentimentFallback(text, language);
   }
 }
 
 /**
  * Adjust sentiment results to be more appropriate for meeting contexts
  */
-function adjustSentimentForMeetingContext(label: string, score: number, text: string): SentimentResult {
-  // Multilingual models can vary in their sensitivity
-  // Apply adjustments to make it more suitable for professional meetings
-
+function adjustSentimentForMeetingContext(label: string, score: number, text: string, language: "english" | "indonesian" | "korean"): SentimentResult {
   const lowerText = text.toLowerCase();
 
-  // Check for meeting-specific positive indicators in multiple languages
-  const positiveIndicators = [
-    // English
-    "good",
-    "great",
-    "excellent",
-    "awesome",
-    "perfect",
-    "agree",
-    "support",
-    "thanks",
-    "thank you",
-    "ok",
-    "okay",
-    "yes",
-    "sure",
-    "definitely",
-    "wonderful",
-    "fantastic",
-    "brilliant",
-    "outstanding",
-    "perfect",
-    // Indonesian
-    "baik",
-    "bagus",
-    "hebat",
-    "mantap",
-    "setuju",
-    "dukung",
-    "support",
-    "terima kasih",
-    "ok",
-    "oke",
-    "siap",
-    "sepakat",
-    "jalan",
-    "lanjut",
-    "solusi",
-    "settle",
-    "clear",
-    "paham",
-    "mengerti",
-  ];
+  // Language-specific sentiment indicators
+  const languageIndicators = {
+    english: {
+      positive: [
+        "good",
+        "great",
+        "excellent",
+        "awesome",
+        "perfect",
+        "agree",
+        "support",
+        "thanks",
+        "thank you",
+        "ok",
+        "okay",
+        "yes",
+        "sure",
+        "definitely",
+        "wonderful",
+        "fantastic",
+        "brilliant",
+        "outstanding",
+        "perfect",
+        "amazing",
+        "nice",
+        "cool",
+        "love",
+        "happy",
+        "pleased",
+        "satisfied",
+      ],
+      negative: [
+        "bad",
+        "terrible",
+        "awful",
+        "disagree",
+        "problem",
+        "issue",
+        "wrong",
+        "error",
+        "mistake",
+        "failed",
+        "fail",
+        "cannot",
+        "can't",
+        "won't",
+        "difficult",
+        "hard",
+        "complicated",
+        "confusing",
+        "unclear",
+        "hate",
+        "angry",
+        "frustrated",
+        "disappointed",
+        "upset",
+        "annoyed",
+        "stupid",
+      ],
+      neutral: ["maybe", "perhaps", "possibly", "might", "could", "not sure", "think", "believe", "feel", "probably", "consider", "discuss", "review", "analyze", "evaluate", "suggest", "propose"],
+    },
+    indonesian: {
+      positive: [
+        "baik",
+        "bagus",
+        "hebat",
+        "mantap",
+        "setuju",
+        "dukung",
+        "support",
+        "terima kasih",
+        "ok",
+        "oke",
+        "siap",
+        "sepakat",
+        "jalan",
+        "lanjut",
+        "solusi",
+        "settle",
+        "clear",
+        "paham",
+        "mengerti",
+        "senang",
+        "puas",
+        "luar biasa",
+        "keren",
+        "bagus sekali",
+        "sempurna",
+        "setuju sekali",
+      ],
+      negative: [
+        "tidak setuju",
+        "disagree",
+        "tidak",
+        "no",
+        "gak",
+        "ga setuju",
+        "masalah",
+        "kendala",
+        "hambatan",
+        "susah",
+        "sulit",
+        "repot",
+        "ribet",
+        "error",
+        "gagal",
+        "gak bisa",
+        "tidak bisa",
+        "belum",
+        "batal",
+        "cancel",
+        "jelek",
+        "buruk",
+        "menyedihkan",
+        "kesal",
+        "marah",
+        "frustasi",
+        "kecewa",
+      ],
+      neutral: ["mungkin", "kemungkinan", "sepertinya", "kira", "anggap", "pikir", "diskusi", "bahas", "review", "analisis", "evaluasi", "pertimbang", "usul", "sarankan", "ajukan", "rasanya", "kayaknya"],
+    },
+    korean: {
+      positive: ["좋아", "좋다", "대박", "최고", "완벽", "동의", "찬성", "지지", "감사", "고마워", "네", "예", "물론", "확실", "훌륭", "멋지", "기뻐", "행복", "만족", "완벽해", "좋아요", "잘했", "수고"],
+      negative: ["안 좋아", "나쁘", "끔찍", "끔찍해", "반대", "문제", "이슈", "틀렸", "에러", "실패", "못하", "안 되", "어렵", "복잡", "혼란", "불분명", "싫어", "화나", "짜증", "실망", "답답"],
+      neutral: ["아마", "어쩌면", "가능성", "생각", "믿어", "느껴", "아마도", "검토", "분석", "평가", "제안", "제의", "토론", "논의", "고려", "검토해", "생각해"],
+    },
+  };
 
-  // Check for meeting-specific negative indicators
-  const negativeIndicators = [
-    // English
-    "bad",
-    "terrible",
-    "awful",
-    "disagree",
-    "problem",
-    "issue",
-    "wrong",
-    "error",
-    "mistake",
-    "failed",
-    "fail",
-    "cannot",
-    "can't",
-    "won't",
-    "difficult",
-    "hard",
-    "complicated",
-    "confusing",
-    "unclear",
-    // Indonesian
-    "tidak setuju",
-    "disagree",
-    "tidak",
-    "no",
-    "gak",
-    "ga setuju",
-    "masalah",
-    "kendala",
-    "hambatan",
-    "susah",
-    "sulit",
-    "repot",
-    "ribet",
-    "error",
-    "gagal",
-    "gak bisa",
-    "tidak bisa",
-    "belum",
-    "batal",
-    "cancel",
-  ];
-
-  // Check for neutral/professional indicators
-  const neutralIndicators = [
-    // English
-    "maybe",
-    "perhaps",
-    "possibly",
-    "might",
-    "could",
-    "not sure",
-    "think",
-    "believe",
-    "feel",
-    "probably",
-    "consider",
-    "discuss",
-    "review",
-    "analyze",
-    "evaluate",
-    "suggest",
-    "propose",
-    // Indonesian
-    "mungkin",
-    "kemungkinan",
-    "sepertinya",
-    "kira",
-    "anggap",
-    "pikir",
-    "diskusi",
-    "bahas",
-    "review",
-    "analisis",
-    "evaluasi",
-    "pertimbang",
-    "usul",
-    "sarankan",
-    "ajukan",
-  ];
+  const indicators = languageIndicators[language] || languageIndicators.english;
 
   let adjustment = 0;
   let contextBoost = 0;
@@ -259,9 +258,8 @@ function adjustSentimentForMeetingContext(label: string, score: number, text: st
   // Apply context-based adjustments
   if (label === "negative") {
     // Check if the negative sentiment might be constructive criticism
-    const hasPositiveContext = positiveIndicators.some((indicator) => lowerText.includes(indicator));
-
-    const hasNeutralContext = neutralIndicators.some((indicator) => lowerText.includes(indicator));
+    const hasPositiveContext = indicators.positive.some((indicator) => lowerText.includes(indicator));
+    const hasNeutralContext = indicators.neutral.some((indicator) => lowerText.includes(indicator));
 
     if (hasPositiveContext) {
       // Negative sentiment with positive context -> likely constructive feedback
@@ -280,7 +278,8 @@ function adjustSentimentForMeetingContext(label: string, score: number, text: st
     }
   } else if (label === "positive") {
     // Check for strong positive indicators
-    const strongPositiveWords = ["excellent", "awesome", "perfect", "hebat", "mantap", "fantastic"];
+    const strongPositiveWords = language === "english" ? ["excellent", "awesome", "perfect", "fantastic"] : language === "indonesian" ? ["luar biasa", "sempurna", "hebat sekali"] : ["대박", "최고", "완벽해"];
+
     const hasStrongPositive = strongPositiveWords.some((word) => lowerText.includes(word));
 
     if (hasStrongPositive && score < 0.8) {
@@ -290,7 +289,9 @@ function adjustSentimentForMeetingContext(label: string, score: number, text: st
     }
 
     // Check if it's just polite conversation
-    const isJustPoliteness = ["terima kasih", "thanks", "ok", "oke", "siap", "thank you"].some((polite) => lowerText.includes(polite));
+    const politenessWords = language === "english" ? ["terima kasih", "thanks", "ok", "oke", "thank you"] : language === "indonesian" ? ["terima kasih", "ok", "oke", "siap"] : ["감사", "고마워", "네", "예"];
+
+    const isJustPoliteness = politenessWords.some((polite) => lowerText.includes(polite));
 
     if (isJustPoliteness && score < 0.7) {
       return { label: "neutral", score: 0.6 };
@@ -311,141 +312,159 @@ function adjustSentimentForMeetingContext(label: string, score: number, text: st
 /**
  * Enhanced multilingual fallback sentiment analysis
  */
-function analyzeSentimentFallback(text: string): SentimentResult[] {
+function analyzeSentimentFallback(text: string, language: "english" | "indonesian" | "korean" = "english"): SentimentResult[] {
   if (!text?.trim()) {
     return [{ label: "neutral", score: 0.5 }];
   }
 
   const lowerText = text.toLowerCase();
 
-  // Multilingual sentiment indicators
-  const positiveIndicators = [
-    // English
-    "good",
-    "great",
-    "excellent",
-    "awesome",
-    "perfect",
-    "agree",
-    "support",
-    "thanks",
-    "thank you",
-    "ok",
-    "okay",
-    "yes",
-    "sure",
-    "definitely",
-    "wonderful",
-    "fantastic",
-    "brilliant",
-    "outstanding",
-    // Indonesian
-    "baik",
-    "bagus",
-    "hebat",
-    "mantap",
-    "setuju",
-    "dukung",
-    "support",
-    "terima kasih",
-    "ok",
-    "oke",
-    "siap",
-    "sepakat",
-    "jalan",
-    "lanjut",
-    "solusi",
-    "settle",
-    "clear",
-    "paham",
-  ];
+  // Language-specific sentiment indicators
+  const languageIndicators = {
+    english: {
+      positive: [
+        "good",
+        "great",
+        "excellent",
+        "awesome",
+        "perfect",
+        "agree",
+        "support",
+        "thanks",
+        "thank you",
+        "ok",
+        "okay",
+        "yes",
+        "sure",
+        "definitely",
+        "wonderful",
+        "fantastic",
+        "brilliant",
+        "outstanding",
+        "perfect",
+        "amazing",
+        "nice",
+        "cool",
+        "love",
+        "happy",
+        "pleased",
+        "satisfied",
+      ],
+      negative: [
+        "bad",
+        "terrible",
+        "awful",
+        "disagree",
+        "problem",
+        "issue",
+        "wrong",
+        "error",
+        "mistake",
+        "failed",
+        "fail",
+        "cannot",
+        "can't",
+        "won't",
+        "difficult",
+        "hard",
+        "complicated",
+        "confusing",
+        "unclear",
+        "hate",
+        "angry",
+        "frustrated",
+        "disappointed",
+        "upset",
+        "annoyed",
+        "stupid",
+      ],
+      neutral: ["maybe", "perhaps", "possibly", "might", "could", "not sure", "think", "believe", "feel", "probably", "consider", "discuss", "review", "analyze", "evaluate", "suggest", "propose"],
+    },
+    indonesian: {
+      positive: [
+        "baik",
+        "bagus",
+        "hebat",
+        "mantap",
+        "setuju",
+        "dukung",
+        "support",
+        "terima kasih",
+        "ok",
+        "oke",
+        "siap",
+        "sepakat",
+        "jalan",
+        "lanjut",
+        "solusi",
+        "settle",
+        "clear",
+        "paham",
+        "mengerti",
+        "senang",
+        "puas",
+        "luar biasa",
+        "keren",
+        "bagus sekali",
+        "sempurna",
+        "setuju sekali",
+      ],
+      negative: [
+        "tidak setuju",
+        "disagree",
+        "tidak",
+        "no",
+        "gak",
+        "ga setuju",
+        "masalah",
+        "kendala",
+        "hambatan",
+        "susah",
+        "sulit",
+        "repot",
+        "ribet",
+        "error",
+        "gagal",
+        "gak bisa",
+        "tidak bisa",
+        "belum",
+        "batal",
+        "cancel",
+        "jelek",
+        "buruk",
+        "menyedihkan",
+        "kesal",
+        "marah",
+        "frustasi",
+        "kecewa",
+      ],
+      neutral: ["mungkin", "kemungkinan", "sepertinya", "kira", "anggap", "pikir", "diskusi", "bahas", "review", "analisis", "evaluasi", "pertimbang", "usul", "sarankan", "ajukan", "rasanya", "kayaknya"],
+    },
+    korean: {
+      positive: ["좋아", "좋다", "대박", "최고", "완벽", "동의", "찬성", "지지", "감사", "고마워", "네", "예", "물론", "확실", "훌륭", "멋지", "기뻐", "행복", "만족", "완벽해", "좋아요", "잘했", "수고"],
+      negative: ["안 좋아", "나쁘", "끔찍", "끔찍해", "반대", "문제", "이슈", "틀렸", "에러", "실패", "못하", "안 되", "어렵", "복잡", "혼란", "불분명", "싫어", "화나", "짜증", "실망", "답답"],
+      neutral: ["아마", "어쩌면", "가능성", "생각", "믿어", "느껴", "아마도", "검토", "분석", "평가", "제안", "제의", "토론", "논의", "고려", "검토해", "생각해"],
+    },
+  };
 
-  const negativeIndicators = [
-    // English
-    "bad",
-    "terrible",
-    "awful",
-    "disagree",
-    "problem",
-    "issue",
-    "wrong",
-    "error",
-    "mistake",
-    "failed",
-    "fail",
-    "cannot",
-    "can't",
-    "won't",
-    "difficult",
-    "hard",
-    "complicated",
-    "confusing",
-    // Indonesian
-    "tidak setuju",
-    "disagree",
-    "tidak",
-    "no",
-    "gak",
-    "ga setuju",
-    "masalah",
-    "kendala",
-    "hambatan",
-    "susah",
-    "sulit",
-    "repot",
-    "ribet",
-    "error",
-    "gagal",
-    "gak bisa",
-    "tidak bisa",
-    "belum",
-    "batal",
-    "anjing",
-  ];
-
-  const neutralIndicators = [
-    // English
-    "maybe",
-    "perhaps",
-    "possibly",
-    "might",
-    "could",
-    "not sure",
-    "think",
-    "believe",
-    "feel",
-    "probably",
-    "consider",
-    "discuss",
-    // Indonesian
-    "mungkin",
-    "kemungkinan",
-    "sepertinya",
-    "kira",
-    "pikir",
-    "diskusi",
-    "bahas",
-    "review",
-    "analisis",
-    "pertimbang",
-  ];
+  const indicators = languageIndicators[language] || languageIndicators.english;
 
   let positiveScore = 0;
   let negativeScore = 0;
   let neutralScore = 0;
 
   // Check for indicators with language weighting
-  positiveIndicators.forEach((indicator) => {
+  indicators.positive.forEach((indicator) => {
     const count = (lowerText.match(new RegExp(indicator, "g")) || []).length;
     positiveScore += count * 2;
   });
 
-  negativeIndicators.forEach((indicator) => {
+  indicators.negative.forEach((indicator) => {
     const count = (lowerText.match(new RegExp(indicator, "g")) || []).length;
     negativeScore += count * 2;
   });
 
-  neutralIndicators.forEach((indicator) => {
+  indicators.neutral.forEach((indicator) => {
     const count = (lowerText.match(new RegExp(indicator, "g")) || []).length;
     neutralScore += count * 1.5;
   });
@@ -491,20 +510,62 @@ function analyzeSentimentFallback(text: string): SentimentResult[] {
 /**
  * Map sentiment to emotional tone (multilingual support)
  */
-function mapSentimentToEmotion(label: string, score: number): string {
+function mapSentimentToEmotion(label: string, score: number, language: "english" | "indonesian" | "korean" = "english"): string {
   if (!label) return "neutral";
 
   const normalizedLabel = label.toLowerCase().trim();
 
+  // Language-specific emotional tone mappings
+  const emotionMappings = {
+    english: {
+      positive: {
+        high: "enthusiastic",
+        medium: "supportive",
+        low: "positive",
+      },
+      negative: {
+        high: "frustrated",
+        medium: "concerned",
+        low: "critical",
+      },
+    },
+    indonesian: {
+      positive: {
+        high: "antusias",
+        medium: "mendukung",
+        low: "positif",
+      },
+      negative: {
+        high: "frustasi",
+        medium: "khawatir",
+        low: "kritis",
+      },
+    },
+    korean: {
+      positive: {
+        high: "열정적",
+        medium: "지지하는",
+        low: "긍정적",
+      },
+      negative: {
+        high: "좌절한",
+        medium: "걱정되는",
+        low: "비판적인",
+      },
+    },
+  };
+
+  const mappings = emotionMappings[language] || emotionMappings.english;
+
   if (normalizedLabel.includes("positive")) {
-    if (score > 0.85) return "enthusiastic";
-    if (score > 0.7) return "supportive";
-    if (score > 0.6) return "positive";
+    if (score > 0.85) return mappings.positive.high;
+    if (score > 0.7) return mappings.positive.medium;
+    if (score > 0.6) return mappings.positive.low;
     return "neutral";
   } else if (normalizedLabel.includes("negative")) {
-    if (score > 0.85) return "frustrated";
-    if (score > 0.75) return "concerned";
-    if (score > 0.65) return "critical";
+    if (score > 0.85) return mappings.negative.high;
+    if (score > 0.75) return mappings.negative.medium;
+    if (score > 0.65) return mappings.negative.low;
     return "neutral";
   }
 
@@ -518,13 +579,10 @@ function normalizeSentimentLabel(label: string): string {
   if (!label) return "neutral";
 
   const normalized = label.toLowerCase().trim();
-  if (normalized.includes("positive") || normalized.includes("positif")) return "positive";
-  if (normalized.includes("negative") || normalized.includes("negatif")) return "negative";
+  if (normalized.includes("positive") || normalized.includes("positif") || normalized.includes("긍정")) return "positive";
+  if (normalized.includes("negative") || normalized.includes("negatif") || normalized.includes("부정")) return "negative";
   return "neutral";
 }
-
-// The rest of the functions (extractParticipantStatements, identifyTensionPoints,
-// identifyEmotionalHighlights, analyzeTranscriptEmotions) remain the same as previous versions
 
 /**
  * Extract participant statements from transcript
@@ -557,10 +615,19 @@ function extractParticipantStatements(transcript: string): Map<string, string[]>
 /**
  * Identify tension points in the conversation
  */
-function identifyTensionPoints(participantStatements: Map<string, string[]>, participantSentiments: Map<string, { label: string; score: number }>): string[] {
+function identifyTensionPoints(participantStatements: Map<string, string[]>, participantSentiments: Map<string, { label: string; score: number }>, language: "english" | "indonesian" | "korean" = "english"): string[] {
   const tensionPoints: string[] = [];
 
   if (!participantSentiments.size) return tensionPoints;
+
+  // Language-specific tension indicators
+  const tensionKeywords = {
+    english: ["disagree", "no", "not", "don't", "can't", "won't", "against", "problem", "issue", "wrong", "error", "mistake", "hate", "angry"],
+    indonesian: ["tidak setuju", "tidak", "gak", "ga", "masalah", "susah", "sulit", "repot", "ribet", "error", "gagal", "batal", "marah", "kesal"],
+    korean: ["반대", "안", "못", "문제", "이슈", "틀렸", "에러", "실패", "어렵", "복잡", "혼란", "싫어", "화나", "짜증"],
+  };
+
+  const keywords = tensionKeywords[language] || tensionKeywords.english;
 
   // Check for strong negative sentiment
   const negativeParticipants: string[] = [];
@@ -571,41 +638,24 @@ function identifyTensionPoints(participantStatements: Map<string, string[]>, par
   });
 
   if (negativeParticipants.length > 0) {
-    tensionPoints.push(`Concerns raised by: ${negativeParticipants.join(", ")}`);
+    const message =
+      language === "english"
+        ? `Concerns raised by: ${negativeParticipants.join(", ")}`
+        : language === "indonesian"
+        ? `Kekhawatiran disampaikan oleh: ${negativeParticipants.join(", ")}`
+        : `우려 사항 제기자: ${negativeParticipants.join(", ")}`;
+    tensionPoints.push(message);
   }
 
-  // Check for disagreement patterns in multiple languages
+  // Check for disagreement patterns
   const statements = Array.from(participantStatements.values()).flat();
-  const disagreementKeywords = [
-    // English
-    "disagree",
-    "no",
-    "not",
-    "don't",
-    "can't",
-    "won't",
-    "against",
-    "problem",
-    "issue",
-    "wrong",
-    "error",
-    "mistake",
-    // Indonesian
-    "tidak setuju",
-    "tidak",
-    "gak",
-    "ga",
-    "masalah",
-    "susah",
-    "sulit",
-  ];
-
   let disagreementCount = 0;
+
   statements.forEach((statement) => {
     if (!statement) return;
 
     const lowerStatement = statement.toLowerCase();
-    if (disagreementKeywords.some((keyword) => lowerStatement.includes(keyword))) {
+    if (keywords.some((keyword) => lowerStatement.includes(keyword))) {
       disagreementCount++;
       if (disagreementCount <= 2) {
         tensionPoints.push(`Discussion point: "${statement.substring(0, 100)}..."`);
@@ -619,46 +669,53 @@ function identifyTensionPoints(participantStatements: Map<string, string[]>, par
 /**
  * Identify emotional highlights
  */
-function identifyEmotionalHighlights(participantStatements: Map<string, string[]>, participantSentiments: Map<string, { label: string; score: number }>): string[] {
+function identifyEmotionalHighlights(participantStatements: Map<string, string[]>, participantSentiments: Map<string, { label: string; score: number }>, language: "english" | "indonesian" | "korean" = "english"): string[] {
   const highlights: string[] = [];
 
   if (!participantSentiments.size) return highlights;
+
+  // Language-specific highlight messages
+  const highlightMessages = {
+    english: {
+      positive: (participant: string) => `${participant} contributed positively to the discussion`,
+      collaborative: (participant: string) => `${participant} showed collaborative spirit`,
+    },
+    indonesian: {
+      positive: (participant: string) => `${participant} memberikan kontribusi positif dalam diskusi`,
+      collaborative: (participant: string) => `${participant} menunjukkan semangat kolaboratif`,
+    },
+    korean: {
+      positive: (participant: string) => `${participant} 님이 논의에 긍정적으로 기여함`,
+      collaborative: (participant: string) => `${participant} 님이 협력적인 태도를 보임`,
+    },
+  };
+
+  const messages = highlightMessages[language] || highlightMessages.english;
 
   // Find positive engagement
   participantSentiments.forEach((sentiment, participant) => {
     if (sentiment?.label?.toLowerCase().includes("positive") && sentiment.score > 0.65) {
       const statements = participantStatements.get(participant) || [];
       if (statements.length > 0) {
-        highlights.push(`${participant} contributed positively to the discussion`);
+        highlights.push(messages.positive(participant));
       }
     }
   });
 
-  // Look for collaborative moments in multiple languages
-  participantStatements.forEach((statements, participant) => {
-    const collaborativeWords = [
-      // English
-      "agree",
-      "support",
-      "help",
-      "collaborat",
-      "team",
-      "together",
-      "we can",
-      // Indonesian
-      "setuju",
-      "dukung",
-      "support",
-      "bantu",
-      "kolaborasi",
-      "tim",
-      "bersama",
-    ];
+  // Look for collaborative moments
+  const collaborativeWords = {
+    english: ["agree", "support", "help", "collaborat", "team", "together", "we can"],
+    indonesian: ["setuju", "dukung", "support", "bantu", "kolaborasi", "tim", "bersama"],
+    korean: ["동의", "지지", "도움", "협력", "팀", "함께", "우리"],
+  };
 
-    const hasCollaboration = statements.some((statement) => collaborativeWords.some((word) => statement.toLowerCase().includes(word)));
+  const words = collaborativeWords[language] || collaborativeWords.english;
+
+  participantStatements.forEach((statements, participant) => {
+    const hasCollaboration = statements.some((statement) => words.some((word) => statement.toLowerCase().includes(word)));
 
     if (hasCollaboration && !highlights.some((h) => h.includes(participant))) {
-      highlights.push(`${participant} showed collaborative spirit`);
+      highlights.push(messages.collaborative(participant));
     }
   });
 
@@ -668,12 +725,32 @@ function identifyEmotionalHighlights(participantStatements: Map<string, string[]
 /**
  * Main function to analyze emotions in meeting transcript
  */
-export async function analyzeTranscriptEmotions(transcript: string): Promise<EmotionAnalysisResult> {
+export async function analyzeTranscriptEmotions(transcript: string, language: "english" | "indonesian" | "korean" = "english"): Promise<EmotionAnalysisResult> {
+  const defaultMessages = {
+    english: {
+      noStatements: "No participant statements detected",
+      professional: "Professional discussion maintained throughout",
+      analysis: "Using multilingual sentiment analysis model",
+    },
+    indonesian: {
+      noStatements: "Tidak ada pernyataan peserta yang terdeteksi",
+      professional: "Diskusi profesional terjaga sepanjang rapat",
+      analysis: "Menggunakan model analisis sentimen multibahasa",
+    },
+    korean: {
+      noStatements: "참가자 발언이 감지되지 않음",
+      professional: "전체적으로 전문적인 논의가 유지됨",
+      analysis: "다국어 감정 분석 모델 사용 중",
+    },
+  };
+
+  const messages = defaultMessages[language] || defaultMessages.english;
+
   const defaultResult: EmotionAnalysisResult = {
     overall_sentiment: "neutral",
     overall_confidence: 0,
     participant_emotions: [],
-    emotional_highlights: ["Using multilingual sentiment analysis model"],
+    emotional_highlights: [messages.analysis],
     tension_points: [],
   };
 
@@ -687,7 +764,7 @@ export async function analyzeTranscriptEmotions(transcript: string): Promise<Emo
     if (participantStatements.size === 0) {
       return {
         ...defaultResult,
-        emotional_highlights: ["No participant statements detected"],
+        emotional_highlights: [messages.noStatements],
       };
     }
 
@@ -704,7 +781,7 @@ export async function analyzeTranscriptEmotions(transcript: string): Promise<Emo
 
       try {
         const combinedText = statements.join(" ");
-        const sentimentResults = await analyzeSentiment(combinedText);
+        const sentimentResults = await analyzeSentiment(combinedText, language);
 
         const topSentiment = sentimentResults.reduce((prev, current) => (current.score > prev.score ? current : prev), sentimentResults[0]);
 
@@ -723,7 +800,7 @@ export async function analyzeTranscriptEmotions(transcript: string): Promise<Emo
           sentiment: normalizedLabel,
           confidence: Math.round(topSentiment.score * 100) / 100,
           statements: statements.length,
-          emotionalTone: mapSentimentToEmotion(topSentiment.label, topSentiment.score),
+          emotionalTone: mapSentimentToEmotion(topSentiment.label, topSentiment.score, language),
         });
       } catch (error) {
         console.error(`Error analyzing sentiment for ${participant}:`, error);
@@ -763,14 +840,14 @@ export async function analyzeTranscriptEmotions(transcript: string): Promise<Emo
       }
     }
 
-    const tensionPoints = identifyTensionPoints(participantStatements, participantSentiments);
-    const emotionalHighlights = identifyEmotionalHighlights(participantStatements, participantSentiments);
+    const tensionPoints = identifyTensionPoints(participantStatements, participantSentiments, language);
+    const emotionalHighlights = identifyEmotionalHighlights(participantStatements, participantSentiments, language);
 
     return {
       overall_sentiment: overallSentiment,
       overall_confidence: Math.round(overallConfidence * 100) / 100,
       participant_emotions: participantEmotions,
-      emotional_highlights: emotionalHighlights.length > 0 ? emotionalHighlights : ["Professional discussion maintained throughout"],
+      emotional_highlights: emotionalHighlights.length > 0 ? emotionalHighlights : [messages.professional],
       tension_points: tensionPoints.length > 0 ? tensionPoints : [],
     };
   } catch (error) {
