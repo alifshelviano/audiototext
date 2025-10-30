@@ -50,6 +50,18 @@ export function InsightsTab({ meeting }: InsightsTabProps) {
     return <TrendingDown className="w-5 h-5" />;
   };
 
+  const hasNextMeetingContent = (nextMeeting: any) => {
+    if (!nextMeeting) return false;
+
+    // Check if date exists and is not null/empty
+    const hasDate = nextMeeting.date && nextMeeting.date !== null && nextMeeting.date !== "";
+
+    // Check if agenda exists and has items
+    const hasAgenda = nextMeeting.agenda && Array.isArray(nextMeeting.agenda) && nextMeeting.agenda.length > 0;
+
+    return hasDate || hasAgenda;
+  };
+
   const structuredSummary = getStructuredSummary();
 
   const renderInsightsContent = () => {
@@ -171,8 +183,8 @@ export function InsightsTab({ meeting }: InsightsTabProps) {
           </div>
         )}
 
-        {/* Next Meeting */}
-        {structuredSummary.next_meeting && (
+        {/* Next Meeting - Only show if there's actual content */}
+        {structuredSummary.next_meeting && hasNextMeetingContent(structuredSummary.next_meeting) && (
           <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl p-6 border border-orange-100 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center">
@@ -181,20 +193,27 @@ export function InsightsTab({ meeting }: InsightsTabProps) {
               <h4 className="text-lg font-bold text-orange-900">Next Meeting</h4>
             </div>
             <div className="space-y-3">
-              <p className="text-orange-800 bg-white/60 p-4 rounded-xl">
-                <span className="font-semibold">Date:</span> {structuredSummary.next_meeting.date}
-              </p>
-              <div className="bg-white/60 p-4 rounded-xl">
-                <span className="font-semibold text-orange-800 block mb-2">Agenda:</span>
-                <ul className="space-y-2">
-                  {structuredSummary.next_meeting.agenda.map((item: string, index: number) => (
-                    <li key={index} className="flex items-start gap-2 text-orange-700">
-                      <span className="text-orange-500 mt-1">📌</span>
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              {/* Only show date if it exists */}
+              {structuredSummary.next_meeting.date && structuredSummary.next_meeting.date !== null && (
+                <p className="text-orange-800 bg-white/60 p-4 rounded-xl">
+                  <span className="font-semibold">Date:</span> {structuredSummary.next_meeting.date}
+                </p>
+              )}
+
+              {/* Only show agenda if it has items */}
+              {structuredSummary.next_meeting.agenda && Array.isArray(structuredSummary.next_meeting.agenda) && structuredSummary.next_meeting.agenda.length > 0 && (
+                <div className="bg-white/60 p-4 rounded-xl">
+                  <span className="font-semibold text-orange-800 block mb-2">Agenda:</span>
+                  <ul className="space-y-2">
+                    {structuredSummary.next_meeting.agenda.map((item: string, index: number) => (
+                      <li key={index} className="flex items-start gap-2 text-orange-700">
+                        <span className="text-orange-500 mt-1">📌</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         )}

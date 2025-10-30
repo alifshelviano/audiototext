@@ -253,27 +253,32 @@ export async function updateMeetingSummary({ meetingId, summary }: { meetingId: 
 }
 
 // Function to generate meeting summary using Gemini
-export async function generateMeetingSummary({
-  meetingId,
-  transcripts,
-  language,
-}: {
-  meetingId: string;
-  transcripts: any[];
-  language: "english" | "indonesian" | "korean"; // Add language parameter
-}): Promise<{ success: boolean; summary?: any; error?: string }> {
+export async function generateMeetingSummary({ meetingId, transcripts, language }: { meetingId: string; transcripts: any[]; language: "english" | "indonesian" | "korean" }): Promise<{ success: boolean; summary?: any; error?: string }> {
   try {
     if (!transcripts || transcripts.length === 0) {
       return { success: false, error: "No transcripts available" };
     }
 
+    // Get meeting data to access language and time
+    const meeting = await getMeeting({ meetingId });
+    if (!meeting) {
+      return { success: false, error: "Meeting not found" };
+    }
+
     // Combine all transcripts into a single text
     const combinedTranscript = transcripts.map((t: any) => `${t.name}: ${t.transcript}`).join("\n\n");
 
-    // Call the Gemini flow with language parameter
+    // Format meeting date and time
+    const meetingDate = new Date(meeting.time);
+    const formattedDate = meetingDate.toISOString().split("T")[0];
+    const formattedTime = meetingDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+    // Call the Gemini flow with language parameter and actual meeting date/time
     const result = await summarizeTranscribedText({
-      language: language, // Add this
       transcribedText: combinedTranscript,
+      language: meeting.language, // Use the meeting's language
+      meetingDate: formattedDate, // Use the actual meeting date
+      meetingTime: formattedTime, // Use the actual meeting time
     });
 
     // Parse the JSON summary
@@ -282,12 +287,12 @@ export async function generateMeetingSummary({
       parsedSummary = JSON.parse(result.summary);
     } catch (parseError) {
       console.error("Error parsing summary JSON:", parseError);
-      // If it's not valid JSON, create a structured fallback
+      // If it's not valid JSON, create a structured fallback with actual meeting date/time
       parsedSummary = {
         meeting_summary: {
           title: "Meeting Analysis",
-          date: new Date().toISOString().split("T")[0],
-          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          date: formattedDate,
+          time: formattedTime,
           participants: Array.from(new Set(transcripts.map((t: any) => t.name))),
           key_points: ["Analysis completed with raw response"],
           insights_decisions: [],
