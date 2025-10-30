@@ -12,12 +12,18 @@ export interface Transcript {
   createdAt: Date;
 }
 
+export interface Participant {
+  name: string;
+  email: string;
+}
+
 export interface Meeting {
   _id?: ObjectId;
   name: string;
   time: string;
   userId: string;
   createdAt: Date;
+  participants: Participant[];
   transcripts: Transcript[];
   summary?: any; // Changed to any to handle structured JSON
   summaryCreatedAt?: Date;
@@ -37,6 +43,7 @@ export async function createMeeting(meetingData: { name: string; time: string; u
       ...meetingData,
       createdAt: new Date(),
       transcripts: [],
+      participants: [],
     };
 
     const result = await meetingsCollection.insertOne(meeting);
@@ -96,10 +103,11 @@ export async function getMeetings({ userId, isPublic }: { userId?: string; isPub
   }
 }
 
-export async function getMeeting({ meetingId }: { meetingId: string }): Promise<{
+export async function getMeeting({ meetingId }: { meetingId: string }): Promise<({
   id: string;
   name: string;
   time: string;
+  participants: Participant[];
   transcripts: Transcript[];
   summary?: any;
   summaryCreatedAt?: Date;
@@ -107,7 +115,7 @@ export async function getMeeting({ meetingId }: { meetingId: string }): Promise<
   isPublic: boolean;
   language: "english" | "indonesian" | "korean";
   passkey?: string;
-} | null> {
+}) | null> {
   try {
     if (!ObjectId.isValid(meetingId)) {
       return null;
@@ -129,6 +137,7 @@ export async function getMeeting({ meetingId }: { meetingId: string }): Promise<
       id: meeting._id!.toString(),
       name: meeting.name,
       time: meeting.time,
+      participants: meeting.participants || [],
       transcripts: meeting.transcripts || [],
       summary: meeting.summary,
       summaryCreatedAt: meeting.summaryCreatedAt,
@@ -217,6 +226,48 @@ export async function addTranscriptToMeeting({ meetingId, transcript }: { meetin
   } catch (error) {
     console.error("Error adding transcript to meeting:", error);
     return { success: false, error: "Failed to add transcript to meeting" };
+  }
+}
+
+// In your meetings.ts server file, update the addParticipantToMeeting function:
+export async function addParticipantToMeeting({ meetingId, participant }: { meetingId: string; participant: Participant }): Promise<{ success: boolean; error?: string }> {
+  try {
+      if (!ObjectId.isValid(meetingId)) {
+          return { success: false, error: "Invalid meeting ID" };
+      }
+
+      const client = await clientPromise;
+      const db = client.db();
+      const meetingsCollection = db.collection<Meeting>("meetings");
+
+      // Check if participant already exists (case-insensitive)
+      const existingMeeting = await meetingsCollection.findOne({
+          _id: new ObjectId(meetingId),
+          "participants.email": { $regex: `^${participant.email}$`, $options: 'i' }
+      });
+
+      if (existingMeeting) {
+          return { success: true }; // Participant already exists
+      }
+
+      // Add the participant
+      const result = await meetingsCollection.updateOne(
+          { _id: new ObjectId(meetingId) },
+          {
+              $push: {
+                  participants: participant,
+              },
+          }
+      );
+
+      if (result.matchedCount === 0) {
+          return { success: false, error: "Meeting not found" };
+      }
+
+      return { success: true };
+  } catch (error) {
+      console.error("Error adding participant to meeting:", error);
+      return { success: false, error: "Failed to add participant to meeting" };
   }
 }
 

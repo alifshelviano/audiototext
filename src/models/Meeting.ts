@@ -6,10 +6,18 @@ export interface Transcript {
   createdAt: Date;
 }
 
+export interface Participant {
+  name: string;
+  email: string;
+}
+
 export interface MeetingData {
+  isPublic: undefined;
+  language: any;
   id: string;
   name: string;
   time: string;
+  participants: Participant[];
   transcripts: Transcript[];
   summary?: {
     summary_text?: string;

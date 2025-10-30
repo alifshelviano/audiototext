@@ -1,9 +1,6 @@
+'use client';
 
-
-// components/app/meeting/recording-controls.tsx
-"use client";
-
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useAuth } from "@/app/AuthProvider";
 import { addTranscriptToMeeting, getMeeting } from "@/app/meetings";
 import { transcribeAudioOpenAI } from "@/ai/flows/transcribe-audio-openai";
@@ -30,16 +27,14 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
   const audioChunksRef = useRef<Blob[]>([]);
   const processingRef = useRef<boolean>(false);
   const streamRef = useRef<MediaStream | null>(null);
- 
 
   const analyserRef = useRef<AnalyserNode | null>(null);
-  const dataArrayRef = useRef<Uint8Array<ArrayBuffer> | null>(null);
+  const dataArrayRef = useRef<Uint8Array | null>(null);
   const animationFrameRef = useRef<number | null>(null);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // Fetch meeting language when component mounts
   useEffect(() => {
     const fetchMeetingLanguage = async () => {
       try {
@@ -87,11 +82,9 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
       animationFrameRef.current = requestAnimationFrame(draw);
       analyser.getByteFrequencyData(dataArray);
 
-      // Clear canvas with background
       canvasCtx.fillStyle = "#f9fafb";
       canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Calculate average volume for overall level
       let sum = 0;
       for (let i = 0; i < dataArray.length; i++) {
         sum += dataArray[i];
@@ -99,38 +92,29 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
       const average = sum / dataArray.length;
       setAudioLevel(average);
 
-      // Draw audio bars (original bar style)
       const barWidth = (canvas.width / dataArray.length) * 2.5;
       let x = 0;
 
       for (let i = 0; i < dataArray.length; i++) {
-        // Only draw every other bar for better performance
         if (i % 2 === 0) {
           const barHeight = (dataArray[i] / 255) * canvas.height;
-
-          // Create gradient based on audio level
           const gradient = canvasCtx.createLinearGradient(0, canvas.height, 0, canvas.height - barHeight);
 
           if (average > 60) {
-            // High volume - red to orange
             gradient.addColorStop(0, "#ef4444");
             gradient.addColorStop(0.7, "#f97316");
             gradient.addColorStop(1, "#f59e0b");
           } else if (average > 30) {
-            // Medium volume - blue to cyan
             gradient.addColorStop(0, "#3b82f6");
             gradient.addColorStop(0.7, "#06b6d4");
             gradient.addColorStop(1, "#22d3ee");
           } else {
-            // Low volume - green to emerald
             gradient.addColorStop(0, "#10b981");
             gradient.addColorStop(0.7, "#059669");
             gradient.addColorStop(1, "#34d399");
           }
 
           canvasCtx.fillStyle = gradient;
-
-          // Draw bar with rounded corners
           const barY = canvas.height - barHeight;
           const borderRadius = 2;
 
@@ -169,10 +153,9 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
         const base64AudioData = reader.result as string;
 
         if (base64AudioData.length > 1000 && user) {
-          // Use the meeting's language for transcription
           const { transcription } = await transcribeAudioOpenAI({
             audioDataUri: base64AudioData,
-            language: meetingLanguage, // Pass the meeting language here
+            language: meetingLanguage,
           });
 
           if (transcription && transcription.trim().length > 0) {
@@ -203,7 +186,7 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
 
   const handleStartRecording = async () => {
     if (!user) {
-      alert("Please log in to start recording");
+      alert("Please join the meeting to start recording");
       return;
     }
 
@@ -217,7 +200,6 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
       });
       streamRef.current = stream;
 
-      // Set up audio analysis
       const audioContext = new AudioContext();
       const source = audioContext.createMediaStreamSource(stream);
       const analyser = audioContext.createAnalyser();
@@ -244,14 +226,12 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
       setRecordingTime(0);
       setAudioLevel(0);
 
-      // Start timer
       timerRef.current = setInterval(() => {
         if (!isPaused) {
           setRecordingTime((prev) => prev + 1);
         }
       }, 1000);
 
-      // Start visualization
       setTimeout(() => {
         visualize();
       }, 100);
@@ -264,14 +244,10 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
   const handlePauseRecording = () => {
     if (mediaRecorderRef.current && streamRef.current) {
       if (isPaused) {
-        // Resume recording
         mediaRecorderRef.current.resume();
-        // Resume visualization
         visualize();
       } else {
-        // Pause recording
         mediaRecorderRef.current.pause();
-        // Stop visualization
         if (animationFrameRef.current) {
           cancelAnimationFrame(animationFrameRef.current);
           animationFrameRef.current = null;
@@ -289,13 +265,11 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
       setIsPaused(false);
       setAudioLevel(0);
 
-      // Stop visualization
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
         animationFrameRef.current = null;
       }
 
-      // Stop timer
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
@@ -307,7 +281,6 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
     }
   };
 
-  // Cleanup function
   useEffect(() => {
     return () => {
       if (mediaRecorderRef.current && streamRef.current) {
@@ -333,26 +306,13 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
   const volumeStatus = getVolumeStatus();
 
   if (!user) {
-    return (
-      <div className="bg-white rounded-xl p-6 border border-gray-200">
-        <div className="text-center">
-          <User className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">Sign In Required</h3>
-          <p className="text-gray-600 text-sm mb-4">Please log in to start recording and transcribing audio.</p>
-          <Button onClick={() => (window.location.href = "/login")} className="bg-blue-600 hover:bg-blue-700">
-            Sign In
-          </Button>
-        </div>
-      </div>
-    );
+    return null; // Don't render if no user/guest
   }
 
-  // In the compact version, remove the background and border:
   if (compact) {
     return (
       <div className="p-4">
         <div className="flex items-center justify-between gap-4">
-          {/* Left Section - User Info and Status */}
           <div className="flex items-center gap-3 flex-1">
             <Avatar className="h-10 w-10 border border-blue-200">
               <AvatarImage src={user.avatar} alt={user.name} />
@@ -393,14 +353,12 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
             </div>
           </div>
 
-          {/* Center Section - Audio Visualization */}
           {isRecording && !isPaused && (
             <div className="flex-1 max-w-md">
               <canvas ref={canvasRef} width={300} height={50} className="w-full h-12 rounded-lg border border-gray-200 bg-gray-50" />
             </div>
           )}
 
-          {/* Show paused state in center section */}
           {isRecording && isPaused && (
             <div className="flex-1 max-w-md flex items-center justify-center">
               <div className="text-center text-gray-500">
@@ -410,18 +368,15 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
             </div>
           )}
 
-          {/* Right Section - Controls */}
           <div className="flex items-center gap-2">
             {isRecording ? (
               <>
-                {/* Stop Button */}
                 <Button onClick={handleStopRecording} size="sm" variant="destructive" className="h-9 px-3">
                   <Square className="w-4 h-4 mr-1" />
                   Stop
                 </Button>
               </>
             ) : (
-              /* Start Recording Button */
               <Button onClick={handleStartRecording} size="sm" className="bg-blue-600 hover:bg-blue-700 h-9 px-4" disabled={isProcessing}>
                 <Mic className="w-4 h-4 mr-2" />
                 {isProcessing ? "Processing..." : "Start"}
@@ -433,7 +388,6 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
     );
   }
 
-  // Original full version for other tabs (if needed)
   return (
     <div className="bg-white rounded-xl p-6 border border-gray-200">
       <div className="flex items-center gap-3 mb-4">

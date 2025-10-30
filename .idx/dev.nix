@@ -13,6 +13,8 @@
   env = {
     # Load the API key from the .env file
     ML_API_KEY = builtins.readFile ../.env;
+    GMAIL_USER = builtins.readFile ../.env;
+    GMAIL_PASS = builtins.readFile ../.env;
   };
   idx = {
     # Search for the extensions you want on https://open-vsx.org/ and use "publisher.id"

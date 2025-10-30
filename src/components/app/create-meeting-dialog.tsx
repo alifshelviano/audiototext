@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Calendar, Users, Lock, Loader2, Share2, Check, Copy, ArrowRight, Link as LinkIcon } from 'lucide-react';
+import { Calendar, Users, Lock, Globe, Loader2, Check, Copy, ArrowRight, Video, Sparkles } from 'lucide-react';
 
 interface CreateMeetingDialogProps {
   children: ReactNode;
@@ -32,7 +32,8 @@ export function CreateMeetingDialog({ children }: CreateMeetingDialogProps) {
   const [open, setOpen] = useState(false);
   const [meetingName, setMeetingName] = useState('');
   const [meetingTime, setMeetingTime] = useState('');
-  const [isPublic, setIsPublic] = useState(false);
+  const [language, setLanguage] = useState('english');
+  const [isPublic, setIsPublic] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [creationSuccess, setCreationSuccess] = useState(false);
   const [newMeetingId, setNewMeetingId] = useState('');
@@ -40,172 +41,282 @@ export function CreateMeetingDialog({ children }: CreateMeetingDialogProps) {
 
   const router = useRouter();
 
-  // Reset state when dialog is closed
+  // Set default time to next hour
+  useEffect(() => {
+    if (open && !meetingTime) {
+      const now = new Date();
+      now.setHours(now.getHours() + 1);
+      now.setMinutes(0);
+      now.setSeconds(0);
+      setMeetingTime(now.toISOString().slice(0, 16));
+    }
+  }, [open, meetingTime]);
+
+  // Reset state when dialog closes
   useEffect(() => {
     if (!open) {
-      // Add a small delay to prevent content flicker while closing
       setTimeout(() => {
         setMeetingName('');
         setMeetingTime('');
-        setIsPublic(false);
+        setLanguage('english');
+        setIsPublic(true);
         setIsCreating(false);
         setCreationSuccess(false);
         setNewMeetingId('');
-      }, 200);
+        setIsCopied(false);
+      }, 300);
     }
   }, [open]);
 
   const handleCreateMeeting = async () => {
+    if (isButtonDisabled) return;
+    
     setIsCreating(true);
-    console.log('Creating meeting...', { meetingName, meetingTime, isPublic });
-
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    const fakeMeetingId = `meet-${Math.random().toString(36).substr(2, 9)}`;
-    setNewMeetingId(fakeMeetingId);
-    setIsCreating(false);
-    setCreationSuccess(true);
+    
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1200));
+      const fakeMeetingId = `meet-${Math.random().toString(36).substr(2, 9)}`;
+      setNewMeetingId(fakeMeetingId);
+      setCreationSuccess(true);
+    } catch (error) {
+      console.error('Failed to create meeting:', error);
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const handleGoToMeeting = () => {
-    router.push(`/meeting/${newMeetingId}/share`);
+    router.push(`/meeting/${newMeetingId}`);
     setOpen(false);
-  }
+  };
 
   const meetingLink = typeof window !== 'undefined' ? `${window.location.origin}/meeting/${newMeetingId}/join` : '';
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(meetingLink).then(() => {
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(meetingLink);
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
-    });
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
   };
 
   const isButtonDisabled = !meetingName.trim() || !meetingTime || isCreating;
 
   const SuccessView = () => (
-    <div className="p-6">
-      <div className="text-center mb-6">
-        <div className="inline-block bg-green-100 p-3 rounded-full mb-3">
-          <Share2 className="h-7 w-7 text-green-700" />
+    <div className="p-6 space-y-6">
+      {/* Success Header */}
+      <div className="text-center space-y-3">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full">
+          <Check className="h-8 w-8 text-green-600" />
         </div>
-        <h1 className="text-xl font-bold text-gray-900">Meeting Created Successfully!</h1>
-        <p className="text-gray-500 mt-2 text-sm">Your meeting room is ready. Share the link with your team.</p>
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Meeting Created!</h2>
+          <p className="text-gray-500 mt-1">Your meeting room is ready for participants</p>
+        </div>
       </div>
 
-      <div className="bg-gray-50 rounded-lg p-4 mb-6 border border-gray-200">
-        <h2 className="font-semibold text-gray-800 text-base mb-3">Meeting Details</h2>
-        <div className="space-y-3 text-sm">
-          <div className="flex items-center gap-3">
-            <Users className="h-4 w-4 text-gray-500" />
-            <span className="text-gray-700 font-medium">{meetingName}</span>
+      {/* Meeting Details */}
+      <div className="bg-blue-50 rounded-xl p-4 space-y-3">
+        <h3 className="font-semibold text-blue-900 text-sm">Meeting Details</h3>
+        <div className="space-y-2">
+          <div className="flex items-center gap-3 text-sm">
+            <Video className="h-4 w-4 text-blue-600" />
+            <span className="text-blue-800 font-medium">{meetingName}</span>
           </div>
-          <div className="flex items-center gap-3">
-            <Calendar className="h-4 w-4 text-gray-500" />
-            <span className="text-gray-700">{new Date(meetingTime).toLocaleString()}</span>
+          <div className="flex items-center gap-3 text-sm">
+            <Calendar className="h-4 w-4 text-blue-600" />
+            <span className="text-blue-700">{new Date(meetingTime).toLocaleString()}</span>
           </div>
-           <div className="flex items-center gap-3">
-              <div className={`h-4 w-4 flex items-center justify-center ${isPublic ? 'text-green-600' : 'text-yellow-700'}`}>
-                {isPublic ? <Users /> : <Lock />}
-              </div>
-              <span className={`font-medium ${isPublic ? 'text-green-700' : 'text-yellow-800'}`}>
-                {isPublic ? 'Public Meeting' : 'Private Meeting'}
-              </span>
+          <div className="flex items-center gap-3 text-sm">
+            <div className={`h-4 w-4 ${isPublic ? 'text-green-600' : 'text-amber-600'}`}>
+              {isPublic ? <Globe /> : <Lock />}
             </div>
+            <span className={`font-medium ${isPublic ? 'text-green-700' : 'text-amber-700'}`}>
+              {isPublic ? 'Public Meeting' : 'Private Meeting'}
+            </span>
+          </div>
         </div>
       </div>
 
-      <div className="mb-6">
-        <Label htmlFor="meeting-link" className="font-medium text-gray-700 text-sm">Meeting Link</Label>
-        <div className="flex items-center gap-2 mt-1">
-          <div className="relative flex-grow">
-            <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input id="meeting-link" type="text" value={meetingLink} readOnly className="pl-10 bg-gray-100" />
+      {/* Share Link */}
+      <div className="space-y-3">
+        <Label className="text-sm font-medium text-gray-700">Share Meeting Link</Label>
+        <div className="flex gap-2">
+          <div className="flex-1 relative">
+            <Input 
+              value={meetingLink} 
+              readOnly 
+              className="pr-20 bg-gray-50 border-gray-200" 
+            />
           </div>
-          <Button onClick={handleCopy} variant="outline" className="flex-shrink-0">
-            {isCopied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
-            <span className="ml-2">{isCopied ? 'Copied!' : 'Copy'}</span>
+          <Button 
+            onClick={handleCopy} 
+            variant={isCopied ? "default" : "outline"}
+            className={`whitespace-nowrap ${isCopied ? 'bg-green-600 hover:bg-green-700' : ''}`}
+          >
+            {isCopied ? (
+              <>
+                <Check className="h-4 w-4 mr-2" />
+                Copied
+              </>
+            ) : (
+              <>
+                <Copy className="h-4 w-4 mr-2" />
+                Copy
+              </>
+            )}
           </Button>
         </div>
+        <p className="text-xs text-gray-500">
+          Share this link with participants to join the meeting
+        </p>
       </div>
-      
-      <DialogFooter className="gap-2 sm:justify-between">
-         <DialogClose asChild>
-            <Button variant="outline" className="w-full">Back to Dashboard</Button>
-         </DialogClose>
-         <Button onClick={handleGoToMeeting} className="w-full">
-            Go to Meeting Room <ArrowRight className="ml-2 h-4 w-4" />
-         </Button>
-      </DialogFooter>
+
+      {/* Actions */}
+      <div className="flex gap-3 pt-2">
+        <DialogClose asChild>
+          <Button variant="outline" className="flex-1">
+            Close
+          </Button>
+        </DialogClose>
+        <Button onClick={handleGoToMeeting} className="flex-1 gap-2">
+          Enter Meeting
+          <ArrowRight className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 
   const CreateView = () => (
-    <>
-      <DialogHeader className="relative text-center p-6 border-b">
-        <DialogTitle className="text-xl font-bold text-gray-800">Create Meeting Room</DialogTitle>
+    <div className="space-y-6">
+      {/* Header */}
+      <DialogHeader className="text-center pt-6 px-6">
+        <div className="mx-auto w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-3">
+          <Video className="h-6 w-6 text-blue-600" />
+        </div>
+        <DialogTitle className="text-xl font-bold text-gray-900">
+          Create New Meeting
+        </DialogTitle>
+        <p className="text-gray-500 text-sm mt-1">
+          Set up your meeting room in seconds
+        </p>
       </DialogHeader>
-      <div className="p-6 max-h-[70vh] overflow-y-auto">
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="meeting-name" className="font-medium text-gray-700">
-              Meeting Name <span className="text-red-500">*</span>
+
+      {/* Form */}
+      <div className="px-6 space-y-5">
+        {/* Meeting Name */}
+        <div className="space-y-2">
+          <Label htmlFor="meeting-name" className="text-sm font-medium text-gray-700">
+            Meeting Name
+          </Label>
+          <Input
+            id="meeting-name"
+            placeholder="Team standup, Client call, Project review..."
+            value={meetingName}
+            onChange={(e) => setMeetingName(e.target.value)}
+            className="focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        {/* Date & Time */}
+        <div className="space-y-2">
+          <Label htmlFor="meeting-time" className="text-sm font-medium text-gray-700">
+            Date & Time
+          </Label>
+          <div className="relative">
+            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              id="meeting-time"
+              type="datetime-local"
+              value={meetingTime}
+              onChange={(e) => setMeetingTime(e.target.value)}
+              className="pl-10 focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+
+        {/* Language */}
+        <div className="space-y-2">
+          <Label htmlFor="language" className="text-sm font-medium text-gray-700">
+            Meeting Language
+          </Label>
+          <Select value={language} onValueChange={setLanguage}>
+            <SelectTrigger id="language" className="focus:ring-2 focus:ring-blue-500">
+              <SelectValue placeholder="Select language" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="english">🇺🇸 English</SelectItem>
+              <SelectItem value="indonesian">🇮🇩 Indonesian</SelectItem>
+              <SelectItem value="korean">🇰🇷 Korean</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-gray-500">
+            Used for transcription and AI analysis
+          </p>
+        </div>
+
+        {/* Privacy Toggle */}
+        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border">
+          <div className="space-y-1">
+            <Label htmlFor="privacy" className="text-sm font-medium text-gray-800">
+              {isPublic ? 'Public Meeting' : 'Private Meeting'}
             </Label>
-            <Input id="meeting-name" placeholder="e.g., Team Standup..." className="mt-1" value={meetingName} onChange={(e) => setMeetingName(e.target.value)} disabled={isCreating} />
+            <p className="text-xs text-gray-600">
+              {isPublic 
+                ? 'Anyone with the link can join' 
+                : 'Only invited participants can join'
+              }
+            </p>
           </div>
-          <div>
-            <Label htmlFor="meeting-time" className="font-medium text-gray-700">
-              Meeting Time <span className="text-red-500">*</span>
-            </Label>
-            <div className="relative mt-1">
-              <Input id="meeting-time" type="datetime-local" className="pl-10" value={meetingTime} onChange={(e) => setMeetingTime(e.target.value)} disabled={isCreating} />
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            </div>
-          </div>
-          <div>
-            <Label htmlFor="discussion-language" className="font-medium text-gray-700">
-              Discussion Language <span className="text-red-500">*</span>
-            </Label>
-            <Select defaultValue="english" disabled={isCreating}>
-              <SelectTrigger id="discussion-language" className="mt-1">
-                <SelectValue placeholder="Select language" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="english">English</SelectItem>
-                <SelectItem value="indonesian">Indonesian</SelectItem>
-                <SelectItem value="korean">Korean</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="mt-1 text-xs text-gray-500">This will be used for transcription and summary generation.</p>
-          </div>
-          <div className="flex items-center justify-between mt-4 bg-gray-50 p-3 rounded-lg">
-            <div>
-              <Label htmlFor="public-meeting" className="font-medium text-gray-800">Public Meeting</Label>
-              <p className="text-xs text-gray-500">Anyone with the link can join.</p>
-            </div>
-            <Switch id="public-meeting" checked={isPublic} onCheckedChange={setIsPublic} disabled={isCreating} />
-          </div>
-          {!isPublic && (
-            <div className="flex items-center gap-2 p-3 rounded-md bg-yellow-50 border border-yellow-200">
-              <Lock className="h-4 w-4 text-yellow-600 flex-shrink-0" />
-              <p className="text-xs text-yellow-800">This is a <span className="font-semibold">Private Meeting</span>. Only members you invite will be able to join.</p>
-            </div>
-          )}
+          <Switch
+            id="privacy"
+            checked={isPublic}
+            onCheckedChange={setIsPublic}
+            className="data-[state=checked]:bg-blue-600"
+          />
+        </div>
+
+        {/* AI Features Badge */}
+        <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-100">
+          <Sparkles className="h-4 w-4 text-blue-600" />
+          <span className="text-xs text-blue-700 font-medium">
+            AI-powered transcription & summary included
+          </span>
         </div>
       </div>
-      <DialogFooter className="p-6 border-t">
-        <Button onClick={handleCreateMeeting} disabled={isButtonDisabled} className="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 disabled:bg-gray-400 disabled:cursor-not-allowed">
-          {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isCreating ? 'Creating...' : 'Create Meeting Room'}
+
+      {/* Create Button */}
+      <DialogFooter className="px-6 pb-6 pt-2">
+        <Button 
+          onClick={handleCreateMeeting} 
+          disabled={isButtonDisabled}
+          className="w-full h-12 text-base font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isCreating ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Creating Meeting...
+            </>
+          ) : (
+            <>
+              <Video className="h-4 w-4 mr-2" />
+              Create Meeting Room
+            </>
+          )}
         </Button>
       </DialogFooter>
-    </>
+    </div>
   );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="w-full max-w-md bg-white rounded-lg shadow-2xl p-0">
+      <DialogTrigger asChild>
+        {children}
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-white rounded-2xl shadow-2xl border-0">
         {creationSuccess ? <SuccessView /> : <CreateView />}
       </DialogContent>
     </Dialog>

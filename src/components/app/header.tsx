@@ -160,10 +160,20 @@ export function Header({ toggleSidebar, mainContentRef }: HeaderProps) {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem><User className="w-4 h-4 mr-2"/>Profile</DropdownMenuItem>
-                  <DropdownMenuItem><Settings className="w-4 h-4 mr-2"/>Settings</DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile" className="flex items-center w-full">
+                      <User className="w-4 h-4 mr-2"/>
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/settings" className="flex items-center w-full">
+                      <Settings className="w-4 h-4 mr-2"/>
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={logout} className="text-red-600 focus:text-red-600">
+                  <DropdownMenuItem onClick={logout} className="text-red-600 focus:text-red-600 cursor-pointer">
                     <LogOut className="w-4 h-4 mr-2"/>
                     Logout
                   </DropdownMenuItem>
@@ -171,10 +181,14 @@ export function Header({ toggleSidebar, mainContentRef }: HeaderProps) {
               ) : (
                 <>
                   <DropdownMenuItem asChild>
-                    <Link href="/login">Sign In</Link>
+                    <Link href="/login" className="flex items-center w-full">
+                      Sign In
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/register">Create Account</Link>
+                    <Link href="/register" className="flex items-center w-full">
+                      Create Account
+                    </Link>
                   </DropdownMenuItem>
                 </>
               )}

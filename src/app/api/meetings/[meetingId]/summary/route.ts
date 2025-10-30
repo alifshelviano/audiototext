@@ -1,101 +1,57 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getMeeting, updateMeetingSummary, generateMeetingSummary } from '@/app/meetings';
+// app/api/meetings/[meetingId]/route.ts
+import { NextResponse } from "next/server";
+import { updateMeeting, deleteMeeting } from "@/app/meetings";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { meetingId: string } }
-) {
+export async function PUT(req: Request, { params }: { params: Promise<{ meetingId: string }> }) {
   try {
-    const { summary, regenerate } = await request.json();
-    const meetingId = params.meetingId;
-
-    if (regenerate) {
-      // Regenerate summary using AI
-      const meeting = await getMeeting({ meetingId });
-      if (!meeting) {
-        return NextResponse.json(
-          { error: 'Meeting not found' },
-          { status: 404 }
-        );
-      }
-
-      const result = await generateMeetingSummary({
-        meetingId,
-        transcripts: meeting.transcripts
-      });
-
-      if (!result.success) {
-        return NextResponse.json(
-          { error: result.error },
-          { status: 500 }
-        );
-      }
-
-      return NextResponse.json({
-        success: true,
-        summary: result.summary,
-        message: 'Summary regenerated successfully'
-      });
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    // Update with provided summary
-    if (!summary) {
-      return NextResponse.json(
-        { error: 'Summary is required' },
-        { status: 400 }
-      );
+    const { meetingId } = await params;
+    const { name, time } = await req.json();
+
+    if (!name || !time) {
+      return NextResponse.json({ message: "Name and time are required" }, { status: 400 });
     }
 
-    const result = await updateMeetingSummary({
-      meetingId,
-      summary
-    });
+    const result = await updateMeeting(meetingId, { name, time });
 
     if (!result.success) {
-      return NextResponse.json(
-        { error: result.error },
-        { status: 500 }
-      );
+      return NextResponse.json({ message: "Failed to update meeting" }, { status: 500 });
     }
 
-    return NextResponse.json({
-      success: true,
-      message: 'Summary updated successfully'
-    });
-
-  } catch (error) {
-    console.error('Error in summary API:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Meeting updated successfully" });
+  } catch (error: any) {
+    console.error("Meeting update error:", error);
+    return NextResponse.json({ message: error.message || "An unexpected error occurred" }, { status: 500 });
   }
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { meetingId: string } }
-) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ meetingId: string }> }) {
   try {
-    const meetingId = params.meetingId;
-    const meeting = await getMeeting({ meetingId });
-
-    if (!meeting) {
-      return NextResponse.json(
-        { error: 'Meeting not found' },
-        { status: 404 }
-      );
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    return NextResponse.json({
-      summary: meeting.summary,
-      lastAnalyzed: meeting.lastAnalyzed
+    const { meetingId } = await params;
+
+    const result = await deleteMeeting({
+      meetingId,
+      userId: session.user.id,
     });
-  } catch (error) {
-    console.error('Error fetching meeting summary:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+
+    if (!result.success) {
+      return NextResponse.json({ message: result.error || "Failed to delete meeting" }, { status: 500 });
+    }
+
+    return NextResponse.json({ message: "Meeting deleted successfully" });
+  } catch (error: any) {
+    console.error("Meeting deletion error:", error);
+    return NextResponse.json({ message: error.message || "An unexpected error occurred" }, { status: 500 });
   }
 }

@@ -1,7 +1,8 @@
-"use client";
+'use client';
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { useAuth } from "@/app/AuthProvider";
 import { Header } from "@/components/app/header";
 import { Sidebar } from "@/components/app/sidebar";
 import { MeetingHeader } from "@/components/app/meeting/meeting-header";
@@ -13,9 +14,10 @@ import { SentimentTab } from "@/components/app/meeting/sentiment-tab";
 import { MeetingChat } from "@/components/app/meeting/meeting-chat";
 import { FloatingRecordingControls } from "@/components/app/meeting/floating-recording-controls";
 import { useMeetingData } from "@/hooks/use-meeting-data";
-import type { MeetingData } from "@/models/Meeting";
 import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { JoinMeetingForm } from "@/components/app/meeting/join-meeting-form";
+import { addParticipantToMeeting } from "@/app/meetings";
 
 // Define the specific tab types for type safety
 type Tab = "transcript" | "summary" | "insights" | "sentiment" | "chat";
@@ -39,8 +41,10 @@ export default function JoinMeetingPage() {
   const pathname = usePathname();
   const isDesktop = useIsDesktop();
   const [isOpen, setIsOpen] = useState(false);
+  const { user, setGuest } = useAuth();
+  const [hasAddedParticipant, setHasAddedParticipant] = useState(false);
 
-  const meetingId = isClient ? pathname.split("/").slice(-2, -1)[0] : null;
+  const meetingId = isClient && pathname ? pathname.split("/").slice(-2, -1)[0] : null;
   const { meeting, loading, analysisStatus, lastAnalysisTime, isAnalyzing, fetchMeetingData, handleAutoAnalyze } = useMeetingData(meetingId);
 
   useEffect(() => {
@@ -51,6 +55,65 @@ export default function JoinMeetingPage() {
     setIsOpen(isDesktop);
   }, [isDesktop]);
 
+  // Add participant when user is authenticated and meeting is loaded
+  useEffect(() => {
+    const addAuthenticatedParticipant = async () => {
+      if (user && meetingId && meeting && !hasAddedParticipant) {
+        try {
+          console.log("Adding authenticated user as participant:", user);
+          const result = await addParticipantToMeeting({
+            meetingId,
+            participant: {
+              name: user.name || user.email?.split('@')[0] || 'User',
+              email: user.email || 'unknown@example.com'
+            }
+          });
+          
+          if (result.success) {
+            console.log("Successfully added authenticated participant to meeting");
+            setHasAddedParticipant(true);
+            // Refresh meeting data to show updated participants
+            fetchMeetingData();
+          } else {
+            console.error("Failed to add authenticated participant:", result.error);
+          }
+        } catch (error) {
+          console.error("Error adding authenticated participant:", error);
+        }
+      }
+    };
+
+    addAuthenticatedParticipant();
+  }, [user, meetingId, meeting, hasAddedParticipant, fetchMeetingData]);
+
+  const handleJoinAsGuest = async (name: string, email: string) => {
+    setGuest(name, email);
+    
+    // Add participant to the meeting
+    if (meetingId) {
+      try {
+        const result = await addParticipantToMeeting({
+          meetingId,
+          participant: {
+            name,
+            email
+          }
+        });
+        
+        if (result.success) {
+          console.log("Successfully added guest participant to meeting");
+          setHasAddedParticipant(true);
+          // Refresh meeting data to show updated participants
+          fetchMeetingData();
+        } else {
+          console.error("Failed to add guest participant:", result.error);
+        }
+      } catch (error) {
+        console.error("Error adding guest participant:", error);
+      }
+    }
+  };
+
   const renderContent = () => {
     if (!isClient || loading) {
       return <LoadingState />;
@@ -58,6 +121,11 @@ export default function JoinMeetingPage() {
     if (!meeting || !meetingId) {
       return <MeetingNotFound />;
     }
+
+    if (!user) {
+      return <JoinMeetingForm onJoin={handleJoinAsGuest} />;
+    }
+
     return <MeetingContent meeting={meeting} meetingId={meetingId} isAnalyzing={isAnalyzing} analysisStatus={analysisStatus} lastAnalysisTime={lastAnalysisTime} onDataRefresh={fetchMeetingData} onAutoAnalyze={handleAutoAnalyze} />;
   };
 

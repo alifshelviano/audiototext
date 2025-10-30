@@ -1,3 +1,4 @@
+// lib/export-service.ts
 "use client";
 
 export class ExportService {
@@ -37,6 +38,50 @@ export class ExportService {
     } catch (error) {
       console.error("PDF export failed:", error);
       return false;
+    }
+  }
+
+  static async generatePDFBase64(element: HTMLElement): Promise<string | null> {
+    try {
+      // Dynamically import required libraries
+      const html2canvas = (await import("html2canvas")).default;
+      const jsPDF = (await import("jspdf")).default;
+
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+
+      // Calculate PDF dimensions
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      const pdf = new jsPDF("p", "mm", "a4");
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      // Add first page
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      // Add additional pages if content is too long
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      // Return base64 string directly
+      return pdf.output("datauristring");
+    } catch (error) {
+      console.error("PDF generation failed:", error);
+      return null;
     }
   }
 
@@ -200,7 +245,7 @@ export class ExportService {
             }
             .action-header {
               display: flex;
-              justify-content: between;
+              justify-content: space-between;
               align-items: flex-start;
               margin-bottom: 8px;
             }
@@ -310,7 +355,7 @@ export class ExportService {
             }
             .transcript-header {
               display: flex;
-              justify-content: between;
+              justify-content: space-between;
               align-items: center;
               margin-bottom: 8px;
             }
@@ -456,12 +501,12 @@ export class ExportService {
                 <div class="action-item">
                   <div class="action-header">
                     <div class="action-task">${item.task}</div>
-                    <span class="status-badge status-${item.status.toLowerCase().replace(" ", "-")}">
-                      ${item.status}
+                    <span class="status-badge status-${item.status ? item.status.toLowerCase().replace(" ", "-") : "not-started"}">
+                      ${item.status || "Not Started"}
                     </span>
                   </div>
                   <div class="action-meta">
-                    👤 Assigned to: ${item.assigned_to} • 📅 Deadline: ${item.deadline}
+                    👤 Assigned to: ${item.assigned_to || "Not assigned"} • 📅 Deadline: ${item.deadline || "Not set"}
                   </div>
                 </div>
               `
@@ -485,7 +530,7 @@ export class ExportService {
                   ${emotionAnalysis.overall_sentiment.toUpperCase()}
                 </div>
                 <div class="sentiment-label">
-                  Overall Sentiment • ${Math.round(emotionAnalysis.overall_confidence * 100)}% Confidence
+                  Overall Sentiment • ${Math.round((emotionAnalysis.overall_confidence || 0) * 100)}% Confidence
                 </div>
               </div>
               ${
@@ -496,10 +541,10 @@ export class ExportService {
                 ${emotionAnalysis.participant_emotions
                   .map(
                     (participant: any) => `
-                  <div style="display: flex; justify-content: between; align-items: center; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
                     <span style="font-weight: 500;">${participant.participant}</span>
                     <span style="font-size: 12px; color: #6b7280;">
-                      ${participant.sentiment} (${Math.round(participant.confidence * 100)}%)
+                      ${participant.sentiment} (${Math.round((participant.confidence || 0) * 100)}%)
                     </span>
                   </div>
                 `
@@ -597,7 +642,7 @@ export class ExportService {
                   <div class="transcript-header">
                     <span class="transcript-speaker">${transcript.name}</span>
                     <span class="transcript-time">
-                      ${new Date(transcript.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      ${transcript.createdAt ? new Date(transcript.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Unknown time"}
                     </span>
                   </div>
                   <div class="transcript-content">${transcript.transcript}</div>

@@ -6,7 +6,7 @@ import { Header } from "@/components/app/header";
 import { Sidebar } from "@/components/app/sidebar";
 import { MeetingForm } from "@/components/app/meeting-form";
 import { QRCodeDisplay } from "@/components/app/qr-code-display";
-import { Share2, Users, Lock, Globe } from "lucide-react";
+import { Share2, Users, Lock, Globe, Copy, ArrowLeft, Calendar, Languages, Shield } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -45,9 +45,8 @@ export default function MeetingsPage() {
   const router = useRouter();
   
   const isDesktop = useIsDesktop();
-  const [isOpen, setIsOpen] = useState(false); // Default to closed
+  const [isOpen, setIsOpen] = useState(false);
 
-  // Open sidebar on desktop, close on mobile, on mount and on resize
   useEffect(() => {
     setIsOpen(isDesktop);
   }, [isDesktop]);
@@ -83,8 +82,11 @@ export default function MeetingsPage() {
 
   if (status === "loading") {
     return (
-      <div className="h-screen bg-gray-50 flex items-center justify-center">
-        <p>Loading...</p>
+      <div className="h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
+        <div className="animate-pulse text-center">
+          <div className="w-16 h-16 bg-blue-200 rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
       </div>
     );
   }
@@ -104,7 +106,7 @@ export default function MeetingsPage() {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen">
       <Sidebar 
         isOpen={isOpen} 
         isDesktop={isDesktop} 
@@ -117,80 +119,159 @@ export default function MeetingsPage() {
         )}
       >
         <Header toggleSidebar={() => setIsOpen(!isOpen)} />
-        <main className="flex-grow p-6 lg:p-8">
-          <div className="max-w-4xl mx-auto w-full">
-            <div className="mb-8">
-              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Create a New Meeting</h1>
-              <p className="text-gray-600">Fill out the form below to create a new meeting room.</p>
+        <main className="flex-grow p-4 lg:p-8">
+          <div className="max-w-6xl mx-auto w-full">
+            {/* Header Section */}
+            <div className="mb-8 text-center lg:text-left">
+              <div className="flex items-center justify-center lg:justify-start gap-3 mb-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Calendar className="h-6 w-6 text-blue-600" />
+                </div>
+                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
+                  {createdMeeting ? "Meeting Created Successfully!" : "Create a New Meeting"}
+                </h1>
+              </div>
+              <p className="text-gray-600 max-w-2xl mx-auto lg:mx-0">
+                {createdMeeting 
+                  ? "Your meeting room is ready! Share the details below with participants."
+                  : "Fill out the form below to create a new meeting room."
+                }
+              </p>
             </div>
 
-            <div className="bg-white rounded-xl shadow-md p-6 lg:p-8">
-              {createdMeeting ? (
-                <div className="space-y-6">
-                
-                  <QRCodeDisplay url={createdMeetingUrl} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+              {/* Left Column - Form or Meeting Details */}
+              <div className="space-y-6">
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 lg:p-8">
+                  {createdMeeting ? (
+                    <div className="space-y-6">
+                      {/* Back Button */}
+                      <button
+                        onClick={handleCreateNewMeeting}
+                        className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors font-medium mb-4"
+                      >
+                        <ArrowLeft className="h-4 w-4" />
+                        Create New Meeting
+                      </button>
 
-                  {createdMeeting.passkey && (
-                    <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Lock className="h-4 w-4 text-orange-600" />
-                        <span className="text-sm font-medium text-orange-800">Important</span>
-                      </div>
-                      <p className="text-xs text-orange-700">This is a private meeting. Participants will need the passkey to join. Make sure to share it securely with intended participants.</p>
-                    </div>
-                  )}
+                      {/* Meeting Details Card */}
+                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                          <Shield className="h-5 w-5 text-blue-600" />
+                          Meeting Details
+                        </h3>
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+                            <div className="flex items-center gap-3">
+                              <Globe className="h-4 w-4 text-gray-500" />
+                              <span className="text-sm font-medium text-gray-700">Meeting Type</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {createdMeeting.isPublic ? (
+                                <>
+                                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                  <span className="text-sm font-medium text-green-600">Public</span>
+                                </>
+                              ) : (
+                                <>
+                                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                                  <span className="text-sm font-medium text-orange-600">Private</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
 
-                  {/* Meeting Details */}
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">Meeting Type:</span>
-                      <div className="flex items-center gap-2">
-                        {createdMeeting.isPublic ? (
-                          <>
-                            <Globe className="h-4 w-4 text-green-600" />
-                            <span className="text-sm text-green-600">Public</span>
-                          </>
-                        ) : (
-                          <>
-                            <Lock className="h-4 w-4 text-orange-600" />
-                            <span className="text-sm text-orange-600">Private</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">Language:</span>
-                      <span className="text-sm text-gray-600">
-                        {getLanguageInfo(createdMeeting.language).flag} {getLanguageInfo(createdMeeting.language).name}
-                      </span>
-                    </div>
-                    {createdMeeting.passkey && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-700">Passkey:</span>
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded">{createdMeeting.passkey}</span>
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(createdMeeting.passkey!);
-                              alert("Passkey copied to clipboard!");
-                            }}
-                            className="text-xs bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 transition-colors"
-                          >
-                            Copy
-                          </button>
+                          <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+                            <div className="flex items-center gap-3">
+                              <Languages className="h-4 w-4 text-gray-500" />
+                              <span className="text-sm font-medium text-gray-700">Language</span>
+                            </div>
+                            <span className="text-sm font-medium text-gray-900">
+                              {getLanguageInfo(createdMeeting.language).flag} {getLanguageInfo(createdMeeting.language).name}
+                            </span>
+                          </div>
+
+                          {createdMeeting.passkey && (
+                            <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-200">
+                              <div className="flex items-center gap-3">
+                                <Lock className="h-4 w-4 text-amber-600" />
+                                <span className="text-sm font-medium text-amber-700">Passkey</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono text-sm bg-amber-100 text-amber-800 px-3 py-1 rounded-lg border border-amber-200">
+                                  {createdMeeting.passkey}
+                                </span>
+                                <button
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(createdMeeting.passkey!);
+                                  }}
+                                  className="p-1.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors"
+                                >
+                                  <Copy className="h-3 w-3" />
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
-                    )}
+
+                      {/* Join Meeting Button */}
+                      <a 
+                        href={`/meeting/${createdMeeting.id}/join`} 
+                        className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                      >
+                        <Users className="h-5 w-5" />
+                        Join Meeting Now
+                      </a>
+                    </div>
+                  ) : (
+                    <MeetingForm onMeetingCreated={handleMeetingCreated} />
+                  )}
+                </div>
+              </div>
+
+              {/* Right Column - QR Code & Sharing */}
+              {createdMeeting && (
+                <div className="space-y-6">
+                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 lg:p-8">
+                    <QRCodeDisplay url={createdMeetingUrl} />
                   </div>
 
-                  <div className="flex gap-3 pt-4">
-                    <a href={`/meeting/${createdMeeting.id}/join`} className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-center">
-                      Join Meeting
-                    </a>
+                  {/* Security Notice for Private Meetings */}
+                  {createdMeeting.passkey && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-amber-100 rounded-lg">
+                          <Lock className="h-5 w-5 text-amber-600" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-amber-800 mb-1">Private Meeting Security</h4>
+                          <p className="text-sm text-amber-700">
+                            This is a private meeting. Share the passkey only with intended participants 
+                            through secure channels. Participants will need both the meeting link and passkey to join.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Empty State for Right Column */}
+              {!createdMeeting && (
+                <div className="hidden lg:block">
+                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 h-full flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Share2 className="h-10 w-10 text-blue-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Ready to Share</h3>
+                      <p className="text-gray-600 text-sm">
+                        After creating your meeting, you'll get a shareable link and QR code here.
+                      </p>
+                    </div>
                   </div>
                 </div>
-              ) : (
-                <MeetingForm onMeetingCreated={handleMeetingCreated} />
               )}
             </div>
           </div>

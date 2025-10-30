@@ -8,6 +8,7 @@ interface AuthContextType {
   user: UserSession | null;
   login: (provider?: string) => void;
   logout: () => void;
+  setGuest: (name: string, email: string) => void;
   isLoading: boolean;
 }
 
@@ -49,25 +50,33 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
 
   const logout = async () => {
     try {
-      // Clear the user state first
       setUser(null);
-      // Then sign out
       await signOut({ 
         callbackUrl: '/login',
         redirect: true 
       });
     } catch (error) {
       console.error('Logout error:', error);
-      // Force redirect to login page if there's an error
       window.location.href = '/login';
     }
+  };
+
+  const setGuest = (name: string, email: string) => {
+    const guestSession: UserSession = {
+      userId: `guest-${Date.now()}`,
+      name,
+      email,
+      avatar: '',
+    };
+    setUser(guestSession);
   };
 
   return (
     <AuthContext.Provider value={{ 
       user, 
       login, 
-      logout, 
+      logout,
+      setGuest,
       isLoading: status === 'loading' 
     }}>
       {children}

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { getMeeting } from "@/app/meetings";
+import { useSession } from "next-auth/react";
+import { getMeeting, addParticipantToMeeting } from "@/app/meetings";
 import { DashboardLayout } from "@/components/app/dashboard-layout";
 import { MeetingHeader } from "@/components/app/meeting/meeting-header";
 import { TabNavigation } from "@/components/app/meeting/tab-navigation";
@@ -15,7 +16,8 @@ import type { MeetingData } from "@/models/Meeting";
 
 export default function MeetingPage() {
   const pathname = usePathname();
-  const meetingId = pathname.split("/").pop() as string;
+  const meetingId = pathname ? pathname.split("/").pop() as string : '';
+  const { data: session } = useSession();
   const [meeting, setMeeting] = useState<MeetingData | null>(null);
   const [loading, setLoading] = useState(true);
   const [analysisStatus, setAnalysisStatus] = useState<"idle" | "analyzing" | "success" | "error">("idle");
@@ -34,6 +36,18 @@ export default function MeetingPage() {
   useEffect(() => {
     fetchMeetingData();
   }, [meetingId]);
+
+  useEffect(() => {
+    if (meetingId && session?.user?.email && session?.user?.name) {
+      addParticipantToMeeting({
+        meetingId,
+        participant: {
+          name: session.user.name,
+          email: session.user.email,
+        },
+      });
+    }
+  }, [meetingId, session]);
 
   const handleTabChange = (tab: "transcript" | "summary" | "insights" | "sentiment" | "chat") => {
     setActiveTab(tab);
