@@ -28,7 +28,14 @@ export default function Page() {
   const fetchMeetings = useCallback(async () => {
     try {
       setIsLoading(true);
-      const res = await fetch("/api/meetings");
+
+      // Only fetch meetings if user is authenticated
+      if (status !== "authenticated") {
+        setMeetings([]);
+        return;
+      }
+
+      const res = await fetch("/api/meetings?userOnly=true");
 
       if (!res.ok) {
         throw new Error("Failed to fetch meetings");
@@ -43,7 +50,7 @@ export default function Page() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [status]);
 
   useEffect(() => {
     fetchMeetings();
@@ -85,6 +92,9 @@ export default function Page() {
     setShowJoinModal(false);
   };
 
+  // Calculate total meetings created by the user
+  const userMeetingsCount = meetings.length;
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header at the top */}
@@ -104,19 +114,22 @@ export default function Page() {
 
           {/* Quick Actions */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {/* Total Meetings Card */}
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                  <Briefcase className="h-5 w-5" />
+            {/* Total Meetings Card - Only show if user is authenticated */}
+            {status === "authenticated" && (
+              <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                    <Briefcase className="h-5 w-5" />
+                  </div>
+                  <h3 className="font-semibold">My Meetings</h3>
                 </div>
-                <h3 className="font-semibold">Total Meetings</h3>
+                <p className="text-purple-100 text-3xl font-bold mb-4">{isLoading ? "..." : userMeetingsCount}</p>
+                <p className="text-purple-100 text-sm">Meetings you created</p>
               </div>
-              <p className="text-purple-100 text-3xl font-bold mb-4">{isLoading ? "..." : meetings.length}</p>
-            </div>
+            )}
 
             {/* Create Meeting Card */}
-            {status === "authenticated" && (
+            {status === "authenticated" ? (
               <Link href="/create-meetings">
                 <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white cursor-pointer hover:from-green-600 hover:to-green-700 transition-all duration-200 h-full">
                   <div className="flex items-center gap-3 mb-3">
@@ -129,6 +142,18 @@ export default function Page() {
                   <div className="w-full bg-white text-green-600 py-2 px-4 rounded-lg font-medium hover:bg-green-50 transition-colors text-center">Create</div>
                 </div>
               </Link>
+            ) : (
+              // Placeholder for non-authenticated users
+              <div className="bg-gradient-to-br from-gray-400 to-gray-500 rounded-xl p-6 text-white">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                    <Users className="h-5 w-5" />
+                  </div>
+                  <h3 className="font-semibold">Create Meeting</h3>
+                </div>
+                <p className="text-gray-100 text-sm mb-4">Sign in to create meetings</p>
+                <div className="w-full bg-white text-gray-600 py-2 px-4 rounded-lg font-medium text-center">Sign In Required</div>
+              </div>
             )}
 
             {/* Join Meeting Card */}
@@ -139,7 +164,7 @@ export default function Page() {
                 </div>
                 <h3 className="font-semibold">Join Meeting</h3>
               </div>
-              <p className="text-blue-100 text-sm mb-4">Join existing meeting with meeting ID and passkey</p>
+              <p className="text-blue-100 text-sm mb-4">Join existing meeting with meeting passkey</p>
               <div className="w-full bg-white text-blue-600 py-2 px-4 rounded-lg font-medium hover:bg-blue-50 transition-colors text-center flex items-center justify-center gap-2">
                 Join Meeting <ArrowRight className="h-4 w-4" />
               </div>
@@ -261,19 +286,19 @@ export default function Page() {
                   <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                     <span className="text-blue-600 text-xs font-bold">1</span>
                   </div>
-                  <p>Get the Meeting ID from the meeting organizer</p>
+                  <p>Get the passkey from the meeting organizer</p>
                 </div>
                 <div className="flex items-start gap-3">
                   <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                     <span className="text-blue-600 text-xs font-bold">2</span>
                   </div>
-                  <p>If it's a private meeting, ask for the passkey</p>
+                  <p>Enter the 6-character passkey in the join form</p>
                 </div>
                 <div className="flex items-start gap-3">
                   <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                     <span className="text-blue-600 text-xs font-bold">3</span>
                   </div>
-                  <p>Enter both in the join form and start collaborating</p>
+                  <p>Start collaborating in real-time</p>
                 </div>
               </div>
             </div>
