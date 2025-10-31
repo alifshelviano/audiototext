@@ -46,7 +46,7 @@ export default function LoginPage() {
       if (result?.error) {
         setError('Invalid email or password');
       } else if (result?.ok) {
-        router.push('/');
+        router.push('/dashboard');
         router.refresh();
       }
     } catch (error) {
@@ -62,7 +62,7 @@ export default function LoginPage() {
       setIsLoading(true);
       setError('');
       await signIn('google', {
-        callbackUrl: '/',
+        callbackUrl: '/dashboard',
         redirect: true,
       });
     } catch (error) {

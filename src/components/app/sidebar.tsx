@@ -16,7 +16,7 @@ export function Sidebar({ isOpen, isDesktop, toggleSidebar }: SidebarProps) {
   const pathname = usePathname();
 
   const navigation = [
-    { name: 'Dashboard', href: '/', icon: Home },
+    { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'History', href: '/history', icon: List },
     { name: 'Public Meetings', href: '/public-meetings', icon: Globe },
   ];
