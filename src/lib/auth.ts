@@ -117,9 +117,9 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
   },
-  pages: {
-    signIn: '/login',
-    error: '/login', // Error code passed in query string as ?error=
-  },
+  // pages: {
+  //   signIn: '/login',
+  //   error: '/login', // Error code passed in query string as ?error=
+  // },
   debug: process.env.NODE_ENV === 'development',
 };

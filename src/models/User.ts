@@ -1,3 +1,4 @@
+// models/User.ts
 import { ObjectId } from 'mongodb';
 
 export interface User {
@@ -6,6 +7,10 @@ export interface User {
   email: string;
   password?: string; // Optional for OAuth users
   avatar?: string;
+  bio?: string;
+  location?: string;
+  website?: string;
+  company?: string;
   createdAt: Date;
   updatedAt: Date;
 }

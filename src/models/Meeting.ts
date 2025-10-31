@@ -1,3 +1,4 @@
+// models/Meeting.ts
 import { ObjectId } from "mongodb";
 
 export interface Transcript {
@@ -25,6 +26,8 @@ export interface MeetingData {
     meeting_summary?: MeetingSummary["meeting_summary"];
   };
   lastAnalyzed?: Date;
+  userId: string; // Changed from ObjectId to string based on your data
+  createdAt: Date; // Add creation timestamp
 }
 
 export interface EmotionAnalysis {
