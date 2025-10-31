@@ -283,7 +283,7 @@ export default function HistoryPage() {
               <span>Public</span>
             </div>
           ) : (
-            <div className="flex items-center gap-1 text-xs text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200 flex-shrink-0">
+            <div className="flex items-center gap-1 text-xs text-red-600 bg-red-50 px-3 py-1.5 rounded-full border border-gray-200 flex-shrink-0">
               <Lock className="w-3 h-3" />
               <span>Private</span>
             </div>
@@ -306,11 +306,7 @@ export default function HistoryPage() {
               </div>
             </div>
             {/* Past/Upcoming Badge - Moved to the right */}
-            <div className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-full border flex-shrink-0 ${
-              datetime.status === "upcoming" 
-                ? "text-green-600 bg-green-50 border-green-200" 
-                : "text-gray-600 bg-gray-50 border-gray-200"
-            }`}>
+            <div className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-full border flex-shrink-0 ${datetime.status === "upcoming" ? "text-green-600 bg-green-50 border-green-200" : "text-gray-600 bg-gray-50 border-gray-200"}`}>
               {datetime.status === "upcoming" ? "Upcoming" : "Past"}
             </div>
           </div>
@@ -348,10 +344,10 @@ export default function HistoryPage() {
         {/* Actions */}
         <div className="flex gap-3">
           <Link href={`/meeting/${meeting.id}/join`} className="flex-1">
-            <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 group">
-              <Eye className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-              Join Meeting
-            </Button>
+            <div className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-xl text-center font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl group-hover:shadow-2xl flex items-center justify-center gap-2">
+              <Eye className="w-4 h-4" />
+              <span>Join Meeting</span>
+            </div>
           </Link>
         </div>
       </div>
