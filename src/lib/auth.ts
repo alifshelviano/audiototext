@@ -1,39 +1,38 @@
-
-import clientPromise from '@/lib/mongodb';
-import { MongoDBAdapter } from '@auth/mongodb-adapter';
-import { NextAuthOptions } from 'next-auth';
-import GoogleProvider from 'next-auth/providers/google';
-import { Adapter } from 'next-auth/adapters';
-import CredentialsProvider from 'next-auth/providers/credentials';
-import bcrypt from 'bcryptjs';
+import clientPromise from "@/lib/mongodb";
+import { MongoDBAdapter } from "@auth/mongodb-adapter";
+import { NextAuthOptions } from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
+import { Adapter } from "next-auth/adapters";
+import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
 
 export async function verifyUser(email: string, password: string) {
   if (!email || !password) {
-    return { success: false, error: 'Missing email or password' };
+    return { success: false, error: "Missing email or password" };
   }
   try {
     const client = await clientPromise;
     const db = client.db();
-    const usersCollection = db.collection('users');
-    
+    const usersCollection = db.collection("users");
+
     // Use case-insensitive email search
-    const user = await usersCollection.findOne({ 
-      email: email.toLowerCase().trim() 
+    const user = await usersCollection.findOne({
+      email: email.toLowerCase().trim(),
     });
-    
+
     if (!user) {
-      return { success: false, error: 'Invalid email or password' };
+      return { success: false, error: "Invalid email or password" };
     }
-    
+
     if (!user.password) {
-      return { success: false, error: 'Account was created with Google. Please sign in with Google.' };
+      return { success: false, error: "Account was created with Google. Please sign in with Google." };
     }
-    
+
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
-      return { success: false, error: 'Invalid email or password' };
+      return { success: false, error: "Invalid email or password" };
     }
-    
+
     return {
       success: true,
       user: {
@@ -41,11 +40,11 @@ export async function verifyUser(email: string, password: string) {
         name: user.name,
         email: user.email,
         image: user.image,
-      }
+      },
     };
   } catch (error) {
-    console.error('User verification error:', error);
-    return { success: false, error: 'Internal server error' };
+    console.error("User verification error:", error);
+    return { success: false, error: "Internal server error" };
   }
 }
 
@@ -59,8 +58,8 @@ export const authOptions: NextAuthOptions = {
         params: {
           prompt: "select_account",
           access_type: "offline",
-          response_type: "code"
-        }
+          response_type: "code",
+        },
       },
       profile(profile) {
         return {
@@ -72,16 +71,16 @@ export const authOptions: NextAuthOptions = {
       },
     }),
     CredentialsProvider({
-      name: 'credentials',
+      name: "credentials",
       credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error('Email and password are required');
+          throw new Error("Email and password are required");
         }
-        
+
         const result = await verifyUser(credentials.email, credentials.password);
 
         if (result.success && result.user) {
@@ -89,13 +88,13 @@ export const authOptions: NextAuthOptions = {
         }
 
         // Throw error with message for better error handling
-        throw new Error(result.error || 'Authentication failed');
+        throw new Error(result.error || "Authentication failed");
       },
     }),
   ],
   secret: process.env.NEXTAUTH_SECRET,
   session: {
-    strategy: 'jwt',
+    strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   callbacks: {
@@ -117,9 +116,9 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
   },
-  // pages: {
-  //   signIn: '/login',
-  //   error: '/login', // Error code passed in query string as ?error=
-  // },
-  debug: process.env.NODE_ENV === 'development',
+  pages: {
+    signIn: "/login",
+    error: "/login", // Error code passed in query string as ?error=
+  },
+  debug: process.env.NODE_ENV === "development",
 };

@@ -52,12 +52,12 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     try {
       setUser(null);
       await signOut({ 
-        callbackUrl: '/login',
+        callbackUrl: '/dashboard',
         redirect: true 
       });
     } catch (error) {
       console.error('Logout error:', error);
-      window.location.href = '/login';
+      window.location.href = '/dashboard';
     }
   };
 

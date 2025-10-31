@@ -39,8 +39,8 @@ async function getSentimentClassifier() {
       // Use a proper multilingual sentiment analysis model
       sentimentClassifier = await pipeline(
         "text-classification",
-        // "Xenova/multilingual-sentiment-analysis", // Proper multilingual sentiment model
-        "Xenova/roberta-base-go_emotions",
+        "Xenova/multilingual-sentiment-analysis", // Proper multilingual sentiment model
+        // "Xenova/roberta-base-go_emotions",
         // "Xenova/emotion_text_classifier",
         {
           quantized: true,
