@@ -9,23 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useSession } from "next-auth/react";
-import { 
-  Trash2, 
-  Edit, 
-  Calendar, 
-  Users, 
-  Globe, 
-  Lock, 
-  FileText, 
-  Clock, 
-  Search,
-  Eye,
-  MoreVertical,
-  Sparkles,
-  Key,
-  Copy,
-  CheckCircle
-} from "lucide-react";
+import { Trash2, Edit, Calendar, Users, Globe, Lock, FileText, Clock, Search, Eye, MoreVertical, Sparkles, Key, Copy, CheckCircle } from "lucide-react";
 
 interface Meeting {
   id: string;
@@ -59,12 +43,30 @@ export default function HistoryPage() {
   const fetchMeetings = useCallback(async (userId: string) => {
     try {
       setIsLoading(true);
+      console.log("Fetching meetings for user:", userId);
       const res = await fetch(`/api/meetings?userId=${userId}`);
+
       if (!res.ok) {
-        throw new Error("Failed to fetch meetings");
+        throw new Error(`Failed to fetch meetings: ${res.status} ${res.statusText}`);
       }
+
       const data = await res.json();
+      console.log("Raw API response:", data);
+
       const meetingsData = Array.isArray(data) ? data : [];
+
+      // Debug: Check each meeting for passkey
+      meetingsData.forEach((meeting: Meeting, index: number) => {
+        console.log(`Meeting ${index + 1}:`, {
+          id: meeting.id,
+          name: meeting.name,
+          isPublic: meeting.isPublic,
+          hasPasskey: !!meeting.passkey,
+          passkey: meeting.passkey,
+          shouldShowPasskeyBadge: !meeting.isPublic && !!meeting.passkey,
+        });
+      });
+
       setMeetings(meetingsData);
       setFilteredMeetings(meetingsData);
     } catch (error) {
@@ -87,9 +89,7 @@ export default function HistoryPage() {
     if (searchQuery.trim() === "") {
       setFilteredMeetings(meetings);
     } else {
-      const filtered = meetings.filter(meeting =>
-        meeting.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      const filtered = meetings.filter((meeting) => meeting.name.toLowerCase().includes(searchQuery.toLowerCase()));
       setFilteredMeetings(filtered);
     }
   }, [searchQuery, meetings]);
@@ -111,9 +111,9 @@ export default function HistoryPage() {
 
   const handleEdit = (meeting: Meeting) => {
     setEditingMeeting(meeting.id);
-    setEditForm({ 
-      name: meeting.name, 
-      time: new Date(meeting.time).toISOString().slice(0, 16) 
+    setEditForm({
+      name: meeting.name,
+      time: new Date(meeting.time).toISOString().slice(0, 16),
     });
     setActiveMenu(null);
   };
@@ -150,7 +150,8 @@ export default function HistoryPage() {
       setCopiedPasskey(passkey);
       setTimeout(() => setCopiedPasskey(null), 2000);
     } catch (err) {
-      console.error('Failed to copy passkey: ', err);
+      console.error("Failed to copy passkey: ", err);
+      alert("Failed to copy passkey to clipboard");
     }
   };
 
@@ -167,18 +168,18 @@ export default function HistoryPage() {
     const date = new Date(dateString);
     const now = new Date();
     const isPast = date < now;
-    
+
     return {
-      full: date.toLocaleString("en-US", { 
-        year: "numeric", 
-        month: "short", 
-        day: "numeric", 
-        hour: "2-digit", 
-        minute: "2-digit" 
+      full: date.toLocaleString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       }),
       date: date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
       time: date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
-      status: isPast ? "past" : "upcoming"
+      status: isPast ? "past" : "upcoming",
     };
   };
 
@@ -186,13 +187,23 @@ export default function HistoryPage() {
   const hasSummary = (m: Meeting) => m.summary && Object.keys(m.summary).length > 0;
 
   const renderPasskeyBadge = (meeting: Meeting) => {
-    if (meeting.isPublic || !meeting.passkey) return null;
+    const shouldShow = !meeting.isPublic && meeting.passkey;
+
+    console.log(`Rendering passkey badge for "${meeting.name}":`, {
+      isPublic: meeting.isPublic,
+      passkey: meeting.passkey,
+      shouldShow: shouldShow,
+    });
+
+    if (!shouldShow) {
+      return null;
+    }
 
     return (
-      <Badge 
-        variant="outline" 
+      <Badge
+        variant="outline"
         className={`bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100 cursor-pointer gap-1.5 px-3 py-1.5 transition-all duration-200 ${
-          copiedPasskey === meeting.passkey ? 'bg-green-50 text-green-700 border-green-200' : ''
+          copiedPasskey === meeting.passkey ? "bg-green-50 text-green-700 border-green-200" : ""
         }`}
         onClick={() => handleCopyPasskey(meeting.passkey!)}
         title="Click to copy passkey"
@@ -221,31 +232,13 @@ export default function HistoryPage() {
       return (
         <div key={meeting.id} className="bg-white rounded-2xl shadow-lg border-2 border-blue-500 p-6 animate-in fade-in duration-300">
           <div className="space-y-4">
-            <Input
-              type="text"
-              value={editForm.name}
-              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-              placeholder="Meeting name"
-              className="text-lg font-semibold"
-            />
-            <Input
-              type="datetime-local"
-              value={editForm.time}
-              onChange={(e) => setEditForm({ ...editForm, time: e.target.value })}
-              className="w-full"
-            />
+            <Input type="text" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} placeholder="Meeting name" className="text-lg font-semibold" />
+            <Input type="datetime-local" value={editForm.time} onChange={(e) => setEditForm({ ...editForm, time: e.target.value })} className="w-full" />
             <div className="flex gap-3">
-              <Button 
-                onClick={() => handleUpdate(meeting.id)} 
-                className="flex-1 bg-blue-600 hover:bg-blue-700"
-              >
+              <Button onClick={() => handleUpdate(meeting.id)} className="flex-1 bg-blue-600 hover:bg-blue-700">
                 Save Changes
               </Button>
-              <Button 
-                variant="outline" 
-                onClick={handleCancelEdit} 
-                className="flex-1"
-              >
+              <Button variant="outline" onClick={handleCancelEdit} className="flex-1">
                 Cancel
               </Button>
             </div>
@@ -259,35 +252,20 @@ export default function HistoryPage() {
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1 min-w-0">
-            <h2 className="text-xl font-bold text-gray-800 pr-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
-              {meeting.name}
-            </h2>
+            <h2 className="text-xl font-bold text-gray-800 pr-2 line-clamp-2 group-hover:text-blue-600 transition-colors">{meeting.name}</h2>
           </div>
           <div className="relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setActiveMenu(activeMenu === meeting.id ? null : meeting.id)}
-              className="h-8 w-8"
-            >
+            <Button variant="ghost" size="icon" onClick={() => setActiveMenu(activeMenu === meeting.id ? null : meeting.id)} className="h-8 w-8">
               <MoreVertical className="h-4 w-4" />
             </Button>
-            
+
             {activeMenu === meeting.id && (
               <div className="absolute right-0 top-10 bg-white rounded-xl shadow-lg border border-gray-200 p-2 z-10 min-w-32 animate-in fade-in duration-200">
-                <Button
-                  variant="ghost"
-                  onClick={() => handleEdit(meeting)}
-                  className="w-full justify-start text-sm"
-                >
+                <Button variant="ghost" onClick={() => handleEdit(meeting)} className="w-full justify-start text-sm">
                   <Edit className="h-4 w-4 mr-2" />
                   Edit
                 </Button>
-                <Button
-                  variant="ghost"
-                  onClick={() => handleDelete(meeting.id)}
-                  className="w-full justify-start text-sm text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
+                <Button variant="ghost" onClick={() => handleDelete(meeting.id)} className="w-full justify-start text-sm text-red-600 hover:text-red-700 hover:bg-red-50">
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete
                 </Button>
@@ -302,15 +280,11 @@ export default function HistoryPage() {
             {meeting.isPublic ? <Globe className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
             {meeting.isPublic ? "Public" : "Private"}
           </Badge>
-          
-          <Badge variant="outline" className={`px-3 py-1.5 ${
-            datetime.status === "upcoming" 
-              ? "bg-green-50 text-green-700 border-green-200" 
-              : "bg-gray-50 text-gray-600 border-gray-200"
-          }`}>
-            {datetime.status === "upcoming" ? "Upcoming" : "Completed"}
+
+          <Badge variant="outline" className={`px-3 py-1.5 ${datetime.status === "upcoming" ? "bg-green-50 text-green-700 border-green-200" : "bg-gray-50 text-gray-600 border-gray-200"}`}>
+            {datetime.status === "upcoming" ? "Upcoming" : "Past"}
           </Badge>
-          
+
           {/* Passkey Badge for Private Meetings */}
           {renderPasskeyBadge(meeting)}
         </div>
@@ -398,9 +372,7 @@ export default function HistoryPage() {
         <Sparkles className="w-8 h-8 text-white" />
       </div>
       <h3 className="text-2xl font-bold text-gray-800 mb-3">No Meetings Created Yet</h3>
-      <p className="text-gray-500 mb-8 max-w-md mx-auto text-lg">
-        Start by creating your first meeting room to collaborate with others and track your conversations.
-      </p>
+      <p className="text-gray-500 mb-8 max-w-md mx-auto text-lg">Start by creating your first meeting room to collaborate with others and track your conversations.</p>
       <Link href="/create-meetings">
         <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
           Create Your First Meeting
@@ -416,19 +388,15 @@ export default function HistoryPage() {
       </div>
     );
   }
-  
+
   return (
     <DashboardLayout>
       <div className="mb-8">
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8">
           <div className="flex-1">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3">
-              My Meetings
-            </h1>
-            <p className="text-xl text-gray-600 max-w-2xl">
-              Manage and review all your created meetings in one place
-            </p>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3">My Meetings</h1>
+            <p className="text-xl text-gray-600 max-w-2xl">Manage and review all your created meetings in one place</p>
           </div>
           <Link href="/create-meetings">
             <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
@@ -455,15 +423,10 @@ export default function HistoryPage() {
       {!isLoading && meetings.length > 0 && (
         <div className="mb-6 flex items-center justify-between">
           <p className="text-gray-600 text-lg">
-            Showing <span className="font-semibold text-blue-600">{filteredMeetings.length}</span> of{" "}
-            <span className="font-semibold text-gray-800">{meetings.length}</span> meetings
+            Showing <span className="font-semibold text-blue-600">{filteredMeetings.length}</span> of <span className="font-semibold text-gray-800">{meetings.length}</span> meetings
           </p>
           {searchQuery && (
-            <Button
-              variant="ghost"
-              onClick={() => setSearchQuery("")}
-              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-            >
+            <Button variant="ghost" onClick={() => setSearchQuery("")} className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
               Clear search
             </Button>
           )}
@@ -474,9 +437,7 @@ export default function HistoryPage() {
       {isLoading ? (
         renderSkeleton()
       ) : filteredMeetings.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredMeetings.map(renderMeetingCard)}
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">{filteredMeetings.map(renderMeetingCard)}</div>
       ) : searchQuery ? (
         <div className="text-center py-16 border-2 border-dashed border-gray-300 rounded-2xl bg-white">
           <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -484,10 +445,7 @@ export default function HistoryPage() {
           <p className="text-gray-500 mb-6 text-lg">
             No meetings match "<span className="font-semibold">{searchQuery}</span>"
           </p>
-          <Button
-            onClick={() => setSearchQuery("")}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl"
-          >
+          <Button onClick={() => setSearchQuery("")} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl">
             Clear search
           </Button>
         </div>

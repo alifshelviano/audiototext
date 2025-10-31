@@ -62,7 +62,6 @@ export async function createMeeting(meetingData: { name: string; time: string; u
   }
 }
 
-// app/meetings.ts - Update the getMeetings function
 export async function getMeetings({ userId, isPublic }: { userId?: string; isPublic?: boolean }): Promise<
   Array<{
     id: string;
@@ -70,6 +69,7 @@ export async function getMeetings({ userId, isPublic }: { userId?: string; isPub
     time: string;
     isPublic: boolean;
     language: "english" | "indonesian" | "korean";
+    passkey?: string;
   }>
 > {
   try {
@@ -96,6 +96,7 @@ export async function getMeetings({ userId, isPublic }: { userId?: string; isPub
       time: meeting.time,
       isPublic: meeting.isPublic,
       language: meeting.language,
+      passkey: meeting.passkey,
     }));
   } catch (error) {
     console.error("Error fetching meetings:", error);
@@ -103,7 +104,7 @@ export async function getMeetings({ userId, isPublic }: { userId?: string; isPub
   }
 }
 
-export async function getMeeting({ meetingId }: { meetingId: string }): Promise<({
+export async function getMeeting({ meetingId }: { meetingId: string }): Promise<{
   id: string;
   name: string;
   time: string;
@@ -115,7 +116,7 @@ export async function getMeeting({ meetingId }: { meetingId: string }): Promise<
   isPublic: boolean;
   language: "english" | "indonesian" | "korean";
   passkey?: string;
-}) | null> {
+} | null> {
   try {
     if (!ObjectId.isValid(meetingId)) {
       return null;
@@ -232,42 +233,42 @@ export async function addTranscriptToMeeting({ meetingId, transcript }: { meetin
 // In your meetings.ts server file, update the addParticipantToMeeting function:
 export async function addParticipantToMeeting({ meetingId, participant }: { meetingId: string; participant: Participant }): Promise<{ success: boolean; error?: string }> {
   try {
-      if (!ObjectId.isValid(meetingId)) {
-          return { success: false, error: "Invalid meeting ID" };
+    if (!ObjectId.isValid(meetingId)) {
+      return { success: false, error: "Invalid meeting ID" };
+    }
+
+    const client = await clientPromise;
+    const db = client.db();
+    const meetingsCollection = db.collection<Meeting>("meetings");
+
+    // Check if participant already exists (case-insensitive)
+    const existingMeeting = await meetingsCollection.findOne({
+      _id: new ObjectId(meetingId),
+      "participants.email": { $regex: `^${participant.email}$`, $options: "i" },
+    });
+
+    if (existingMeeting) {
+      return { success: true }; // Participant already exists
+    }
+
+    // Add the participant
+    const result = await meetingsCollection.updateOne(
+      { _id: new ObjectId(meetingId) },
+      {
+        $push: {
+          participants: participant,
+        },
       }
+    );
 
-      const client = await clientPromise;
-      const db = client.db();
-      const meetingsCollection = db.collection<Meeting>("meetings");
+    if (result.matchedCount === 0) {
+      return { success: false, error: "Meeting not found" };
+    }
 
-      // Check if participant already exists (case-insensitive)
-      const existingMeeting = await meetingsCollection.findOne({
-          _id: new ObjectId(meetingId),
-          "participants.email": { $regex: `^${participant.email}$`, $options: 'i' }
-      });
-
-      if (existingMeeting) {
-          return { success: true }; // Participant already exists
-      }
-
-      // Add the participant
-      const result = await meetingsCollection.updateOne(
-          { _id: new ObjectId(meetingId) },
-          {
-              $push: {
-                  participants: participant,
-              },
-          }
-      );
-
-      if (result.matchedCount === 0) {
-          return { success: false, error: "Meeting not found" };
-      }
-
-      return { success: true };
+    return { success: true };
   } catch (error) {
-      console.error("Error adding participant to meeting:", error);
-      return { success: false, error: "Failed to add participant to meeting" };
+    console.error("Error adding participant to meeting:", error);
+    return { success: false, error: "Failed to add participant to meeting" };
   }
 }
 

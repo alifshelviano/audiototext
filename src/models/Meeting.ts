@@ -12,13 +12,14 @@ export interface Participant {
 }
 
 export interface MeetingData {
-  isPublic: undefined;
-  language: any;
   id: string;
   name: string;
   time: string;
   participants: Participant[];
   transcripts: Transcript[];
+  isPublic: boolean;
+  language: "english" | "indonesian" | "korean";
+  passkey?: string;
   summary?: {
     summary_text?: string;
     meeting_summary?: MeetingSummary["meeting_summary"];

@@ -40,8 +40,8 @@ async function getSentimentClassifier() {
       sentimentClassifier = await pipeline(
         "text-classification",
         // "Xenova/multilingual-sentiment-analysis", // Proper multilingual sentiment model
-        // "Xenova/roberta-base-go_emotions",
-        "Xenova/emotion_text_classifier",
+        "Xenova/roberta-base-go_emotions",
+        // "Xenova/emotion_text_classifier",
         {
           quantized: true,
           progress_callback: (data: any) => {
@@ -57,7 +57,7 @@ async function getSentimentClassifier() {
       // Fallback to a different model if this one fails
       try {
         console.log("Trying fallback model...");
-        sentimentClassifier = await pipeline("text-classification", "Xenova/distilbert-base-multilingual-cased-sentiment", { quantized: true });
+        sentimentClassifier = await pipeline("text-classification", "Xenova/distilbert-base-uncased-finetuned-sst-2-english", { quantized: true });
         console.log("Fallback multilingual sentiment model loaded successfully");
       } catch (fallbackError) {
         console.error("Failed to load fallback model:", fallbackError);
