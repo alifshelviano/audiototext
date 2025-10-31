@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useAuth } from "@/app/AuthProvider";
 import { addTranscriptToMeeting, getMeeting } from "@/app/meetings";
 import { transcribeAudioOpenAI } from "@/ai/flows/transcribe-audio-openai";
@@ -29,7 +29,7 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
   const streamRef = useRef<MediaStream | null>(null);
 
   const analyserRef = useRef<AnalyserNode | null>(null);
-  const dataArrayRef = useRef<Uint8Array | null>(null);
+  const dataArrayRef = useRef<Uint8Array<ArrayBuffer> | null>(null);
   const animationFrameRef = useRef<number | null>(null);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);

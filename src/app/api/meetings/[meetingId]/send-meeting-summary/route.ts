@@ -3,12 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getMeeting } from "@/app/meetings";
 import { sendEmailWithAttachment, sendEmailWithoutAttachment, shouldIncludePDF, estimatePDFSize } from "@/lib/email-service";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
-export async function POST(
-  request: NextRequest, 
-  { params }: { params: Promise<{ meetingId: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ meetingId: string }> }) {
   try {
     const { recipientEmails, pdfContent } = await request.json();
     const { meetingId } = await params;
@@ -57,7 +54,7 @@ export async function POST(
               filename: `meeting-summary-${meeting.name.replace(/[^a-zA-Z0-9]/g, "-")}-${new Date().toISOString().split("T")[0]}.pdf`,
             },
           });
-          
+
           // Check if attachment was skipped in the send process
           attachmentSkipped = (emailResults as any).attachmentSkipped || false;
         } catch (attachmentError) {
@@ -78,9 +75,7 @@ export async function POST(
       attachmentSkipped = true;
     }
 
-    const responseMessage = attachmentSkipped 
-      ? `Meeting summary sent successfully to ${validEmails.length} recipients (PDF skipped due to size)`
-      : `Meeting summary sent successfully to ${validEmails.length} recipients`;
+    const responseMessage = attachmentSkipped ? `Meeting summary sent successfully to ${validEmails.length} recipients (PDF skipped due to size)` : `Meeting summary sent successfully to ${validEmails.length} recipients`;
 
     return NextResponse.json({
       message: responseMessage,
@@ -88,10 +83,9 @@ export async function POST(
       results: emailResults,
       attachmentIncluded: !attachmentSkipped,
     });
-
   } catch (error: any) {
     console.error("Error sending meeting summary:", error);
-    
+
     // Provide more specific error messages
     let errorMessage = "Failed to send meeting summary";
     let statusCode = 500;
@@ -107,9 +101,12 @@ export async function POST(
       statusCode = 500;
     }
 
-    return NextResponse.json({ 
-      message: errorMessage,
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    }, { status: statusCode });
+    return NextResponse.json(
+      {
+        message: errorMessage,
+        details: process.env.NODE_ENV === "development" ? error.message : undefined,
+      },
+      { status: statusCode }
+    );
   }
 }

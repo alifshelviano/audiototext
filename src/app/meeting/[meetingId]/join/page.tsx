@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
@@ -27,10 +27,10 @@ const useIsDesktop = () => {
   const [isDesktop, setIsDesktop] = useState(true);
   useEffect(() => {
     const checkScreenSize = () => setIsDesktop(window.innerWidth >= 1024);
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       checkScreenSize();
-      window.addEventListener('resize', checkScreenSize);
-      return () => window.removeEventListener('resize', checkScreenSize);
+      window.addEventListener("resize", checkScreenSize);
+      return () => window.removeEventListener("resize", checkScreenSize);
     }
   }, []);
   return isDesktop;
@@ -64,11 +64,11 @@ export default function JoinMeetingPage() {
           const result = await addParticipantToMeeting({
             meetingId,
             participant: {
-              name: user.name || user.email?.split('@')[0] || 'User',
-              email: user.email || 'unknown@example.com'
-            }
+              name: user.name || user.email?.split("@")[0] || "User",
+              email: user.email || "unknown@example.com",
+            },
           });
-          
+
           if (result.success) {
             console.log("Successfully added authenticated participant to meeting");
             setHasAddedParticipant(true);
@@ -88,7 +88,7 @@ export default function JoinMeetingPage() {
 
   const handleJoinAsGuest = async (name: string, email: string) => {
     setGuest(name, email);
-    
+
     // Add participant to the meeting
     if (meetingId) {
       try {
@@ -96,10 +96,10 @@ export default function JoinMeetingPage() {
           meetingId,
           participant: {
             name,
-            email
-          }
+            email,
+          },
         });
-        
+
         if (result.success) {
           console.log("Successfully added guest participant to meeting");
           setHasAddedParticipant(true);
@@ -134,9 +134,7 @@ export default function JoinMeetingPage() {
       <Sidebar isOpen={isOpen} isDesktop={isDesktop} toggleSidebar={() => setIsOpen(!isOpen)} />
       <div className={cn("relative flex flex-col flex-1 w-full min-h-screen transition-all duration-300 ease-in-out", isOpen && isDesktop ? "lg:ml-64" : "ml-0")}>
         <Header toggleSidebar={() => setIsOpen(!isOpen)} />
-        <main className="flex-grow overflow-y-auto p-4 sm:p-6 lg:p-8">
-          {renderContent()}
-        </main>
+        <main className="flex-grow overflow-y-auto p-4 sm:p-6 lg:p-8">{renderContent()}</main>
       </div>
     </div>
   );

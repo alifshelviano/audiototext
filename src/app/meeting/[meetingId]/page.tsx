@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -16,7 +16,7 @@ import type { MeetingData } from "@/models/Meeting";
 
 export default function MeetingPage() {
   const pathname = usePathname();
-  const meetingId = pathname ? pathname.split("/").pop() as string : '';
+  const meetingId = pathname ? (pathname.split("/").pop() as string) : "";
   const { data: session } = useSession();
   const [meeting, setMeeting] = useState<MeetingData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -89,9 +89,5 @@ export default function MeetingPage() {
     );
   }
 
-  return (
-    <DashboardLayout>
-      {content}
-    </DashboardLayout>
-  );
+  return <DashboardLayout>{content}</DashboardLayout>;
 }
