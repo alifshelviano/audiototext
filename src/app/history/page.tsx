@@ -276,14 +276,18 @@ export default function HistoryPage() {
 
         {/* Status Badges */}
         <div className="flex items-center gap-2 mb-4 flex-wrap">
-          <Badge variant={meeting.isPublic ? "default" : "secondary"} className="gap-1.5 px-3 py-1.5">
-            {meeting.isPublic ? <Globe className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
-            {meeting.isPublic ? "Public" : "Private"}
-          </Badge>
-
-          <Badge variant="outline" className={`px-3 py-1.5 ${datetime.status === "upcoming" ? "bg-green-50 text-green-700 border-green-200" : "bg-gray-50 text-gray-600 border-gray-200"}`}>
-            {datetime.status === "upcoming" ? "Upcoming" : "Past"}
-          </Badge>
+          {/* Public/Private Badge */}
+          {meeting.isPublic ? (
+            <div className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-3 py-1.5 rounded-full border border-green-200 flex-shrink-0">
+              <Globe className="w-3 h-3" />
+              <span>Public</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1 text-xs text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200 flex-shrink-0">
+              <Lock className="w-3 h-3" />
+              <span>Private</span>
+            </div>
+          )}
 
           {/* Passkey Badge for Private Meetings */}
           {renderPasskeyBadge(meeting)}
@@ -291,13 +295,23 @@ export default function HistoryPage() {
 
         {/* Meeting Details */}
         <div className="space-y-3 mb-6">
-          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-            <div className="p-2 bg-white rounded-lg shadow-sm">
-              <Calendar className="w-4 h-4 text-blue-600" />
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+            <div className="flex items-center gap-3 flex-1">
+              <div className="p-2 bg-white rounded-lg shadow-sm">
+                <Calendar className="w-4 h-4 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-700">{datetime.date}</p>
+                <p className="text-xs text-gray-500">{datetime.time}</p>
+              </div>
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-700">{datetime.date}</p>
-              <p className="text-xs text-gray-500">{datetime.time}</p>
+            {/* Past/Upcoming Badge - Moved to the right */}
+            <div className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-full border flex-shrink-0 ${
+              datetime.status === "upcoming" 
+                ? "text-green-600 bg-green-50 border-green-200" 
+                : "text-gray-600 bg-gray-50 border-gray-200"
+            }`}>
+              {datetime.status === "upcoming" ? "Upcoming" : "Past"}
             </div>
           </div>
 
@@ -336,7 +350,7 @@ export default function HistoryPage() {
           <Link href={`/meeting/${meeting.id}/join`} className="flex-1">
             <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 group">
               <Eye className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-              View Details
+              Join Meeting
             </Button>
           </Link>
         </div>
