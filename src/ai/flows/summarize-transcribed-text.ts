@@ -3,7 +3,7 @@
 
 import { ai } from "@/ai/genkit";
 import { z } from "zod";
-import { analyzeTranscriptEmotions } from "@/ai/sentiment-analysis";
+import { analyzeTranscriptEmotions } from "@/ai/models/sentiment-analysis";
 
 const SummarizeTranscribedTextInputSchema = z.object({
   transcribedText: z.string().describe("The complete transcribed text from the meeting."),

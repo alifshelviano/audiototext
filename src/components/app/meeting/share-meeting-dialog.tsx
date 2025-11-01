@@ -1,14 +1,9 @@
-'use client';
+"use client";
 
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Share2 } from 'lucide-react';
-import { QRCodeDisplay } from '@/components/app/qr-code-display';
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Share2 } from "lucide-react";
+import { QRCodeDisplay } from "@/components/app/create-meeting/qr-code-display";
 
 interface ShareMeetingDialogProps {
   meetingId: string;

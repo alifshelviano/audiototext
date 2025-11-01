@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronUp, ChevronDown, Mic } from "lucide-react";
-import type { Transcript } from "@/models/Meeting";
+import type { Transcript } from "@/types/models/Meeting";
 
 interface TranscriptListProps {
   transcripts: Transcript[];

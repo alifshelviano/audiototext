@@ -3,16 +3,16 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { getMeeting, addParticipantToMeeting } from "@/lib/meetings";
-import { DashboardLayout } from "@/components/app/dashboard-layout";
+import { getMeeting, addParticipantToMeeting } from "@/lib/services/meeting-service";
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { MeetingHeader } from "@/components/app/meeting/meeting-header";
 import { TabNavigation } from "@/components/app/meeting/tab-navigation";
 import { TranscriptList } from "@/components/app/meeting/transcript-list";
-import { SummaryTab } from "@/components/app/meeting/summary-tab";
+import { SummaryTab } from "@/components/app/meeting/summary/summary-tab";
 import { InsightsTab } from "@/components/app/meeting/insights-tab";
 import { SentimentTab } from "@/components/app/meeting/sentiment-tab";
 import { MeetingChat } from "@/components/app/meeting/meeting-chat";
-import type { MeetingData } from "@/models/Meeting";
+import type { MeetingData } from "@/types/models/Meeting";
 
 export default function MeetingPage() {
   const pathname = usePathname();

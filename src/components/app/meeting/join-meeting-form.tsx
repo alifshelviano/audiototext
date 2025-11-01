@@ -18,14 +18,14 @@ export function JoinMeetingForm({ onJoin }: { onJoin: (name: string, email: stri
     if (name && email) {
       setIsLoading(true);
       // Simulate loading for better UX
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       onJoin(name, email);
       setIsLoading(false);
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && name && email) {
+    if (e.key === "Enter" && name && email) {
       handleJoin();
     }
   };
@@ -52,22 +52,14 @@ export function JoinMeetingForm({ onJoin }: { onJoin: (name: string, email: stri
               </div>
             </div>
           </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-            Join Meeting
-          </h1>
-          <p className="text-gray-600 text-sm">
-            Enter your details to join the conversation
-          </p>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">Join Meeting</h1>
+          <p className="text-gray-600 text-sm">Enter your details to join the conversation</p>
         </div>
 
         <Card className="w-full shadow-xl border-0 bg-white/80 backdrop-blur-sm">
           <CardHeader className="text-center pb-4">
-            <CardTitle className="text-xl font-semibold text-gray-800">
-              Welcome!
-            </CardTitle>
-            <CardDescription className="text-gray-500">
-              We're excited to have you join us
-            </CardDescription>
+            <CardTitle className="text-xl font-semibold text-gray-800">Welcome!</CardTitle>
+            <CardDescription className="text-gray-500">We're excited to have you join us</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Name Field */}
@@ -106,8 +98,8 @@ export function JoinMeetingForm({ onJoin }: { onJoin: (name: string, email: stri
             </div>
 
             {/* Join Button */}
-            <Button 
-              onClick={handleJoin} 
+            <Button
+              onClick={handleJoin}
               disabled={!name || !email || isLoading}
               className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 disabled:transform-none disabled:hover:translate-y-0"
             >
@@ -135,11 +127,7 @@ export function JoinMeetingForm({ onJoin }: { onJoin: (name: string, email: stri
             </div>
 
             {/* Sign In Button */}
-            <Button
-              variant="outline"
-              onClick={() => router.push("/login")}
-              className="w-full h-12 border-gray-300 hover:border-blue-500 hover:bg-blue-50 text-gray-700 font-medium transition-all duration-200"
-            >
+            <Button variant="outline" onClick={() => router.push("/auth/login")} className="w-full h-12 border-gray-300 hover:border-blue-500 hover:bg-blue-50 text-gray-700 font-medium transition-all duration-200">
               <LogIn className="w-4 h-4 mr-2" />
               Sign In to Your Account
             </Button>
@@ -173,10 +161,18 @@ export function JoinMeetingForm({ onJoin }: { onJoin: (name: string, email: stri
 
       <style jsx>{`
         @keyframes blob {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-          100% { transform: translate(0px, 0px) scale(1); }
+          0% {
+            transform: translate(0px, 0px) scale(1);
+          }
+          33% {
+            transform: translate(30px, -50px) scale(1.1);
+          }
+          66% {
+            transform: translate(-20px, 20px) scale(0.9);
+          }
+          100% {
+            transform: translate(0px, 0px) scale(1);
+          }
         }
         .animate-blob {
           animation: blob 7s infinite;

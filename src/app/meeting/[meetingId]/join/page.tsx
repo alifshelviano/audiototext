@@ -2,22 +2,22 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { useAuth } from "@/app/AuthProvider";
-import { Header } from "@/components/app/header";
-import { Sidebar } from "@/components/app/sidebar";
+import { useAuth } from "@/app/providers/AuthProvider";
+import { Header } from "@/components/layout/header";
+import { Sidebar } from "@/components/layout/sidebar";
 import { MeetingHeader } from "@/components/app/meeting/meeting-header";
 import { TabNavigation } from "@/components/app/meeting/tab-navigation";
 import { TranscriptList } from "@/components/app/meeting/transcript-list";
-import { SummaryTab } from "@/components/app/meeting/summary-tab";
+import { SummaryTab } from "@/components/app/meeting/summary/summary-tab";
 import { InsightsTab } from "@/components/app/meeting/insights-tab";
 import { SentimentTab } from "@/components/app/meeting/sentiment-tab";
 import { MeetingChat } from "@/components/app/meeting/meeting-chat";
 import { FloatingRecordingControls } from "@/components/app/meeting/floating-recording-controls";
 import { useMeetingData } from "@/hooks/use-meeting-data";
 import { AlertCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 import { JoinMeetingForm } from "@/components/app/meeting/join-meeting-form";
-import { addParticipantToMeeting } from "@/lib/meetings";
+import { addParticipantToMeeting } from "@/lib/services/meeting-service";
 
 // Define the specific tab types for type safety
 type Tab = "transcript" | "summary" | "insights" | "sentiment" | "chat";

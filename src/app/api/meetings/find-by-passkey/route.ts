@@ -1,6 +1,6 @@
 // app/api/meetings/find-by-passkey/route.ts
 import { NextResponse } from "next/server";
-import clientPromise from "@/lib/mongodb";
+import clientPromise from "@/lib/database/mongodb";
 import { ObjectId } from "mongodb";
 
 export async function GET(req: Request) {

@@ -1,7 +1,7 @@
 // components/app/meeting/floating-recording-controls.tsx
 "use client";
 
-import { RecordingControls } from "@/components/app/recording-controls";
+import { RecordingControls } from "@/components/app/recording/recording-controls";
 
 interface FloatingRecordingControlsProps {
   meetingId: string;

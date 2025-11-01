@@ -21,9 +21,7 @@ export default function Header() {
       initial={{ y: -80, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.8, ease: "easeOut" }}
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-700 ${
-        scrolled ? "bg-white/50 backdrop-blur-xl shadow-md border-white/30" : "bg-gradient-to-r from-cyan-100/40 via-white/20 to-cyan-200/40 backdrop-blur-lg"
-      }`}
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-700 ${scrolled ? "bg-white/50 backdrop-blur-xl shadow-md border-white/30" : "bg-gradient-to-r from-cyan-100/40 via-white/20 to-cyan-200/40 backdrop-blur-lg"}`}
     >
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         {/* Logo */}
@@ -44,7 +42,7 @@ export default function Header() {
         </nav>
 
         {/* CTA Button */}
-        <Link href="/login">
+        <Link href="/auth/login">
           <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }} className="hidden md:block bg-gradient-to-r from-cyan-400 to-cyan-600 text-white px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all">
             Get Started
           </motion.button>
@@ -66,7 +64,7 @@ export default function Header() {
                   {item}
                 </Link>
               ))}
-              <Link href="/login">
+              <Link href="/auth/login">
                 <button className="bg-gradient-to-r from-cyan-400 to-cyan-600 text-white px-6 py-2 rounded-xl hover:scale-105 transition-all">Get Started</button>
               </Link>
             </div>

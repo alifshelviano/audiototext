@@ -1,7 +1,7 @@
 // app/api/users/[userId]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
-import clientPromise from "@/lib/mongodb";
+import clientPromise from "@/lib/database/mongodb";
 import { ObjectId } from "mongodb";
 
 // GET /api/users/[userId]

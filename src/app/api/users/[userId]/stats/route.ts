@@ -1,7 +1,7 @@
 // app/api/users/[userId]/stats/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
-import clientPromise from "@/lib/mongodb";
+import clientPromise from "@/lib/database/mongodb";
 import { ObjectId } from "mongodb";
 
 export async function GET(req: NextRequest, { params }: { params: { userId: string } }) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { BarChart, Zap, Heart, CheckCircle, CalendarIcon, TrendingUp, TrendingDown } from "lucide-react";
-import type { MeetingData, Transcript } from "@/models/Meeting";
+import type { MeetingData, Transcript } from "@/types/models/Meeting";
 
 interface InsightsTabProps {
   meeting: MeetingData;

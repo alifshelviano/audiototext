@@ -1,8 +1,8 @@
 // api/meetings/route.ts
 import { NextResponse } from "next/server";
-import { createMeeting, getMeetings } from "@/lib/meetings";
+import { createMeeting, getMeetings } from "@/lib/services/meeting-service";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { authOptions } from "@/lib/auth/auth";
 
 // Function to generate a random passkey
 function generatePasskey(): string {
