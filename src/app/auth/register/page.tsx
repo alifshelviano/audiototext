@@ -148,7 +148,7 @@ export default function RegisterPage() {
         });
 
         if (signInResponse?.ok) {
-          router.push("/");
+          router.push("/dashboard");
         } else {
           setError("Failed to automatically log in. Please go to the login page.");
         }
