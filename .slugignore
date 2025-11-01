@@ -1,0 +1,10 @@
+# Ignore documentation and local development files
+*.md
+*.mp4
+*.png
+*.jpg
+
+# Ignore build artifacts and dependencies
+/node_modules
+/npm-debug.log
+/.next/
