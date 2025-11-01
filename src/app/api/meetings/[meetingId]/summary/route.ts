@@ -1,6 +1,6 @@
 // app/api/meetings/[meetingId]/route.ts
 import { NextResponse } from "next/server";
-import { updateMeeting, deleteMeeting } from "@/app/meetings";
+import { updateMeeting, deleteMeeting } from "@/lib/meetings";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 

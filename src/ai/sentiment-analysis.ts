@@ -706,7 +706,7 @@ function identifyEmotionalHighlights(participantStatements: Map<string, string[]
 
   // Look for collaborative moments
   const collaborativeWords = {
-    english: ["agree", "support", "help", "collaborat", "team", "together", "we can"],
+    english: ["agree", "support", "help", "collaborate", "team", "together", "we can"],
     indonesian: ["setuju", "dukung", "support", "bantu", "kolaborasi", "tim", "bersama"],
     korean: ["동의", "지지", "도움", "협력", "팀", "함께", "우리"],
   };

@@ -1,6 +1,6 @@
 // api/meetings/route.ts
 import { NextResponse } from "next/server";
-import { createMeeting, getMeetings } from "@/app/meetings";
+import { createMeeting, getMeetings } from "@/lib/meetings";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 

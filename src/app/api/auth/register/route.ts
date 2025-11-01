@@ -13,8 +13,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Name, email, and password are required" }, { status: 400 });
     }
 
-    if (password.length < 6) {
-      return NextResponse.json({ message: "Password must be at least 6 characters" }, { status: 400 });
+    if (password.length < 8) {
+      return NextResponse.json({ message: "Password must be at least 8 characters" }, { status: 400 });
     }
 
     const client = await clientPromise;

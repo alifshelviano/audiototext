@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Users } from "lucide-react";
-import { getMeeting } from "@/app/meetings";
+import { getMeeting } from "@/lib/meetings";
 
 interface ParticipantListProps {
   meetingId: string;

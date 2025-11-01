@@ -1,6 +1,6 @@
 // app/api/meetings/[meetingId]/send-meeting-summary/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { getMeeting } from "@/app/meetings";
+import { getMeeting } from "@/lib/meetings";
 import { sendEmailWithAttachment, sendEmailWithoutAttachment, shouldIncludePDF, estimatePDFSize } from "@/lib/email-service";
 
 export const dynamic = "force-dynamic";

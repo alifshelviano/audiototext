@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { getMeeting, addParticipantToMeeting } from "@/app/meetings";
+import { getMeeting, addParticipantToMeeting } from "@/lib/meetings";
 import { DashboardLayout } from "@/components/app/dashboard-layout";
 import { MeetingHeader } from "@/components/app/meeting/meeting-header";
 import { TabNavigation } from "@/components/app/meeting/tab-navigation";
@@ -28,7 +28,17 @@ export default function MeetingPage() {
     if (meetingId) {
       setLoading(true);
       getMeeting({ meetingId })
-        .then(setMeeting)
+        .then((response) => {
+          if (response) {
+            setMeeting({
+              ...response,
+              userId: "", // Add appropriate default or fetch from response
+              createdAt: new Date(), // Add appropriate default or fetch from response
+            });
+          } else {
+            setMeeting(null);
+          }
+        })
         .finally(() => setLoading(false));
     }
   };

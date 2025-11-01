@@ -17,7 +17,7 @@ import { useMeetingData } from "@/hooks/use-meeting-data";
 import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { JoinMeetingForm } from "@/components/app/meeting/join-meeting-form";
-import { addParticipantToMeeting } from "@/app/meetings";
+import { addParticipantToMeeting } from "@/lib/meetings";
 
 // Define the specific tab types for type safety
 type Tab = "transcript" | "summary" | "insights" | "sentiment" | "chat";

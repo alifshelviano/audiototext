@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useAuth } from "@/app/AuthProvider";
-import { addTranscriptToMeeting, getMeeting } from "@/app/meetings";
+import { addTranscriptToMeeting, getMeeting } from "@/lib/meetings";
 import { transcribeAudioOpenAI } from "@/ai/flows/transcribe-audio-openai";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";

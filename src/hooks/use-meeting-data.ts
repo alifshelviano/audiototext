@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getMeeting } from "@/app/meetings";
+import { getMeeting } from "@/lib/meetings";
 import { analyzeMeeting, shouldAutoAnalyze } from "@/lib/meeting-analysis";
 import type { MeetingData } from "@/models/Meeting";
 

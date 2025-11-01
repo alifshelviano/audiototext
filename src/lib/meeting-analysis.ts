@@ -1,7 +1,7 @@
 // lib/meeting-analysis.ts
 "use server";
 
-import { getMeeting, generateMeetingSummary, updateMeetingSummary } from "@/app/meetings";
+import { getMeeting, generateMeetingSummary, updateMeetingSummary } from "@/lib/meetings";
 import { summarizeTranscribedText } from "@/ai/flows/summarize-transcribed-text";
 
 export async function analyzeMeeting(meetingId: string): Promise<{
