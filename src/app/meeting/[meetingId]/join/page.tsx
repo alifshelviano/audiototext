@@ -162,7 +162,7 @@ function MeetingNotFound() {
         </div>
         <h1 className="text-2xl font-bold text-gray-800 mb-4">Meeting not found</h1>
         <p className="text-gray-600 mb-6">The meeting you're looking for doesn't exist or has been deleted.</p>
-        <button onClick={() => router.push("/")} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-lg transition-all shadow-md hover:shadow-lg">
+        <button onClick={() => router.push("/dashboard")} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-lg transition-all shadow-md hover:shadow-lg">
           Return Home
         </button>
       </div>
@@ -189,7 +189,7 @@ function TabContent({ activeTab, meeting, meetingId, isAnalyzing, onReanalyze, o
   const tabContentProps = { meeting, isAnalyzing, onReanalyze };
   return (
     <div className="flex flex-col">
-      {activeTab === "transcript" && <TranscriptList transcripts={meeting.transcripts || []} visibleCount={100} onLoadMore={() => {}} onShowLess={() => {}} />}
+      {activeTab === "transcript" && <TranscriptList transcripts={meeting.transcripts || []} visibleCount={5} onLoadMore={() => {}} onShowLess={() => {}} />}
       {activeTab === "summary" && <SummaryTab {...tabContentProps} />}
       {activeTab === "insights" && <InsightsTab meeting={meeting} />}
       {activeTab === "sentiment" && <SentimentTab meeting={meeting} meetingId={meetingId} isAnalyzing={isAnalyzing} onReanalyze={onReanalyze} onDataRefresh={onDataRefresh} />}

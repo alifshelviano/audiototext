@@ -8,17 +8,16 @@ import { useSocket } from "@/hooks/use-socket";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Mic, Square, Users, Volume2, MessageSquare } from "lucide-react";
+import { Mic, Square, Users, Volume2, MessageSquare, Wifi, WifiOff } from "lucide-react";
 
 interface RecordingControlsProps {
   meetingId: string;
   onTranscriptAdded?: () => void;
   compact?: boolean;
   showLabels?: boolean;
-  onRecordingStateChange?: (isRecording: boolean) => void;
 }
 
-export function RecordingControls({ meetingId, onTranscriptAdded, compact = false, showLabels = true, onRecordingStateChange }: RecordingControlsProps) {
+export function RecordingControls({ meetingId, onTranscriptAdded, compact = false, showLabels = true }: RecordingControlsProps) {
   const { user } = useAuth();
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -39,7 +38,7 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Initialize Socket.IO
-  const { isConnected, isReconnecting, on, sendTranscript, updateStatus, joinMeeting } = useSocket({
+  const { isConnected, isReconnecting, on, sendTranscript, updateStatus } = useSocket({
     meetingId,
     userName: user?.name,
     autoConnect: true,
@@ -288,7 +287,6 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
 
       mediaRecorder.start(2000);
       setIsRecording(true);
-      onRecordingStateChange?.(true); // Notify parent component
       setRecordingTime(0);
       setAudioLevel(0);
 
@@ -310,7 +308,6 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
       mediaRecorderRef.current.stop();
       streamRef.current.getTracks().forEach((track) => track.stop());
       setIsRecording(false);
-      onRecordingStateChange?.(false); // Notify parent component
       setAudioLevel(0);
 
       if (animationFrameRef.current) {
@@ -359,28 +356,31 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
 
   if (compact) {
     return (
-      <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-        {/* Header with connection status and user info - conditionally show based on showLabels */}
+      <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-lg backdrop-blur-sm bg-white/95">
+        {/* Header with connection status and user info */}
         {showLabels && (
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <Avatar className="h-10 w-10 border-2 border-blue-200">
+              <Avatar className="h-10 w-10 border-2 border-blue-200 shadow-sm">
                 <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="bg-blue-600 text-white font-semibold text-sm">{getUserInitials(user.name)}</AvatarFallback>
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-semibold text-sm">{getUserInitials(user.name)}</AvatarFallback>
               </Avatar>
 
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="font-semibold text-gray-900 text-sm">{user.name}</h3>
-                  <div className={`w-2 h-2 rounded-full ${isConnected ? "bg-green-500" : "bg-red-500"}`} />
+                  <div className={`flex items-center gap-1 ${isConnected ? "text-green-600" : "text-red-600"}`}>
+                    {isConnected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
+                    <div className={`w-2 h-2 rounded-full ${isConnected ? "bg-green-500" : "bg-red-500"}`} />
+                  </div>
                 </div>
-                <p className="text-xs text-gray-500">Language: {meetingLanguage}</p>
+                <p className="text-xs text-gray-500 capitalize">Language: {meetingLanguage}</p>
               </div>
             </div>
 
             {/* Online users counter */}
             {onlineUsers.length > 0 && (
-              <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full">
+              <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full border border-blue-200">
                 <Users className="w-4 h-4 text-blue-600" />
                 <span className="text-sm font-medium text-blue-700">{onlineUsers.length}</span>
               </div>
@@ -395,7 +395,7 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
               <div className="space-y-2">
                 {showLabels && (
                   <div className="flex items-center gap-3">
-                    <Badge variant="destructive" className="px-3 py-1">
+                    <Badge variant="destructive" className="px-3 py-1 border border-red-300 shadow-sm">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
                         <span className="text-sm font-medium">Recording • {formatTime(recordingTime)}</span>
@@ -412,15 +412,16 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
                 {/* Audio visualization */}
                 {showLabels && (
                   <div className="mt-2">
-                    <canvas ref={canvasRef} width={300} height={40} className="w-full h-10 rounded-lg bg-gray-50 border border-gray-200" />
+                    <canvas ref={canvasRef} width={300} height={40} className="w-full h-10 rounded-lg bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 shadow-inner" />
                   </div>
                 )}
               </div>
             ) : (
-              showLabels && (
+              showLabels &&
+              !isProcessing && (
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <MessageSquare className="w-4 h-4" />
-                  <span>Ready to record {isProcessing && "(Processing...)"}</span>
+                  <span>Ready to record</span>
                 </div>
               )
             )}
@@ -429,12 +430,17 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
           {/* Control button */}
           <div className="flex-shrink-0">
             {isRecording ? (
-              <Button onClick={handleStopRecording} size="sm" variant="destructive" className={`h-10 ${showLabels ? "px-4" : "px-3"} font-semibold`}>
+              <Button onClick={handleStopRecording} size="sm" variant="destructive" className={`h-10 ${showLabels ? "px-4" : "px-3"} font-semibold shadow-md hover:shadow-lg transition-all`}>
                 <Square className="w-4 h-4" />
                 {showLabels && <span className="ml-2">Stop</span>}
               </Button>
             ) : (
-              <Button onClick={handleStartRecording} size="sm" className={`h-10 ${showLabels ? "px-4" : "px-3"} bg-blue-600 hover:bg-blue-700 font-semibold`} disabled={isProcessing || !isConnected}>
+              <Button
+                onClick={handleStartRecording}
+                size="sm"
+                className={`h-10 ${showLabels ? "px-4" : "px-3"} bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 font-semibold shadow-md hover:shadow-lg transition-all`}
+                disabled={isProcessing || !isConnected}
+              >
                 <Mic className="w-4 h-4" />
                 {showLabels && <span className="ml-2">{isProcessing ? "Processing..." : "Start"}</span>}
               </Button>
@@ -455,22 +461,25 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
     );
   }
 
-  // Full version (unchanged)
+  // Full version
   return (
-    <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+    <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg backdrop-blur-sm bg-white/95">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <Avatar className="h-12 w-12 border-2 border-blue-200">
+          <Avatar className="h-12 w-12 border-2 border-blue-200 shadow-sm">
             <AvatarImage src={user.avatar} alt={user.name} />
-            <AvatarFallback className="bg-blue-600 text-white font-semibold">{getUserInitials(user.name)}</AvatarFallback>
+            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-semibold">{getUserInitials(user.name)}</AvatarFallback>
           </Avatar>
 
           <div>
             <h3 className="font-semibold text-gray-900 text-lg">{user.name}</h3>
             <div className="flex items-center gap-2 mt-1">
-              <div className={`w-2 h-2 rounded-full ${isConnected ? "bg-green-500" : "bg-red-500"}`} />
-              <span className="text-sm text-gray-500">
+              <div className={`flex items-center gap-1 ${isConnected ? "text-green-600" : "text-red-600"}`}>
+                {isConnected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
+                <div className={`w-2 h-2 rounded-full ${isConnected ? "bg-green-500" : "bg-red-500"}`} />
+              </div>
+              <span className="text-sm text-gray-500 capitalize">
                 {isConnected ? "Connected" : "Disconnected"} • {meetingLanguage}
               </span>
             </div>
@@ -480,7 +489,7 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
         {/* Online users */}
         <div className="flex items-center gap-4">
           {onlineUsers.length > 0 && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-lg">
+            <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-lg border border-blue-200">
               <Users className="w-4 h-4 text-blue-600" />
               <div className="text-center">
                 <div className="font-semibold text-blue-700">{onlineUsers.length}</div>
@@ -498,7 +507,9 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
           <Button
             onClick={isRecording ? handleStopRecording : handleStartRecording}
             size="lg"
-            className={`h-16 w-16 rounded-full ${isRecording ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"}`}
+            className={`h-16 w-16 rounded-full shadow-lg hover:shadow-xl transition-all ${
+              isRecording ? "bg-gradient-to-br from-red-600 to-red-700 hover:from-red-700 hover:to-red-800" : "bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+            }`}
             disabled={isProcessing || !isConnected}
           >
             {isRecording ? <Square className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
@@ -508,7 +519,7 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
         {/* Recording status */}
         {isRecording && (
           <div className="text-center space-y-4">
-            <Badge variant="destructive" className="px-4 py-2 text-base">
+            <Badge variant="destructive" className="px-4 py-2 text-base border border-red-300 shadow-sm">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
                 <span>Recording • {formatTime(recordingTime)}</span>
@@ -516,7 +527,7 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
             </Badge>
 
             {/* Audio visualization */}
-            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4 border border-gray-200 shadow-inner">
               <canvas ref={canvasRef} width={400} height={80} className="w-full h-20" />
 
               {/* Volume indicator */}
@@ -530,15 +541,15 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
 
         {/* Processing state */}
         {isProcessing && (
-          <div className="text-center py-4">
-            <div className="text-gray-600 font-medium">Processing audio...</div>
-            <div className="text-sm text-gray-500 mt-1">Please wait while we transcribe your recording</div>
+          <div className="text-center py-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="text-blue-700 font-medium">Processing audio...</div>
+            <div className="text-sm text-blue-600 mt-1">Please wait while we transcribe your recording</div>
           </div>
         )}
 
         {/* Active speakers */}
         {activeSpeakers.length > 0 && (
-          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
             <div className="flex items-center gap-2 mb-2">
               <Users className="w-4 h-4 text-blue-600" />
               <span className="font-medium text-blue-900">Active Speakers</span>

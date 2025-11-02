@@ -3,6 +3,9 @@
 
 import { getMeeting, generateMeetingSummary, updateMeetingSummary } from "@/lib/services/meeting-service";
 import { summarizeTranscribedText } from "@/ai/flows/summarize-transcribed-text";
+import { notifyActionItemAssignees } from "./notification-service";
+import { getSocketIOInstance } from "@/lib/socket";
+import clientPromise from "@/lib/database/mongodb";
 
 export async function analyzeMeeting(meetingId: string): Promise<{
   success: boolean;
@@ -30,6 +33,8 @@ export async function analyzeMeeting(meetingId: string): Promise<{
       });
 
       if (result.success) {
+        // NEW: Trigger action item notifications if summary was generated successfully
+        await triggerActionItemNotifications(meetingId, meeting, result.summary);
         return result;
       }
       // If the existing function fails, fall through to Option 2
@@ -70,6 +75,9 @@ export async function analyzeMeeting(meetingId: string): Promise<{
       };
     }
 
+    // NEW: Trigger action item notifications after successful analysis
+    await triggerActionItemNotifications(meetingId, meeting, parsedSummary);
+
     return {
       success: true,
       summary: parsedSummary,
@@ -80,6 +88,66 @@ export async function analyzeMeeting(meetingId: string): Promise<{
       success: false,
       error: error instanceof Error ? error.message : "Analysis failed",
     };
+  }
+}
+
+// NEW: Helper function to trigger action item notifications
+async function triggerActionItemNotifications(meetingId: string, meeting: any, summary: any): Promise<void> {
+  try {
+    // Check if we have action items in the summary
+    const actionItems = summary?.meeting_summary?.action_items || summary?.action_items;
+
+    if (actionItems && Array.isArray(actionItems) && actionItems.length > 0) {
+      console.log(`🔔 Found ${actionItems.length} action items to notify`);
+
+      // Create notifications for assignees
+      await notifyActionItemAssignees(meetingId, meeting.name, actionItems, meeting.participants || []);
+
+      // Also emit Socket.IO events for real-time notifications
+      const io = getSocketIOInstance();
+
+      for (const item of actionItems) {
+        const assignedTo = item.assigned_to;
+        if (assignedTo && meeting.participants) {
+          // Try to find participant by name or email
+          const participant = meeting.participants.find((p: any) => p.name?.toLowerCase() === assignedTo.toLowerCase() || p.email?.toLowerCase() === assignedTo.toLowerCase());
+
+          if (participant && participant.email) {
+            const client = await clientPromise;
+            const db = client.db();
+            const user = await db.collection("users").findOne({
+              email: participant.email.toLowerCase(),
+            });
+
+            if (user) {
+              io.to(`user-${user._id.toString()}`).emit("new-notification", {
+                type: "action_item",
+                title: "New Action Item Assigned",
+                message: `You have been assigned: "${item.task}"`,
+                meetingId,
+                meetingName: meeting.name,
+                actionItem: {
+                  task: item.task,
+                  deadline: item.deadline,
+                  assignedTo: item.assigned_to,
+                },
+                timestamp: new Date().toISOString(),
+              });
+              console.log(`✅ Sent real-time notification for action item to ${participant.email}`);
+            } else {
+              console.log(`ℹ️ User not found for email: ${participant.email}`);
+            }
+          } else {
+            console.log(`ℹ️ No participant found for assigned_to: ${assignedTo}`);
+          }
+        }
+      }
+    } else {
+      console.log("ℹ️ No action items found in summary to notify");
+    }
+  } catch (notificationError) {
+    // Don't fail the analysis if notifications fail
+    console.error("❌ Failed to send action item notifications:", notificationError);
   }
 }
 

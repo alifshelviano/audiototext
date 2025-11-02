@@ -2,7 +2,7 @@
 "use client";
 
 import { RecordingControls } from "@/components/app/recording/recording-controls";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface FloatingRecordingControlsProps {
   meetingId: string;
@@ -10,7 +10,18 @@ interface FloatingRecordingControlsProps {
 }
 
 export function FloatingRecordingControls({ meetingId, onTranscriptAdded }: FloatingRecordingControlsProps) {
-  const [isRecording, setIsRecording] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const handleTranscriptAdded = () => {
     if (onTranscriptAdded) {
@@ -18,32 +29,23 @@ export function FloatingRecordingControls({ meetingId, onTranscriptAdded }: Floa
     }
   };
 
-  const handleRecordingStateChange = (recording: boolean) => {
-    setIsRecording(recording);
-  };
-
   return (
     <>
-      {/* Mobile: Show full labels when recording, minimal when not */}
+      {/* Mobile: Adaptive design */}
       <div className="fixed bottom-4 right-4 z-50 md:hidden">
-        <div
-          className={`
-          ${isRecording ? "rounded-2xl border-2 border-blue-200 shadow-2xl min-w-[280px]" : "rounded-full border-2 border-blue-200 shadow-2xl"} bg-white transition-all duration-300
-        `}
-        >
+        <div className="bg-white rounded-2xl border-2 border-blue-200 shadow-2xl hover:shadow-3xl transition-all duration-300 backdrop-blur-sm bg-white/95">
           <RecordingControls
             meetingId={meetingId}
             onTranscriptAdded={handleTranscriptAdded}
             compact={true}
-            showLabels={isRecording} // Show labels only when recording
-            onRecordingStateChange={handleRecordingStateChange}
+            showLabels={isMobile ? false : true} // Minimal labels on mobile
           />
         </div>
       </div>
 
       {/* Desktop: Always show full compact version */}
       <div className="fixed bottom-6 right-6 z-50 hidden md:block">
-        <div className="bg-white rounded-2xl border-2 border-blue-200 shadow-2xl hover:shadow-3xl transition-all">
+        <div className="bg-white rounded-2xl border-2 border-blue-200 shadow-2xl hover:shadow-3xl transition-all backdrop-blur-sm bg-white/95">
           <RecordingControls meetingId={meetingId} onTranscriptAdded={onTranscriptAdded} compact={true} showLabels={true} />
         </div>
       </div>

@@ -1,6 +1,9 @@
 // lib/email-service.ts
 import nodemailer from "nodemailer";
 import SMTPTransport from "nodemailer/lib/smtp-transport";
+import { notifyEmailRecipients } from "@/lib/services/notification-service";
+import { getSocketIOInstance } from "@/lib/socket"; // You'll need to create this export
+import clientPromise from "@/lib/database/mongodb"; // Import your MongoDB client
 
 interface EmailOptions {
   to: string | string[];
@@ -113,7 +116,6 @@ function getTransporter(): nodemailer.Transporter {
     };
 
     transporter = nodemailer.createTransport(transporterConfig);
-    transporter = nodemailer.createTransport(transporterConfig);
 
     // Add event listeners for better debugging
     transporter.on("idle", () => {
@@ -171,7 +173,7 @@ function estimateEmailSize(htmlContent: string, pdfContent?: string): { sizeByte
   return { sizeBytes, sizeMB };
 }
 
-// Enhanced email sending with better error handling and retries
+// Enhanced email sending with better error handling, retries, and notifications
 export async function sendEmailWithAttachment(options: EmailOptions): Promise<{
   success: boolean;
   messageId?: string;
@@ -248,6 +250,37 @@ export async function sendEmailWithAttachment(options: EmailOptions): Promise<{
       const result = await currentTransporter.sendMail(mailOptions);
       console.log(`✅ Email sent successfully: ${result.messageId}`);
 
+      // NEW: Trigger notifications for email recipients
+      try {
+        await notifyEmailRecipients(options.meeting.id, options.meeting.name, Array.isArray(options.to) ? options.to : [options.to]);
+
+        // Also emit Socket.IO event for real-time notification
+        const io = getSocketIOInstance();
+        const validEmails = Array.isArray(options.to) ? options.to : [options.to];
+
+        for (const email of validEmails) {
+          // Get userId from email
+          const client = await clientPromise;
+          const db = client.db();
+          const user = await db.collection("users").findOne({
+            email: email.toLowerCase(),
+          });
+
+          if (user) {
+            io.to(`user-${user._id.toString()}`).emit("new-notification", {
+              type: "email_received",
+              title: "Meeting Summary Received",
+              message: `You've received the summary for "${options.meeting.name}"`,
+              meetingId: options.meeting.id,
+              meetingName: options.meeting.name,
+            });
+          }
+        }
+      } catch (notificationError) {
+        // Don't fail the email send if notifications fail
+        console.error("❌ Failed to send notifications:", notificationError);
+      }
+
       return {
         success: true,
         messageId: result.messageId,
@@ -307,6 +340,14 @@ export async function sendEmailWithoutAttachment(options: Omit<EmailOptions, "pd
   try {
     const result = await currentTransporter.sendMail(mailOptions);
     console.log(`✅ Email sent successfully without attachment: ${result.messageId}`);
+
+    // NEW: Also trigger notifications for emails without attachments
+    try {
+      await notifyEmailRecipients(options.meeting.id, options.meeting.name, Array.isArray(options.to) ? options.to : [options.to]);
+    } catch (notificationError) {
+      console.error("❌ Failed to send notifications:", notificationError);
+    }
+
     return {
       success: true,
       messageId: result.messageId,
@@ -684,13 +725,12 @@ export async function checkEmailServiceHealth(): Promise<{
 }
 
 // Fixed password reset email function
-// In your email-service.ts - update the resetUrl
 export async function sendPasswordResetEmail(email: string, resetToken: string): Promise<void> {
   await verifySMTPConnection();
   const currentTransporter = getTransporter();
 
   // Use the correct frontend URL
-  const resetUrl = `${process.env.FRONTEND_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000'}/auth/reset-password?token=${resetToken}`;
+  const resetUrl = `${process.env.FRONTEND_URL || process.env.NEXTAUTH_URL || "http://localhost:3000"}/auth/reset-password?token=${resetToken}`;
 
   // Store the token temporarily (in production, use your database)
   const resetTokens = new Map();

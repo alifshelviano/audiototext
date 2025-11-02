@@ -68,7 +68,7 @@ export default function MeetingPage() {
 
     switch (activeTab) {
       case "transcript":
-        return <TranscriptList transcripts={meeting.transcripts || []} visibleCount={100} onLoadMore={() => {}} onShowLess={() => {}} />;
+        return <TranscriptList transcripts={meeting.transcripts || []} visibleCount={5} onLoadMore={() => {}} onShowLess={() => {}} />;
       case "summary":
         return <SummaryTab meeting={meeting} isAnalyzing={analysisStatus === "analyzing"} onReanalyze={() => {}} />;
       case "insights":

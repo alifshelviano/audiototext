@@ -7,8 +7,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useAuth } from "@/app/providers/AuthProvider";
-import { LogOut, User, Settings, Bell, Menu } from "lucide-react";
+import { LogOut, User, Settings, Menu } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
+import { NotificationDropdown } from "@/components/app/notifications/notifications-dropdown";
 
 // The props are now optional for pages that don't use the full dashboard layout
 interface HeaderProps {
@@ -17,7 +18,6 @@ interface HeaderProps {
 }
 
 export function Header({ toggleSidebar, mainContentRef }: HeaderProps) {
-  const [notificationCount, setNotificationCount] = useState(3);
   const [isScrolled, setIsScrolled] = useState(false);
   const { user, logout } = useAuth();
 
@@ -82,42 +82,8 @@ export function Header({ toggleSidebar, mainContentRef }: HeaderProps) {
             </div>
           )}
 
-          {user && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative text-white hover:bg-white/10">
-                  <Bell className="h-5 w-5" />
-                  {notificationCount > 0 && (
-                    <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
-                      {notificationCount}
-                    </Badge>
-                  )}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-80">
-                <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="flex flex-col items-start p-3 cursor-pointer hover:bg-accent">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span className="font-medium">New meeting scheduled</span>
-                  </div>
-                  <span className="text-sm text-muted-foreground mt-1">Team sync meeting starts in 15 minutes</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="flex flex-col items-start p-3 cursor-pointer hover:bg-accent">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="font-medium">Transcript ready</span>
-                  </div>
-                  <span className="text-sm text-muted-foreground mt-1">Your meeting transcript has been processed</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="justify-center text-center cursor-pointer">
-                  <span className="text-sm text-blue-600">View all notifications</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+          {/* NEW: Replaced the old Bell dropdown with NotificationDropdown */}
+          {user && <NotificationDropdown />}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

@@ -135,13 +135,13 @@ export function SummaryContent({ meeting }: SummaryContentProps) {
                     👤 {item.assigned_to} • 📅 {item.deadline}
                   </p>
                 </div>
-                {/* <Badge
+                <Badge
                   className={`ml-4 ${
                     item.status === "Completed" ? "bg-green-100 text-green-800" : item.status === "In Progress" ? "bg-blue-100 text-blue-800" : item.status === "Pending" ? "bg-yellow-100 text-yellow-800" : "bg-gray-100 text-gray-800"
                   }`}
                 >
                   {item.status}
-                </Badge> */}
+                </Badge>
               </div>
             ))}
           </div>
