@@ -24,7 +24,7 @@ export function Sidebar({ isOpen, isDesktop, toggleSidebar }: SidebarProps) {
   const content = (
     <div className="flex flex-col flex-1">
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        <Link href="/" className="flex items-center gap-2 group">
+        <Link href="/dashboard" className="flex items-center gap-2 group">
           <img src="/logo.png" alt="LISN Logo" className="h-8 w-auto" />
           <h1 className="font-bold text-2xl text-black">LISN</h1>
         </Link>
