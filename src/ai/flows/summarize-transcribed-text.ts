@@ -1,9 +1,10 @@
-// ai/flows/summarize-transcribed-text.ts
 "use server";
+
 
 import { ai } from "@/ai/genkit";
 import { z } from "zod";
 import { analyzeTranscriptEmotions } from "@/ai/models/sentiment-analysis";
+
 
 const SummarizeTranscribedTextInputSchema = z.object({
   transcribedText: z.string().describe("The complete transcribed text from the meeting."),
@@ -13,10 +14,12 @@ const SummarizeTranscribedTextInputSchema = z.object({
 });
 export type SummarizeTranscribedTextInput = z.infer<typeof SummarizeTranscribedTextInputSchema>;
 
+
 const SummarizeTranscribedTextOutputSchema = z.object({
   summary: z.string().describe("The comprehensive meeting analysis in JSON format."),
 });
 export type SummarizeTranscribedTextOutput = z.infer<typeof SummarizeTranscribedTextOutputSchema>;
+
 
 export const summarizeTranscribedTextFlow = ai.defineFlow(
   {
@@ -28,6 +31,7 @@ export const summarizeTranscribedTextFlow = ai.defineFlow(
     // Use the actual meeting date/time or fallback to current date
     const actualMeetingDate = input.meetingDate || new Date().toISOString().split("T")[0];
     const actualMeetingTime = input.meetingTime || new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
 
     if (!input.transcribedText || input.transcribedText.trim().length === 0) {
       return {
@@ -73,12 +77,14 @@ export const summarizeTranscribedTextFlow = ai.defineFlow(
       };
     }
 
+
     // Truncate if too long (approximately 15,000 characters to stay under timeout)
     let transcriptToAnalyze = input.transcribedText;
     if (transcriptToAnalyze.length > 15000) {
       console.warn(`Transcript too long (${transcriptToAnalyze.length} chars), truncating to 15000 chars`);
       transcriptToAnalyze = transcriptToAnalyze.substring(0, 15000) + "\n\n[Transcript truncated due to length]";
     }
+
 
     // Language-specific prompts
     const languagePrompts = {
@@ -96,20 +102,27 @@ export const summarizeTranscribedTextFlow = ai.defineFlow(
       },
     };
 
+
     const langPrompt = languagePrompts[input.language] || languagePrompts.english;
+
 
     const prompt = `
 # COMPREHENSIVE MEETING ANALYSIS TASK
 
+
 You are an expert meeting analyst. ${langPrompt.analysis}
 
+
 ## MEETING LANGUAGE: ${input.language.toUpperCase()}
+
 
 ## MEETING DATE: ${actualMeetingDate}
 ## MEETING TIME: ${actualMeetingTime}
 
+
 ## TRANSCRIPT TO ANALYZE:
 ${transcriptToAnalyze}
+
 
 ## REQUIRED JSON STRUCTURE:
 {
@@ -154,7 +167,9 @@ ${transcriptToAnalyze}
   }
 }
 
+
 ## MEETING HEALTH SCORE GUIDELINES:
+
 
 **Engagement Score (0-100):**
 - 80-100: Active participation, questions, ideas from all
@@ -162,11 +177,13 @@ ${transcriptToAnalyze}
 - 40-59: Limited participation, dominated by few people
 - 0-39: Minimal engagement, one-way communication
 
+
 **Productivity Score (0-100):**
 - 80-100: Clear outcomes, decisions made, action items assigned
 - 60-79: Some progress, partial decisions
 - 40-59: Discussion without clear outcomes
 - 0-39: Off-topic, circular discussion, no progress
+
 
 **Collaboration Score (0-100):**
 - 80-100: Building on ideas, supportive dialogue, consensus-building
@@ -174,13 +191,16 @@ ${transcriptToAnalyze}
 - 40-59: Siloed thinking, limited interaction
 - 0-39: Conflict, talking over each other, no teamwork
 
+
 **Clarity Score (0-100):**
 - 80-100: Clear goals, decisions, and next steps
 - 60-79: Mostly clear with minor ambiguity
 - 40-59: Some confusion, unclear outcomes
 - 0-39: Vague, confusing, no clear direction
 
+
 **Overall Score:** Average of all four scores
+
 
 ## CRITICAL INSTRUCTIONS:
 1. Return ONLY the JSON object, no additional text
@@ -192,31 +212,39 @@ ${transcriptToAnalyze}
 7. Use the provided meeting date and time: ${actualMeetingDate} at ${actualMeetingTime}
 `;
 
+
     try {
       // Run AI summary and emotion analysis in parallel
       const [llmResponse, emotionAnalysis] = await Promise.all([ai.generate({ prompt }), analyzeTranscriptEmotions(transcriptToAnalyze, input.language)]);
 
+
       let summary = llmResponse.text;
+
 
       // Clean up the response to ensure it's valid JSON
       summary = summary.trim();
 
+
       // Remove markdown code blocks if present
       summary = summary.replace(/```json\n?/g, "").replace(/```\n?/g, "");
+
 
       // Try to parse to validate it's proper JSON
       try {
         const parsed = JSON.parse(summary);
+
 
         // Inject the emotion analysis into the parsed summary
         if (parsed.meeting_summary) {
           parsed.meeting_summary.emotion_analysis = emotionAnalysis;
         }
 
+
         // If it parses successfully, return it as string
         return { summary: JSON.stringify(parsed, null, 2) };
       } catch (parseError) {
         console.error("AI returned invalid JSON, creating fallback structure:", parseError);
+
 
         // Create a fallback structure with the actual meeting date/time
         const fallbackSummary = {
@@ -249,10 +277,12 @@ ${transcriptToAnalyze}
           },
         };
 
+
         return { summary: JSON.stringify(fallbackSummary, null, 2) };
       }
     } catch (error) {
       console.error("Error in summarizeTranscribedTextFlow:", error);
+
 
       // Try to get emotion analysis even if main analysis fails
       let emotionAnalysis;
@@ -267,6 +297,7 @@ ${transcriptToAnalyze}
           tension_points: [],
         };
       }
+
 
       // Return a proper error structure with actual meeting date/time
       const errorSummary = {
@@ -299,15 +330,18 @@ ${transcriptToAnalyze}
         },
       };
 
+
       return { summary: JSON.stringify(errorSummary, null, 2) };
     }
   }
 );
 
+
 // Helper function to extract participants from transcript
 function extractParticipants(transcript: string): string[] {
   const participants = new Set<string>();
   const lines = transcript.split("\n");
+
 
   for (const line of lines) {
     // Look for patterns like "Name: text"
@@ -317,8 +351,10 @@ function extractParticipants(transcript: string): string[] {
     }
   }
 
+
   return Array.from(participants);
 }
+
 
 export async function summarizeTranscribedText(input: SummarizeTranscribedTextInput): Promise<SummarizeTranscribedTextOutput> {
   return summarizeTranscribedTextFlow(input);

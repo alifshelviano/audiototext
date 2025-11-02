@@ -1,6 +1,7 @@
 // components/app/meeting/summary-tab.tsx
 "use client";
 
+
 import { Button } from "@/components/ui/button";
 import { Download, Mail, RefreshCw, FileText, ChevronDown, Users, X, Menu } from "lucide-react";
 import { SummaryContent } from "@/components/app/meeting/summary/summary-content";
@@ -9,11 +10,13 @@ import type { MeetingData, MeetingSummary } from "@/types/models/Meeting";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useAuth } from "@/app/providers/AuthProvider";
 
+
 interface SummaryTabProps {
   meeting: MeetingData;
   isAnalyzing: boolean;
   onReanalyze: () => void;
 }
+
 
 interface EmailRecipient {
   email: string;
@@ -22,6 +25,7 @@ interface EmailRecipient {
   isParticipant: boolean;
   source: "participant" | "manual";
 }
+
 
 export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProps) {
   const { user } = useAuth();
@@ -35,27 +39,33 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
   const [selectedRecipients, setSelectedRecipients] = useState<Set<string>>(new Set());
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
+
   // Check if current user is the meeting creator
   const isCreator = useMemo(() => {
     return user?.userId === meeting?.userId;
   }, [user?.userId, meeting?.userId]);
+
 
   const validateEmail = useCallback((email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email.trim());
   }, []);
 
+
   // Extract ONLY participants with valid emails from meeting.participants
   const extractParticipantsWithEmails = useCallback((): EmailRecipient[] => {
     if (!meeting?.participants) return [];
 
+
     const uniqueEmails = new Set<string>();
     const participants: EmailRecipient[] = [];
+
 
     meeting.participants.forEach((participant) => {
       // Only include participants with valid emails
       if (participant.name && participant.email && validateEmail(participant.email)) {
         const emailKey = participant.email.toLowerCase().trim();
+
 
         // Avoid duplicates
         if (!uniqueEmails.has(emailKey)) {
@@ -71,12 +81,15 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
       }
     });
 
+
     return participants;
   }, [meeting?.participants, validateEmail]);
+
 
   // Parse additional emails from text input
   const getAdditionalEmails = useCallback((): EmailRecipient[] => {
     if (!additionalEmails.trim()) return [];
+
 
     return additionalEmails
       .split(",")
@@ -91,13 +104,16 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
       }));
   }, [additionalEmails, validateEmail]);
 
+
   // All recipients (participants + additional emails)
   const allRecipients = useMemo((): EmailRecipient[] => {
     const participants = extractParticipantsWithEmails();
     const additional = getAdditionalEmails();
 
+
     // Combine and remove duplicates by email
     const emailMap = new Map<string, EmailRecipient>();
+
 
     [...participants, ...additional].forEach((recipient) => {
       const emailKey = recipient.email.toLowerCase();
@@ -112,13 +128,16 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
       }
     });
 
+
     return Array.from(emailMap.values());
   }, [extractParticipantsWithEmails, getAdditionalEmails]);
+
 
   // Valid recipients count (only valid emails that are selected)
   const validRecipientCount = useMemo(() => {
     return allRecipients.filter((recipient) => recipient.isValid && selectedRecipients.has(recipient.email)).length;
   }, [allRecipients, selectedRecipients]);
+
 
   // Initialize selected recipients when modal opens
   useEffect(() => {
@@ -126,9 +145,11 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
       // Auto-select all valid emails when modal opens
       const validEmails = allRecipients.filter((recipient) => recipient.isValid).map((recipient) => recipient.email);
 
+
       setSelectedRecipients(new Set(validEmails));
     }
   }, [showEmailModal, allRecipients]);
+
 
   const toggleRecipientSelection = (email: string) => {
     setSelectedRecipients((prev) => {
@@ -142,23 +163,28 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
     });
   };
 
+
   const selectAllRecipients = () => {
     const validEmails = allRecipients.filter((recipient) => recipient.isValid).map((recipient) => recipient.email);
     setSelectedRecipients(new Set(validEmails));
   };
 
+
   const deselectAllRecipients = () => {
     setSelectedRecipients(new Set());
   };
+
 
   const getStructuredSummary = useCallback((): MeetingSummary["meeting_summary"] => {
     if (meeting?.summary?.meeting_summary) {
       return meeting.summary.meeting_summary;
     }
 
+
     // Get only registered participants with emails
     const participants = extractParticipantsWithEmails().map((p) => p.name);
     const meetingDate = new Date(meeting?.time || new Date());
+
 
     return {
       title: meeting?.name || "Untitled Meeting",
@@ -172,36 +198,46 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
     };
   }, [meeting, extractParticipantsWithEmails]);
 
+
   const handleSendEmails = async () => {
     if (!meeting?.summary || validRecipientCount === 0) return;
+
 
     setIsSendingEmail(true);
     setEmailStatus("sending");
     setEmailMessage("");
 
+
     try {
       const structuredSummary = getStructuredSummary();
       const htmlContent = ExportService.generateDocumentHTML(meeting, structuredSummary);
+
 
       const tempDiv = document.createElement("div");
       tempDiv.innerHTML = htmlContent;
       document.body.appendChild(tempDiv);
 
+
       const pdfBase64 = await ExportService.generatePDFBase64(tempDiv);
       document.body.removeChild(tempDiv);
+
 
       if (!pdfBase64) {
         throw new Error("Failed to generate PDF");
       }
 
+
       const pdfData = pdfBase64.split(",")[1];
+
 
       // Get only selected and valid emails
       const selectedValidEmails = allRecipients.filter((recipient) => recipient.isValid && selectedRecipients.has(recipient.email)).map((recipient) => recipient.email);
 
+
       if (selectedValidEmails.length === 0) {
         throw new Error("No valid email addresses selected");
       }
+
 
       const response = await fetch(`/api/meetings/${meeting.id}/send-meeting-summary`, {
         method: "POST",
@@ -214,15 +250,19 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
         }),
       });
 
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to send emails");
       }
 
+
       const result = await response.json();
+
 
       setEmailStatus("success");
       setEmailMessage(result.message || `Meeting summary sent successfully to ${selectedValidEmails.length} recipients`);
+
 
       setTimeout(() => {
         setShowEmailModal(false);
@@ -239,6 +279,7 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
     }
   };
 
+
   const handleCloseEmailModal = () => {
     setShowEmailModal(false);
     setEmailStatus("idle");
@@ -247,32 +288,40 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
     setSelectedRecipients(new Set());
   };
 
+
   // Get participant count for display (only those with valid emails)
   const participantCount = useMemo(() => {
     return extractParticipantsWithEmails().length;
   }, [extractParticipantsWithEmails]);
 
+
   const exportToPDF = async () => {
     if (!meeting?.summary) return;
+
 
     setIsExporting(true);
     setShowExportMenu(false);
     setShowMobileMenu(false);
 
+
     try {
       const structuredSummary = getStructuredSummary();
       const htmlContent = ExportService.generateDocumentHTML(meeting, structuredSummary);
+
 
       // Create a temporary container
       const tempDiv = document.createElement("div");
       tempDiv.innerHTML = htmlContent;
       document.body.appendChild(tempDiv);
 
+
       const success = await ExportService.exportToPDF(tempDiv, `meeting-documentation-${meeting.name}`);
+
 
       if (!success) {
         alert("Failed to generate PDF document. Please try again.");
       }
+
 
       document.body.removeChild(tempDiv);
     } catch (error) {
@@ -283,20 +332,23 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
     }
   };
 
+
   const exportToWord = async () => {
     if (!meeting?.summary) return;
+
 
     setShowExportMenu(false);
     setShowMobileMenu(false);
     const structuredSummary = getStructuredSummary();
     const htmlContent = ExportService.generateDocumentHTML(meeting, structuredSummary);
 
+
     // Convert HTML to Word document
     const blob = new Blob(
       [
         `
-      <html xmlns:o='urn:schemas-microsoft-com:office:office' 
-            xmlns:w='urn:schemas-microsoft-com:office:word' 
+      <html xmlns:o='urn:schemas-microsoft-com:office:office'
+            xmlns:w='urn:schemas-microsoft-com:office:word'
             xmlns='http://www.w3.org/TR/REC-html40'>
         <head>
           <meta charset="utf-8">
@@ -313,6 +365,7 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
       }
     );
 
+
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
@@ -322,6 +375,7 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
+
 
   // Mobile menu actions
   const MobileActionsMenu = () => (
@@ -336,15 +390,18 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
             {isAnalyzing ? "Analyzing..." : "Re-analyze"}
           </Button>
 
+
           <Button onClick={exportToPDF} disabled={!meeting.summary || isExporting} variant="outline" size="lg" className="w-full justify-start h-14">
             <FileText className="w-5 h-5 mr-3 text-red-500" />
             {isExporting ? "Exporting..." : "Export as PDF"}
           </Button>
 
+
           <Button onClick={exportToWord} disabled={!meeting.summary} variant="outline" size="lg" className="w-full justify-start h-14">
             <FileText className="w-5 h-5 mr-3 text-blue-500" />
             Export as Word
           </Button>
+
 
           {/* Only show email button to creator */}
           {isCreator && (
@@ -364,6 +421,7 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
             </Button>
           )}
 
+
           <Button onClick={() => setShowMobileMenu(false)} variant="ghost" size="lg" className="w-full justify-center h-14 mt-2 border border-gray-200">
             Cancel
           </Button>
@@ -372,11 +430,13 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
     </div>
   );
 
+
   return (
     <div className="p-4 md:p-6 overflow-y-auto">
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <h3 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent text-center sm:text-left">Meeting Summary</h3>
+
 
         {/* Desktop Actions */}
         <div className="hidden md:flex gap-2">
@@ -385,12 +445,14 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
             {isAnalyzing ? "Analyzing..." : "Re-analyze"}
           </Button>
 
+
           <div className="relative">
             <Button variant="outline" size="sm" disabled={!meeting.summary || isExporting} onClick={() => setShowExportMenu(!showExportMenu)} className="hover:bg-green-50 border-green-200">
               <Download className="w-4 h-4 mr-2" />
               {isExporting ? "Exporting..." : "Export Document"}
               <ChevronDown className="w-4 h-4 ml-1" />
             </Button>
+
 
             {showExportMenu && (
               <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
@@ -414,6 +476,7 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
             )}
           </div>
 
+
           {/* Only show email button to creator */}
           {isCreator && (
             <Button onClick={() => setShowEmailModal(true)} variant="outline" size="sm" disabled={!meeting.summary || isSendingEmail} className="hover:bg-orange-50 border-orange-200">
@@ -424,6 +487,7 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
           )}
         </div>
 
+
         {/* Mobile Actions Button */}
         <div className="flex md:hidden">
           <Button onClick={() => setShowMobileMenu(true)} variant="outline" size="sm" className="w-full">
@@ -433,8 +497,10 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
         </div>
       </div>
 
+
       {/* Mobile Actions Menu */}
       {showMobileMenu && <MobileActionsMenu />}
+
 
       {/* Email Modal */}
       {showEmailModal && (
@@ -446,6 +512,7 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
                 <X className="w-5 h-5" />
               </button>
             </div>
+
 
             <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto max-h-[calc(90vh-140px)]">
               {/* Recipients Selection */}
@@ -465,6 +532,7 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
                   </div>
                 </div>
 
+
                 <div className="bg-gray-50 rounded-lg p-3 sm:p-4 max-h-60 overflow-y-auto">
                   {allRecipients.length > 0 ? (
                     <div className="space-y-2 sm:space-y-3">
@@ -480,6 +548,7 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
                             <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${selectedRecipients.has(recipient.email) ? "bg-blue-500 border-blue-500" : "border-gray-300"}`}>
                               {selectedRecipients.has(recipient.email) && <div className="w-2 h-2 bg-white rounded-sm" />}
                             </div>
+
 
                             <div className="flex-1 min-w-0">
                               <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 mb-1 gap-1">
@@ -498,6 +567,7 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
                 </div>
               </div>
 
+
               {/* Additional Emails */}
               <div>
                 <label htmlFor="additionalEmails" className="block text-sm font-medium text-gray-700 mb-2">
@@ -515,6 +585,7 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
                 <p className="text-xs text-gray-500 mt-1">Separate multiple emails with commas. Invalid emails will be highlighted.</p>
               </div>
 
+
               {/* Status Message */}
               {emailMessage && (
                 <div
@@ -526,6 +597,7 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
                 </div>
               )}
             </div>
+
 
             {/* Footer Actions */}
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 p-4 sm:p-6 border-t border-gray-200 bg-gray-50">
@@ -547,7 +619,13 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
         </div>
       )}
 
+
       <SummaryContent meeting={meeting} />
     </div>
   );
 }
+
+
+
+
+

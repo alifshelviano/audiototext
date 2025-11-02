@@ -90,7 +90,7 @@ export default function RegisterPage() {
     if (passwordStrength.score === 0) return "bg-gray-200";
     if (passwordStrength.score <= 2) return "bg-red-500";
     if (passwordStrength.score <= 3) return "bg-yellow-500";
-    if (passwordStrength.score <= 4) return "bg-blue-500";
+    if (passwordStrength.score <= 4) return "bg-cyan-500";
     return "bg-green-500";
   };
 
@@ -181,16 +181,16 @@ export default function RegisterPage() {
   ];
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="flex min-h-screen bg-gradient-to-br from-cyan-50 via-white to-teal-50">
       {/* Left Side - Register Form */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
           {/* Mobile Brand */}
           <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-r from-cyan-500 to-teal-500 rounded-xl flex items-center justify-center">
               <Sparkles className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">LISN</span>
+            <span className="text-2xl font-bold bg-gradient-to-r from-cyan-500 to-teal-500 bg-clip-text text-transparent">LISN</span>
           </div>
 
           <div className="bg-white rounded-3xl shadow-2xl p-8 border border-gray-100">
@@ -214,7 +214,7 @@ export default function RegisterPage() {
                 </label>
                 <div className="relative">
                   <input
-                    className="w-full px-4 py-3 pl-11 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50/50"
+                    className="w-full px-4 py-3 pl-11 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200 bg-gray-50/50"
                     type="text"
                     placeholder="Enter your full name"
                     value={name}
@@ -233,7 +233,7 @@ export default function RegisterPage() {
                 </label>
                 <div className="relative">
                   <input
-                    className="w-full px-4 py-3 pl-11 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50/50"
+                    className="w-full px-4 py-3 pl-11 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200 bg-gray-50/50"
                     type="email"
                     placeholder="Enter your email"
                     value={email}
@@ -252,7 +252,7 @@ export default function RegisterPage() {
                 </label>
                 <div className="relative">
                   <input
-                    className="w-full px-4 py-3 pl-11 pr-11 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50/50"
+                    className="w-full px-4 py-3 pl-11 pr-11 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200 bg-gray-50/50"
                     type={showPassword ? "text" : "password"}
                     placeholder="Create a strong password"
                     value={password}
@@ -271,7 +271,7 @@ export default function RegisterPage() {
                   <div className="space-y-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-gray-700">Password Strength</span>
-                      <span className={`text-sm font-semibold ${passwordStrength.score <= 2 ? "text-red-600" : passwordStrength.score <= 3 ? "text-yellow-600" : passwordStrength.score <= 4 ? "text-blue-600" : "text-green-600"}`}>
+                      <span className={`text-sm font-semibold ${passwordStrength.score <= 2 ? "text-red-600" : passwordStrength.score <= 3 ? "text-yellow-600" : passwordStrength.score <= 4 ? "text-cyan-600" : "text-green-600"}`}>
                         {getStrengthText()}
                       </span>
                     </div>
@@ -279,7 +279,7 @@ export default function RegisterPage() {
                     {/* Strength Bar */}
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
-                        className={`h-2 rounded-full transition-all duration-500 ${passwordStrength.score <= 2 ? "bg-red-500" : passwordStrength.score <= 3 ? "bg-yellow-500" : passwordStrength.score <= 4 ? "bg-blue-500" : "bg-green-500"}`}
+                        className={`h-2 rounded-full transition-all duration-500 ${passwordStrength.score <= 2 ? "bg-red-500" : passwordStrength.score <= 3 ? "bg-yellow-500" : passwordStrength.score <= 4 ? "bg-cyan-500" : "bg-green-500"}`}
                         style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
                       />
                     </div>
@@ -304,7 +304,7 @@ export default function RegisterPage() {
                 </label>
                 <div className="relative">
                   <input
-                    className="w-full px-4 py-3 pl-11 pr-11 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50/50"
+                    className="w-full px-4 py-3 pl-11 pr-11 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200 bg-gray-50/50"
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder="Confirm your password"
                     value={confirmPassword}
@@ -337,7 +337,7 @@ export default function RegisterPage() {
               </div>
 
               <button
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none flex items-center justify-center gap-2 shadow-lg"
+                className="w-full bg-gradient-to-r from-cyan-500 to-teal-600 hover:from-cyan-600 hover:to-teal-700 text-white font-semibold py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-600 focus:ring-offset-2 transition-all duration-200 transform hover:-translate-y-0.5 disabled:opacity-70 disabled:transform-none flex items-center justify-center gap-2 shadow-lg"
                 type="submit"
                 disabled={isLoading || (password.length > 0 && passwordStrength.score < 3)}
               >
@@ -355,7 +355,7 @@ export default function RegisterPage() {
             <div className="text-center mt-6 pt-6 border-t border-gray-200">
               <p className="text-gray-600">
                 Already have an account?{" "}
-                <a href="/auth/login" className="text-blue-600 hover:text-blue-700 font-semibold transition-colors">
+                <a href="/auth/login" className="text-blue-500 hover:text-blue-600 font-semibold transition-colors">
                   Sign in
                 </a>
               </p>
@@ -378,50 +378,41 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {/* Right Side - Brand & Features with Background Image */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative overflow-hidden">
-        {/* Background Image with Overlay */}
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: "url('/register-background.jpg')", // Replace with your image path
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        />
+      {/* Right Side - Brand & Features */}
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-center p-12 relative overflow-hidden">
         {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/80 via-purple-900/70 to-blue-800/80" />
+        <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/80 via-teal-700/70 to-cyan-800/80" />
 
         {/* Content */}
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold text-white">LISN</span>
-          </div>
-        </div>
-
-        <div className="relative z-10 max-w-md">
-          <h1 className="text-5xl font-bold mb-6 leading-tight text-white">
-            Join <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-pink-300">LISN</span> Today
-          </h1>
-          <p className="text-xl text-blue-100 mb-12 leading-relaxed">Transform your meetings with AI-powered transcription, real-time insights, and seamless collaboration.</p>
-
-          <div className="space-y-6">
-            {features.map((feature, index) => (
-              <div key={index} className="flex items-center gap-4 p-4 bg-white/10 rounded-2xl backdrop-blur-sm border border-white/20">
-                <div className="p-2 bg-white/20 rounded-lg text-white">{feature.icon}</div>
-                <div>
-                  <h3 className="font-semibold text-lg text-white">{feature.title}</h3>
-                  <p className="text-blue-100 text-sm">{feature.description}</p>
+        <div className="relative z-10 space-y-12">
+            <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                <Sparkles className="w-6 h-6 text-white" />
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
+                <span className="text-2xl font-bold text-white">LISN</span>
+            </div>
 
-        <div className="relative z-10 text-blue-200 text-sm">© 2025 LISN. Transforming conversations into insights.</div>
+            <div className="max-w-md">
+                <h1 className="text-5xl font-bold mb-6 leading-tight text-white">
+                Join <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-pink-300">LISN</span> Today
+                </h1>
+                <p className="text-xl text-cyan-100 mb-12 leading-relaxed">Transform your meetings with AI-powered transcription, real-time insights, and seamless collaboration.</p>
+
+                <div className="space-y-6">
+                {features.map((feature, index) => (
+                    <div key={index} className="flex items-center gap-4 p-4 bg-white/10 rounded-2xl backdrop-blur-sm border border-white/20">
+                        <div className="p-2 bg-white/20 rounded-lg text-white">{feature.icon}</div>
+                        <div>
+                        <h3 className="font-semibold text-lg text-white">{feature.title}</h3>
+                        <p className="text-cyan-100 text-sm">{feature.description}</p>
+                        </div>
+                    </div>
+                ))}
+                </div>
+            </div>
+
+            <div className="text-cyan-200 text-sm">© 2025 LISN. Transforming conversations into insights.</div>
+        </div>
       </div>
     </div>
   );

@@ -56,8 +56,8 @@ export function Header({ toggleSidebar, mainContentRef }: HeaderProps) {
       className={cn(
         "sticky top-0 z-40 w-full border-b text-white transition-colors duration-300",
         isScrolled
-          ? "bg-blue-600/80 backdrop-blur-sm border-transparent" // Scrolled: semi-transparent blue
-          : "bg-blue-600 border-blue-700" // Top: solid blue
+          ? "bg-cyan-600/80 backdrop-blur-sm border-transparent" // Scrolled: semi-transparent cyan
+          : "bg-cyan-600 border-cyan-700" // Top: solid cyan
       )}
     >
       <div className="container flex h-16 items-center justify-between px-4">
