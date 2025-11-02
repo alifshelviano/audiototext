@@ -408,9 +408,9 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
           </div>
         )}
 
-        {/* Recording status and controls */}
+        {/* Recording status and controls - FIXED: Always reserve space */}
         <div className="flex items-center justify-between gap-4">
-          <div className="flex-1">
+          <div className="flex-1 min-h-[64px]">
             {isRecording ? (
               <div className="space-y-2">
                 {showLabels && (
@@ -432,18 +432,25 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
                 {/* Audio visualization */}
                 {showLabels && (
                   <div className="mt-2">
-                    <canvas ref={canvasRef} width={300} height={40} className="w-full h-10 rounded-lg bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 shadow-inner" />
+                    <canvas ref={canvasRef} width={400} height={40} className="w-full h-10 rounded-lg bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 shadow-inner" />
                   </div>
                 )}
               </div>
             ) : (
-              showLabels &&
-              !isProcessing && (
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <MessageSquare className="w-4 h-4" />
-                  <span>Ready to record</span>
-                </div>
-              )
+              <div className="flex items-center h-full">
+                {showLabels && !isProcessing && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <MessageSquare className="w-4 h-4" />
+                    <span>Ready to record</span>
+                  </div>
+                )}
+                {isProcessing && (
+                  <div className="flex items-center gap-2 text-sm text-blue-600">
+                    <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                    <span>Processing...</span>
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
@@ -468,20 +475,22 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
           </div>
         </div>
 
-        {/* Active speakers */}
-        {showLabels && activeSpeakers.length > 0 && (
-          <div className="mt-3 pt-3 border-t border-gray-200">
-            <div className="flex items-center gap-2 text-xs text-gray-600">
-              <Users className="w-3 h-3" />
-              <span>Active: {activeSpeakers.join(", ")}</span>
-            </div>
+        {/* Active speakers - FIXED: Always reserve space */}
+        {showLabels && (
+          <div className="mt-3 pt-3 border-t border-gray-200 min-h-[24px]">
+            {activeSpeakers.length > 0 && (
+              <div className="flex items-center gap-2 text-xs text-gray-600">
+                <Users className="w-3 h-3" />
+                <span>Active: {activeSpeakers.join(", ")}</span>
+              </div>
+            )}
           </div>
         )}
       </div>
     );
   }
 
-  // Full version
+  // Full version - FIXED: Reserve space for dynamic content
   return (
     <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg backdrop-blur-sm bg-white/95">
       {/* Header */}
@@ -520,8 +529,8 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
         </div>
       </div>
 
-      {/* Main content */}
-      <div className="space-y-6">
+      {/* Main content - FIXED: Reserve minimum height */}
+      <div className="space-y-6 min-h-[280px]">
         {/* Recording button */}
         <div className="flex justify-center">
           <Button
@@ -536,47 +545,51 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
           </Button>
         </div>
 
-        {/* Recording status */}
-        {isRecording && (
-          <div className="text-center space-y-4">
-            <Badge variant="destructive" className="px-4 py-2 text-base border border-red-300 shadow-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                <span>Recording • {formatTime(recordingTime)}</span>
-              </div>
-            </Badge>
+        {/* Recording status - FIXED: Always visible container */}
+        <div className="min-h-[160px]">
+          {isRecording && (
+            <div className="text-center space-y-4">
+              <Badge variant="destructive" className="px-4 py-2 text-base border border-red-300 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                  <span>Recording • {formatTime(recordingTime)}</span>
+                </div>
+              </Badge>
 
-            {/* Audio visualization */}
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4 border border-gray-200 shadow-inner">
-              <canvas ref={canvasRef} width={400} height={80} className="w-full h-20" />
+              {/* Audio visualization */}
+              <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4 border border-gray-200 shadow-inner">
+                <canvas ref={canvasRef} width={600} height={80} className="w-full h-20" />
 
-              {/* Volume indicator */}
-              <div className="flex items-center justify-center gap-2 mt-3">
-                <Volume2 className="w-4 h-4 text-gray-500" />
-                <span className={`text-sm font-medium ${volumeStatus.color}`}>Volume: {volumeStatus.text}</span>
+                {/* Volume indicator */}
+                <div className="flex items-center justify-center gap-2 mt-3">
+                  <Volume2 className="w-4 h-4 text-gray-500" />
+                  <span className={`text-sm font-medium ${volumeStatus.color}`}>Volume: {volumeStatus.text}</span>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Processing state */}
-        {isProcessing && (
-          <div className="text-center py-4 bg-blue-50 rounded-lg border border-blue-200">
-            <div className="text-blue-700 font-medium">Processing audio...</div>
-            <div className="text-sm text-blue-600 mt-1">Please wait while we transcribe your recording</div>
-          </div>
-        )}
-
-        {/* Active speakers */}
-        {activeSpeakers.length > 0 && (
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
-            <div className="flex items-center gap-2 mb-2">
-              <Users className="w-4 h-4 text-blue-600" />
-              <span className="font-medium text-blue-900">Active Speakers</span>
+          {/* Processing state */}
+          {isProcessing && (
+            <div className="text-center py-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="text-blue-700 font-medium">Processing audio...</div>
+              <div className="text-sm text-blue-600 mt-1">Please wait while we transcribe your recording</div>
             </div>
-            <div className="text-sm text-blue-700">{activeSpeakers.join(", ")}</div>
-          </div>
-        )}
+          )}
+        </div>
+
+        {/* Active speakers - FIXED: Always visible container */}
+        <div className="min-h-[60px]">
+          {activeSpeakers.length > 0 && (
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
+              <div className="flex items-center gap-2 mb-2">
+                <Users className="w-4 h-4 text-blue-600" />
+                <span className="font-medium text-blue-900">Active Speakers</span>
+              </div>
+              <div className="text-sm text-blue-700">{activeSpeakers.join(", ")}</div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
