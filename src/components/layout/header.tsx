@@ -68,7 +68,7 @@ export function Header({ toggleSidebar, mainContentRef }: HeaderProps) {
               <span className="sr-only">Toggle sidebar</span>
             </Button>
           )}
-          <Link href="/" className="flex items-center gap-2 group">
+          <Link href="/dashboard" className="flex items-center gap-2 group">
             <img src="/logo.png" alt="LISN Logo" className="h-8 w-auto" />
             <h1 className="font-bold text-2xl text-white">LISN</h1>
           </Link>
