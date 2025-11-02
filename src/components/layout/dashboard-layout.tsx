@@ -29,11 +29,18 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   };
 
   if (status === "loading") {
-    return <div>Loading...</div>; // Or a proper loading spinner
+    return (
+      <div className="h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
+        <div className="animate-pulse text-center">
+          <div className="w-16 h-16 bg-blue-200 rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
   }
 
   if (status === "unauthenticated") {
-    return null; // Or a redirect component
+    return null;
   }
 
   return (

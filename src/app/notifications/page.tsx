@@ -218,7 +218,7 @@ export default function NotificationsPage() {
 
                             <div className="flex items-center gap-2">
                               {notification.meetingId && (
-                                <Link href={`/meeting/${notification.meetingId}`}>
+                                <Link href={`/meeting/${notification.meetingId}/join`}>
                                   <Button variant="outline" size="sm" className="gap-2">
                                     <ExternalLink className="h-4 w-4" />
                                     View Meeting

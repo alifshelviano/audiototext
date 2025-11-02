@@ -47,56 +47,79 @@ export function useNotifications(): UseNotificationsReturn {
   const pageSize = 20;
 
   // Memoized fetch function with pagination support
-  const fetchNotifications = useCallback(async (pageNum: number = 1, append: boolean = false) => {
-    if (isFetchingRef.current) return;
-
-    try {
-      isFetchingRef.current = true;
-      setLoading(true);
-      setError(null);
-
-      const queryParams = new URLSearchParams({
-        page: pageNum.toString(),
-        limit: pageSize.toString(),
-      });
-
-      const response = await fetch(`/api/notifications?${queryParams}`);
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch notifications: ${response.status}`);
+  const fetchNotifications = useCallback(
+    async (pageNum: number = 1, append: boolean = false) => {
+      // ✅ FIX: Skip fetching if user is not authenticated
+      if (!user?.userId) {
+        console.log("Skipping notification fetch - user not authenticated");
+        return;
       }
 
-      const data = await response.json();
+      if (isFetchingRef.current) return;
 
-      if (append) {
-        setNotifications((prev) => [...prev, ...data.notifications]);
-      } else {
-        setNotifications(data.notifications);
+      try {
+        isFetchingRef.current = true;
+        setLoading(true);
+        setError(null);
+
+        const queryParams = new URLSearchParams({
+          page: pageNum.toString(),
+          limit: pageSize.toString(),
+        });
+
+        const response = await fetch(`/api/notifications?${queryParams}`);
+
+        if (!response.ok) {
+          // ✅ FIX: Handle 401 gracefully
+          if (response.status === 401) {
+            console.log("User not authenticated for notifications");
+            return;
+          }
+          throw new Error(`Failed to fetch notifications: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (append) {
+          setNotifications((prev) => [...prev, ...data.notifications]);
+        } else {
+          setNotifications(data.notifications);
+        }
+
+        setUnreadCount(data.unreadCount);
+        setHasMore(data.notifications.length === pageSize);
+        setPage(pageNum);
+      } catch (err) {
+        console.error("Failed to fetch notifications:", err);
+        // ✅ FIX: Only set error for authenticated users
+        if (user?.userId) {
+          setError(err instanceof Error ? err.message : "Failed to fetch notifications");
+        }
+      } finally {
+        setLoading(false);
+        isFetchingRef.current = false;
       }
-
-      setUnreadCount(data.unreadCount);
-      setHasMore(data.notifications.length === pageSize);
-      setPage(pageNum);
-    } catch (err) {
-      console.error("Failed to fetch notifications:", err);
-      setError(err instanceof Error ? err.message : "Failed to fetch notifications");
-    } finally {
-      setLoading(false);
-      isFetchingRef.current = false;
-    }
-  }, []);
+    },
+    [user?.userId]
+  ); // ✅ FIX: Add user?.userId as dependency
 
   // Load more notifications for pagination
   const loadMore = useCallback(async () => {
-    if (hasMore && !loading) {
+    if (hasMore && !loading && user?.userId) {
+      // ✅ FIX: Check authentication
       await fetchNotifications(page + 1, true);
     }
-  }, [hasMore, loading, page, fetchNotifications]);
+  }, [hasMore, loading, page, fetchNotifications, user?.userId]);
 
   // Initial fetch and socket authentication
   useEffect(() => {
     if (user?.userId) {
       fetchNotifications(1, false);
+    } else {
+      // ✅ FIX: Clear notifications when user logs out
+      setNotifications([]);
+      setUnreadCount(0);
+      setError(null);
     }
   }, [user?.userId, fetchNotifications]);
 
@@ -109,10 +132,9 @@ export function useNotifications(): UseNotificationsReturn {
 
   // Enhanced real-time notification handling
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !user?.userId) return; // ✅ FIX: Check authentication
 
     const handleNewNotification = (notification: Notification) => {
-      // Ensure the notification has proper ID and Date objects
       const notificationWithId = {
         ...notification,
         id: notification.id || generateTempId(),
@@ -122,11 +144,7 @@ export function useNotifications(): UseNotificationsReturn {
 
       setNotifications((prev) => [notificationWithId, ...prev]);
       setUnreadCount((prev) => prev + 1);
-
-      // Show browser notification if permitted
       showBrowserNotification(notificationWithId);
-
-      // Play notification sound
       playNotificationSound();
     };
 
@@ -151,7 +169,6 @@ export function useNotifications(): UseNotificationsReturn {
       }
     };
 
-    // Real-time event listeners
     socket.on("new-notification", handleNewNotification);
     socket.on("notification-read", handleNotificationRead);
     socket.on("notification-deleted", handleNotificationDeleted);
@@ -165,19 +182,13 @@ export function useNotifications(): UseNotificationsReturn {
     };
   }, [socket, notifications, user?.userId]);
 
-  // Generate temporary ID for real-time notifications
   const generateTempId = (): string => {
     return `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   };
 
-  // Mark a single notification as read
   const markAsRead = async (notificationId: string): Promise<void> => {
-    if (!notificationId) {
-      console.warn("Invalid notification ID for markAsRead:", notificationId);
-      return;
-    }
+    if (!notificationId || !user?.userId) return; // ✅ FIX: Check authentication
 
-    // For temporary IDs, just update local state
     if (notificationId.startsWith("temp-")) {
       setNotifications((prev) => prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n)));
       setUnreadCount((prev) => Math.max(0, prev - 1));
@@ -185,75 +196,57 @@ export function useNotifications(): UseNotificationsReturn {
     }
 
     try {
-      // Optimistic update
       setNotifications((prev) => prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n)));
       setUnreadCount((prev) => Math.max(0, prev - 1));
 
       const response = await fetch(`/api/notifications/${notificationId}/read`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       });
 
       if (!response.ok) {
         throw new Error(`Failed to mark as read: ${response.status}`);
       }
 
-      // Emit socket event for real-time sync across clients
       if (socket) {
         socket.emit("mark-notification-read", { notificationId });
       }
     } catch (err) {
       console.error("Failed to mark notification as read:", err);
-
-      // Revert optimistic update on error
       setError("Failed to mark notification as read");
       await fetchNotifications(1, false);
     }
   };
 
-  // Mark all notifications as read
   const markAllAsRead = async (): Promise<void> => {
-    if (notifications.length === 0 || unreadCount === 0) return;
+    if (notifications.length === 0 || unreadCount === 0 || !user?.userId) return; // ✅ FIX
 
     try {
-      // Optimistic update
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       setUnreadCount(0);
 
       const response = await fetch("/api/notifications/read-all", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       });
 
       if (!response.ok) {
         throw new Error(`Failed to mark all as read: ${response.status}`);
       }
 
-      // Emit socket event for real-time sync across clients
       if (socket && user?.userId) {
         socket.emit("mark-all-notifications-read", { userId: user.userId });
       }
     } catch (err) {
       console.error("Failed to mark all notifications as read:", err);
-
-      // Revert optimistic update on error
       setError("Failed to mark all notifications as read");
       await fetchNotifications(1, false);
     }
   };
 
-  // Delete a notification
   const deleteNotification = async (notificationId: string): Promise<void> => {
-    if (!notificationId) {
-      console.warn("Invalid notification ID for delete:", notificationId);
-      return;
-    }
+    if (!notificationId || !user?.userId) return; // ✅ FIX
 
-    // For temporary IDs, just update local state
     if (notificationId.startsWith("temp-")) {
       const deletedNotification = notifications.find((n) => n.id === notificationId);
       setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
@@ -265,10 +258,7 @@ export function useNotifications(): UseNotificationsReturn {
     }
 
     try {
-      // Store the notification being deleted for rollback
       const deletedNotification = notifications.find((n) => n.id === notificationId);
-
-      // Optimistic update
       setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
 
       if (deletedNotification && !deletedNotification.read) {
@@ -277,31 +267,25 @@ export function useNotifications(): UseNotificationsReturn {
 
       const response = await fetch(`/api/notifications/${notificationId}`, {
         method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       });
 
       if (!response.ok && response.status !== 404) {
         throw new Error(`Failed to delete: ${response.status}`);
       }
 
-      // Emit socket event for real-time sync across clients
       if (socket) {
         socket.emit("delete-notification", { notificationId });
       }
     } catch (err) {
       console.error("Failed to delete notification:", err);
-
-      // Revert optimistic update on error
       setError("Failed to delete notification");
       await fetchNotifications(1, false);
     }
   };
 
-  // Enhanced browser notification with better UX
   const showBrowserNotification = (notification: Notification): void => {
-    if (!("Notification" in window)) return;
+    if (!("Notification" in window) || !user?.userId) return; // ✅ FIX
 
     if (Notification.permission === "granted") {
       const browserNotification = new Notification(notification.title, {
@@ -310,49 +294,34 @@ export function useNotifications(): UseNotificationsReturn {
         badge: "/logo.png",
         tag: notification.id,
         requireInteraction: notification.type === "action_item",
-        data: {
-          notificationId: notification.id,
-          meetingId: notification.meetingId,
-        },
+        data: { notificationId: notification.id, meetingId: notification.meetingId },
       });
 
-      // Auto-close after appropriate time
       const autoCloseTime = notification.type === "action_item" ? 10000 : 5000;
-      setTimeout(() => {
-        browserNotification.close();
-      }, autoCloseTime);
+      setTimeout(() => browserNotification.close(), autoCloseTime);
 
-      // Handle click on browser notification
       browserNotification.onclick = () => {
         window.focus();
         browserNotification.close();
-
-        // Mark as read when clicked
-        if (!notification.read) {
-          markAsRead(notification.id);
-        }
-
-        // Navigate to relevant page if applicable
+        if (!notification.read) markAsRead(notification.id);
         if (notification.meetingId) {
-          window.location.href = `/meeting/${notification.meetingId}`;
+          window.location.href = `/meeting/${notification.meetingId}/join`;
         }
       };
     }
   };
 
-  // Enhanced notification sound with fallback
   const playNotificationSound = (): void => {
+    if (!user?.userId) return; // ✅ FIX
+
     try {
       const audio = new Audio("/notification-sound.mp3");
       audio.volume = 0.3;
-
-      // Create audio context for better cross-browser compatibility
       const playPromise = audio.play();
 
       if (playPromise !== undefined) {
         playPromise.catch((err) => {
           console.log("Sound play prevented:", err);
-          // Fallback to simple beep
           fallbackBeep();
         });
       }
@@ -362,7 +331,6 @@ export function useNotifications(): UseNotificationsReturn {
     }
   };
 
-  // Fallback beep sound
   const fallbackBeep = (): void => {
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -371,21 +339,17 @@ export function useNotifications(): UseNotificationsReturn {
 
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
-
       oscillator.frequency.value = 800;
       oscillator.type = "sine";
       gainNode.gain.value = 0.1;
 
       oscillator.start();
-      setTimeout(() => {
-        oscillator.stop();
-      }, 100);
+      setTimeout(() => oscillator.stop(), 100);
     } catch (error) {
       console.log("Could not play fallback sound");
     }
   };
 
-  // Request browser notification permission
   const requestNotificationPermission = async (): Promise<boolean> => {
     if (!("Notification" in window)) {
       setError("Browser does not support notifications");
@@ -397,7 +361,6 @@ export function useNotifications(): UseNotificationsReturn {
         const permission = await Notification.requestPermission();
         return permission === "granted";
       }
-
       return Notification.permission === "granted";
     } catch (err) {
       console.error("Error requesting notification permission:", err);
@@ -406,10 +369,7 @@ export function useNotifications(): UseNotificationsReturn {
     }
   };
 
-  // Clear error state
-  const clearError = (): void => {
-    setError(null);
-  };
+  const clearError = (): void => setError(null);
 
   return {
     notifications,

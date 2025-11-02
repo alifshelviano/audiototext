@@ -6,29 +6,111 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Video, Users, User, Mail, ArrowRight, LogIn } from "lucide-react";
+import { Video, Users, User, Mail, ArrowRight, LogIn, AlertCircle } from "lucide-react";
 
 export function JoinMeetingForm({ onJoin }: { onJoin: (name: string, email: string) => void }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [emailError, setEmailError] = useState("");
+  const [nameError, setNameError] = useState("");
+  const [touched, setTouched] = useState({ name: false, email: false });
   const router = useRouter();
 
+  // Email validation regex - RFC 5322 compliant
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Name validation
+  const validateName = (name: string): boolean => {
+    return name.trim().length >= 2;
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+
+    if (touched.email) {
+      if (!newEmail) {
+        setEmailError("Email is required");
+      } else if (!validateEmail(newEmail)) {
+        setEmailError("Please enter a valid email address");
+      } else {
+        setEmailError("");
+      }
+    }
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newName = e.target.value;
+    setName(newName);
+
+    if (touched.name) {
+      if (!newName) {
+        setNameError("Name is required");
+      } else if (!validateName(newName)) {
+        setNameError("Name must be at least 2 characters");
+      } else {
+        setNameError("");
+      }
+    }
+  };
+
+  const handleEmailBlur = () => {
+    setTouched({ ...touched, email: true });
+    if (!email) {
+      setEmailError("Email is required");
+    } else if (!validateEmail(email)) {
+      setEmailError("Please enter a valid email address");
+    } else {
+      setEmailError("");
+    }
+  };
+
+  const handleNameBlur = () => {
+    setTouched({ ...touched, name: true });
+    if (!name) {
+      setNameError("Name is required");
+    } else if (!validateName(name)) {
+      setNameError("Name must be at least 2 characters");
+    } else {
+      setNameError("");
+    }
+  };
+
   const handleJoin = async () => {
-    if (name && email) {
+    // Validate all fields before submission
+    const isNameValid = validateName(name);
+    const isEmailValid = validateEmail(email);
+
+    if (!isNameValid) {
+      setNameError(!name ? "Name is required" : "Name must be at least 2 characters");
+      setTouched({ ...touched, name: true });
+    }
+
+    if (!isEmailValid) {
+      setEmailError(!email ? "Email is required" : "Please enter a valid email address");
+      setTouched({ ...touched, email: true });
+    }
+
+    if (isNameValid && isEmailValid) {
       setIsLoading(true);
       // Simulate loading for better UX
       await new Promise((resolve) => setTimeout(resolve, 500));
-      onJoin(name, email);
+      onJoin(name.trim(), email.trim());
       setIsLoading(false);
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && name && email) {
+    if (e.key === "Enter" && name && email && !emailError && !nameError) {
       handleJoin();
     }
   };
+
+  const isFormValid = name && email && !emailError && !nameError && validateName(name) && validateEmail(email);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
@@ -71,12 +153,21 @@ export function JoinMeetingForm({ onJoin }: { onJoin: (name: string, email: stri
               <Input
                 id="name"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={handleNameChange}
+                onBlur={handleNameBlur}
                 onKeyPress={handleKeyPress}
                 placeholder="Enter your full name"
-                className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
+                className={`h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 ${nameError && touched.name ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
                 autoComplete="name"
+                aria-invalid={!!nameError && touched.name}
+                aria-describedby={nameError && touched.name ? "name-error" : undefined}
               />
+              {nameError && touched.name && (
+                <div id="name-error" className="flex items-center gap-1 text-sm text-red-600">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>{nameError}</span>
+                </div>
+              )}
             </div>
 
             {/* Email Field */}
@@ -89,19 +180,28 @@ export function JoinMeetingForm({ onJoin }: { onJoin: (name: string, email: stri
                 id="email"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={handleEmailChange}
+                onBlur={handleEmailBlur}
                 onKeyPress={handleKeyPress}
                 placeholder="your.email@example.com"
-                className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
+                className={`h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 ${emailError && touched.email ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
                 autoComplete="email"
+                aria-invalid={!!emailError && touched.email}
+                aria-describedby={emailError && touched.email ? "email-error" : undefined}
               />
+              {emailError && touched.email && (
+                <div id="email-error" className="flex items-center gap-1 text-sm text-red-600">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>{emailError}</span>
+                </div>
+              )}
             </div>
 
             {/* Join Button */}
             <Button
               onClick={handleJoin}
-              disabled={!name || !email || isLoading}
-              className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 disabled:transform-none disabled:hover:translate-y-0"
+              disabled={!isFormValid || isLoading}
+              className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 disabled:transform-none disabled:hover:translate-y-0 disabled:opacity-50"
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">

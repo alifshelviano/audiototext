@@ -87,7 +87,7 @@ export function CreateMeetingDialog({ children }: CreateMeetingDialogProps) {
   };
 
   const handleGoToMeeting = () => {
-    router.push(`/meeting/${newMeetingId}`);
+    router.push(`/meeting/${newMeetingId}/join`);
     setOpen(false);
   };
 

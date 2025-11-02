@@ -209,7 +209,7 @@ export default function Page() {
               </h3>
               <div className="space-y-3">
                 {recentMeetings.map((meeting) => (
-                  <Link key={meeting.id} href={`/meeting/${meeting.id}`}>
+                  <Link key={meeting.id} href={`/meeting/${meeting.id}/join`}>
                     <div className="flex items-center justify-between p-3 border border-gray-200 rounded-xl hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 cursor-pointer group">
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-gray-700 truncate text-sm sm:text-base">{meeting.name}</p>

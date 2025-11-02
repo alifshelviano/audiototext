@@ -25,6 +25,7 @@ export interface MeetingData {
     summary_text?: string;
     meeting_summary?: MeetingSummary["meeting_summary"];
   };
+  summaryCreatedAt?: Date;
   lastAnalyzed?: Date;
   userId: string; // Changed from ObjectId to string based on your data
   createdAt: Date; // Add creation timestamp

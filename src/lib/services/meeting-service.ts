@@ -3,6 +3,7 @@
 import { summarizeTranscribedText } from "@/ai/flows/summarize-transcribed-text";
 import clientPromise from "@/lib/database/mongodb";
 import { ObjectId } from "mongodb";
+import type { MeetingData } from "@/types/models/Meeting";
 
 // Define interfaces for type safety
 export interface Transcript {
@@ -104,19 +105,8 @@ export async function getMeetings({ userId, isPublic }: { userId?: string; isPub
   }
 }
 
-export async function getMeeting({ meetingId }: { meetingId: string }): Promise<{
-  id: string;
-  name: string;
-  time: string;
-  participants: Participant[];
-  transcripts: Transcript[];
-  summary?: any;
-  summaryCreatedAt?: Date;
-  lastAnalyzed?: Date;
-  isPublic: boolean;
-  language: "english" | "indonesian" | "korean";
-  passkey?: string;
-} | null> {
+// In meeting-service.ts, update the getMeeting function:
+export async function getMeeting({ meetingId }: { meetingId: string }): Promise<MeetingData | null> {
   try {
     if (!ObjectId.isValid(meetingId)) {
       return null;
@@ -134,10 +124,13 @@ export async function getMeeting({ meetingId }: { meetingId: string }): Promise<
       return null;
     }
 
+    // Return all required fields including userId and createdAt
     return {
       id: meeting._id!.toString(),
       name: meeting.name,
       time: meeting.time,
+      userId: meeting.userId, // Add this
+      createdAt: meeting.createdAt, // Add this
       participants: meeting.participants || [],
       transcripts: meeting.transcripts || [],
       summary: meeting.summary,

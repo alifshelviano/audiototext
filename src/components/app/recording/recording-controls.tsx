@@ -145,32 +145,41 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
     const canvas = canvasRef.current;
     const canvasCtx = canvas.getContext("2d");
     const analyser = analyserRef.current;
-    const dataArray = dataArrayRef.current;
 
     if (!canvasCtx) return;
 
     const draw = () => {
-      if (!analyserRef.current || !dataArrayRef.current || !canvasCtx) return;
+      if (!analyserRef.current || !dataArrayRef.current || !canvasCtx) {
+        // Clean up if references are lost
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+        }
+        return;
+      }
 
       animationFrameRef.current = requestAnimationFrame(draw);
-      analyser.getByteFrequencyData(dataArray);
+
+      // Re-check dataArrayRef since it might become null during cleanup
+      if (!dataArrayRef.current) return;
+
+      analyser.getByteFrequencyData(dataArrayRef.current);
 
       canvasCtx.fillStyle = "#f8fafc";
       canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
 
       let sum = 0;
-      for (let i = 0; i < dataArray.length; i++) {
-        sum += dataArray[i];
+      for (let i = 0; i < dataArrayRef.current.length; i++) {
+        sum += dataArrayRef.current[i];
       }
-      const average = sum / dataArray.length;
+      const average = sum / dataArrayRef.current.length;
       setAudioLevel(average);
 
-      const barWidth = (canvas.width / dataArray.length) * 2.5;
+      const barWidth = (canvas.width / dataArrayRef.current.length) * 2.5;
       let x = 0;
 
-      for (let i = 0; i < dataArray.length; i++) {
+      for (let i = 0; i < dataArrayRef.current.length; i++) {
         if (i % 2 === 0) {
-          const barHeight = (dataArray[i] / 255) * canvas.height;
+          const barHeight = (dataArrayRef.current[i] / 255) * canvas.height;
 
           // Create gradient based on audio level
           const gradient = canvasCtx.createLinearGradient(0, canvas.height, 0, canvas.height - barHeight);
@@ -294,8 +303,11 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
         setRecordingTime((prev) => prev + 1);
       }, 1000);
 
+      // Start visualization with a small delay to ensure everything is set up
       setTimeout(() => {
-        visualize();
+        if (canvasRef.current && analyserRef.current && dataArrayRef.current) {
+          visualize();
+        }
       }, 100);
     } catch (error) {
       console.error("Error starting recording:", error);
@@ -304,40 +316,48 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
   };
 
   const handleStopRecording = () => {
-    if (mediaRecorderRef.current && streamRef.current) {
+    // Stop animation frame first
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+
+    // Stop timer
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
+    // Stop media recording
+    if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
+    }
+
+    // Stop stream
+    if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
-      setIsRecording(false);
-      setAudioLevel(0);
+      streamRef.current = null;
+    }
 
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = null;
-      }
+    // Clear references
+    analyserRef.current = null;
+    dataArrayRef.current = null;
 
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
+    setIsRecording(false);
+    setAudioLevel(0);
 
+    // Process audio if media recorder is set up
+    if (mediaRecorderRef.current) {
       mediaRecorderRef.current.onstop = () => {
         processAudio();
       };
     }
   };
 
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (mediaRecorderRef.current && streamRef.current) {
-        mediaRecorderRef.current.stop();
-        streamRef.current.getTracks().forEach((track) => track.stop());
-      }
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
+      handleStopRecording(); // Use the same cleanup logic
     };
   }, []);
 
@@ -438,7 +458,7 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
               <Button
                 onClick={handleStartRecording}
                 size="sm"
-                className={`h-10 ${showLabels ? "px-4" : "px-3"} bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 font-semibold shadow-md hover:shadow-lg transition-all`}
+                className={`h-10 ${showLabels ? "px-4" : "px-3"} bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 font-semibold shadow-md hover:shadow-lg transition-all`}
                 disabled={isProcessing || !isConnected}
               >
                 <Mic className="w-4 h-4" />
@@ -508,7 +528,7 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
             onClick={isRecording ? handleStopRecording : handleStartRecording}
             size="lg"
             className={`h-16 w-16 rounded-full shadow-lg hover:shadow-xl transition-all ${
-              isRecording ? "bg-gradient-to-br from-red-600 to-red-700 hover:from-red-700 hover:to-red-800" : "bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+              isRecording ? "bg-gradient-to-br from-red-600 to-red-700 hover:from-red-700 hover:to-red-800" : "bg-gradient-to-br from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800"
             }`}
             disabled={isProcessing || !isConnected}
           >

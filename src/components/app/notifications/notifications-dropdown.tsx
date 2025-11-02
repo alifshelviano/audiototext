@@ -330,7 +330,7 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Button variant="ghost" size="sm" asChild className="h-6 w-6 p-0 hover:bg-blue-100" onClick={(e) => e.stopPropagation()}>
-                                      <Link href={`/meeting/${notification.meetingId}`}>
+                                      <Link href={`/meeting/${notification.meetingId}/join`}>
                                         <ExternalLink className="h-3 w-3" />
                                       </Link>
                                     </Button>
