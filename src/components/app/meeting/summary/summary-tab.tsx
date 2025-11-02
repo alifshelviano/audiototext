@@ -7,6 +7,7 @@ import { SummaryContent } from "@/components/app/meeting/summary/summary-content
 import { ExportService } from "@/lib/services/export-service";
 import type { MeetingData, MeetingSummary } from "@/types/models/Meeting";
 import { useState, useMemo, useCallback, useEffect } from "react";
+import { useAuth } from "@/app/providers/AuthProvider";
 
 interface SummaryTabProps {
   meeting: MeetingData;
@@ -19,10 +20,11 @@ interface EmailRecipient {
   name: string;
   isValid: boolean;
   isParticipant: boolean;
-  source: "transcript" | "participant" | "manual";
+  source: "participant" | "manual";
 }
 
 export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProps) {
+  const { user } = useAuth();
   const [isExporting, setIsExporting] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -33,77 +35,44 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
   const [selectedRecipients, setSelectedRecipients] = useState<Set<string>>(new Set());
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
+  // Check if current user is the meeting creator
+  const isCreator = useMemo(() => {
+    return user?.userId === meeting?.userId;
+  }, [user?.userId, meeting?.userId]);
+
   const validateEmail = useCallback((email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email.trim());
   }, []);
 
-  // Generate email from name for transcript participants
-  const generateEmailFromName = useCallback((name: string): string => {
-    // Clean the name and create a simple email format
-    const cleanName = name
-      .toLowerCase()
-      .replace(/[^a-zA-Z0-9\s]/g, "")
-      .replace(/\s+/g, ".");
+  // Extract ONLY participants with valid emails from meeting.participants
+  const extractParticipantsWithEmails = useCallback((): EmailRecipient[] => {
+    if (!meeting?.participants) return [];
 
-    return `${cleanName}@meeting-participant.com`;
-  }, []);
-
-  // Extract participants from transcripts and combine with meeting.participants
-  const extractParticipantsFromTranscripts = useCallback((): EmailRecipient[] => {
-    if (!meeting?.transcripts) return [];
-
-    const uniqueNames = new Set<string>();
+    const uniqueEmails = new Set<string>();
     const participants: EmailRecipient[] = [];
 
-    // First, add participants from the meeting.participants array
-    if (meeting.participants && meeting.participants.length > 0) {
-      meeting.participants.forEach((participant) => {
-        if (participant.name && participant.email) {
-          uniqueNames.add(participant.name);
+    meeting.participants.forEach((participant) => {
+      // Only include participants with valid emails
+      if (participant.name && participant.email && validateEmail(participant.email)) {
+        const emailKey = participant.email.toLowerCase().trim();
+
+        // Avoid duplicates
+        if (!uniqueEmails.has(emailKey)) {
+          uniqueEmails.add(emailKey);
           participants.push({
             email: participant.email.trim(),
             name: participant.name,
-            isValid: validateEmail(participant.email),
+            isValid: true,
             isParticipant: true,
             source: "participant",
-          });
-        }
-      });
-    }
-
-    // Then, extract participants from transcripts
-    meeting.transcripts.forEach((transcript) => {
-      if (transcript.name && !uniqueNames.has(transcript.name)) {
-        uniqueNames.add(transcript.name);
-
-        // Try to find if this person exists in participants with email
-        const existingParticipant = meeting.participants?.find((p) => p.name === transcript.name);
-
-        if (existingParticipant && existingParticipant.email) {
-          participants.push({
-            email: existingParticipant.email.trim(),
-            name: transcript.name,
-            isValid: validateEmail(existingParticipant.email),
-            isParticipant: true,
-            source: "participant",
-          });
-        } else {
-          // Generate email from name for transcript-only participants
-          const generatedEmail = generateEmailFromName(transcript.name);
-          participants.push({
-            email: generatedEmail,
-            name: transcript.name,
-            isValid: false, // Generated emails are not valid for sending
-            isParticipant: true,
-            source: "transcript",
           });
         }
       }
     });
 
     return participants;
-  }, [meeting?.transcripts, meeting?.participants, validateEmail, generateEmailFromName]);
+  }, [meeting?.participants, validateEmail]);
 
   // Parse additional emails from text input
   const getAdditionalEmails = useCallback((): EmailRecipient[] => {
@@ -118,13 +87,13 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
         name: email.split("@")[0], // Use local part as name
         isValid: validateEmail(email),
         isParticipant: false,
-        source: "manual",
+        source: "manual" as const,
       }));
   }, [additionalEmails, validateEmail]);
 
   // All recipients (participants + additional emails)
   const allRecipients = useMemo((): EmailRecipient[] => {
-    const participants = extractParticipantsFromTranscripts();
+    const participants = extractParticipantsWithEmails();
     const additional = getAdditionalEmails();
 
     // Combine and remove duplicates by email
@@ -135,16 +104,16 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
       if (!emailMap.has(emailKey)) {
         emailMap.set(emailKey, recipient);
       } else {
-        // Prefer valid emails over generated ones
+        // Prefer participant emails over manual
         const existing = emailMap.get(emailKey)!;
-        if (!existing.isValid && recipient.isValid) {
+        if (!existing.isParticipant && recipient.isParticipant) {
           emailMap.set(emailKey, recipient);
         }
       }
     });
 
     return Array.from(emailMap.values());
-  }, [extractParticipantsFromTranscripts, getAdditionalEmails]);
+  }, [extractParticipantsWithEmails, getAdditionalEmails]);
 
   // Valid recipients count (only valid emails that are selected)
   const validRecipientCount = useMemo(() => {
@@ -187,7 +156,8 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
       return meeting.summary.meeting_summary;
     }
 
-    const participants = Array.from(new Set(meeting?.participants?.map((p) => p.name) || []));
+    // Get only registered participants with emails
+    const participants = extractParticipantsWithEmails().map((p) => p.name);
     const meetingDate = new Date(meeting?.time || new Date());
 
     return {
@@ -200,7 +170,7 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
       action_items: [],
       summary_insights: ["Analysis pending"],
     };
-  }, [meeting]);
+  }, [meeting, extractParticipantsWithEmails]);
 
   const handleSendEmails = async () => {
     if (!meeting?.summary || validRecipientCount === 0) return;
@@ -277,10 +247,10 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
     setSelectedRecipients(new Set());
   };
 
-  // Get participant count for display
+  // Get participant count for display (only those with valid emails)
   const participantCount = useMemo(() => {
-    return extractParticipantsFromTranscripts().filter((p) => p.isParticipant).length;
-  }, [extractParticipantsFromTranscripts]);
+    return extractParticipantsWithEmails().length;
+  }, [extractParticipantsWithEmails]);
 
   const exportToPDF = async () => {
     if (!meeting?.summary) return;
@@ -376,20 +346,23 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
             Export as Word
           </Button>
 
-          <Button
-            onClick={() => {
-              setShowMobileMenu(false);
-              setShowEmailModal(true);
-            }}
-            disabled={!meeting.summary || isSendingEmail}
-            variant="outline"
-            size="lg"
-            className="w-full justify-start h-14"
-          >
-            <Mail className="w-5 h-5 mr-3" />
-            {isSendingEmail ? "Sending..." : "Email Summary"}
-            {participantCount > 0 && <span className="ml-auto bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">{participantCount}</span>}
-          </Button>
+          {/* Only show email button to creator */}
+          {isCreator && (
+            <Button
+              onClick={() => {
+                setShowMobileMenu(false);
+                setShowEmailModal(true);
+              }}
+              disabled={!meeting.summary || isSendingEmail}
+              variant="outline"
+              size="lg"
+              className="w-full justify-start h-14"
+            >
+              <Mail className="w-5 h-5 mr-3" />
+              {isSendingEmail ? "Sending..." : "Email Summary"}
+              {participantCount > 0 && <span className="ml-auto bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">{participantCount}</span>}
+            </Button>
+          )}
 
           <Button onClick={() => setShowMobileMenu(false)} variant="ghost" size="lg" className="w-full justify-center h-14 mt-2 border border-gray-200">
             Cancel
@@ -441,11 +414,14 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
             )}
           </div>
 
-          <Button onClick={() => setShowEmailModal(true)} variant="outline" size="sm" disabled={!meeting.summary || isSendingEmail} className="hover:bg-orange-50 border-orange-200">
-            <Mail className="w-4 h-4 mr-2" />
-            {isSendingEmail ? "Sending..." : "Email Summary"}
-            {participantCount > 0 && <span className="ml-2 bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">{participantCount}</span>}
-          </Button>
+          {/* Only show email button to creator */}
+          {isCreator && (
+            <Button onClick={() => setShowEmailModal(true)} variant="outline" size="sm" disabled={!meeting.summary || isSendingEmail} className="hover:bg-orange-50 border-orange-200">
+              <Mail className="w-4 h-4 mr-2" />
+              {isSendingEmail ? "Sending..." : "Email Summary"}
+              {participantCount > 0 && <span className="ml-2 bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">{participantCount}</span>}
+            </Button>
+          )}
         </div>
 
         {/* Mobile Actions Button */}
@@ -495,48 +471,29 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
                       {allRecipients.map((recipient, index) => (
                         <div
                           key={`${recipient.email}-${index}`}
-                          className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${selectedRecipients.has(recipient.email) ? "bg-blue-50 border-blue-200" : "bg-white border-gray-200 hover:bg-gray-50"} ${
-                            !recipient.isValid ? "opacity-60" : "cursor-pointer"
+                          className={`flex items-center justify-between p-3 rounded-lg border transition-colors cursor-pointer ${
+                            selectedRecipients.has(recipient.email) ? "bg-blue-50 border-blue-200" : "bg-white border-gray-200 hover:bg-gray-50"
                           }`}
-                          onClick={() => recipient.isValid && toggleRecipientSelection(recipient.email)}
+                          onClick={() => toggleRecipientSelection(recipient.email)}
                         >
                           <div className="flex items-center space-x-3 flex-1 min-w-0">
-                            <div
-                              className={`w-3 h-3 rounded-full flex items-center justify-center ${
-                                recipient.isValid ? (selectedRecipients.has(recipient.email) ? "bg-blue-500 border-blue-500" : "border-2 border-gray-300") : "bg-yellow-500 border-yellow-500"
-                              }`}
-                            >
-                              {recipient.isValid && selectedRecipients.has(recipient.email) && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${selectedRecipients.has(recipient.email) ? "bg-blue-500 border-blue-500" : "border-gray-300"}`}>
+                              {selectedRecipients.has(recipient.email) && <div className="w-2 h-2 bg-white rounded-sm" />}
                             </div>
 
                             <div className="flex-1 min-w-0">
                               <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 mb-1 gap-1">
-                                <span className={`font-medium truncate ${recipient.isValid ? "text-gray-900" : "text-yellow-700"}`}>{recipient.name}</span>
-                                {recipient.isParticipant && (
-                                  <span
-                                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                                      recipient.source === "participant" ? "bg-green-100 text-green-800" : recipient.source === "transcript" ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-800"
-                                    }`}
-                                  >
-                                    {recipient.source === "participant" ? "Participant" : recipient.source === "transcript" ? "From Transcript" : "Manual"}
-                                  </span>
-                                )}
+                                <span className="font-medium text-gray-900 truncate">{recipient.name}</span>
+                                {recipient.isParticipant && <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Participant</span>}
                               </div>
-                              <p className={`text-sm truncate ${recipient.isValid ? "text-gray-600" : "text-yellow-600"}`}>
-                                {recipient.email}
-                                {!recipient.isValid && recipient.source === "transcript" && <span className="text-xs text-yellow-600 ml-1">(email generated)</span>}
-                              </p>
+                              <p className="text-sm text-gray-600 truncate">{recipient.email}</p>
                             </div>
                           </div>
-
-                          {!recipient.isValid && (
-                            <span className="text-xs text-yellow-600 bg-yellow-100 px-2 py-1 rounded whitespace-nowrap ml-2 hidden sm:inline">{recipient.source === "transcript" ? "Needs real email" : "Invalid email"}</span>
-                          )}
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-gray-500 text-center py-4">No email addresses found. Add participants or manual emails.</p>
+                    <p className="text-gray-500 text-center py-4">No participants with email addresses found. Add manual emails below.</p>
                   )}
                 </div>
               </div>
@@ -550,7 +507,7 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
                   id="additionalEmails"
                   value={additionalEmails}
                   onChange={(e) => setAdditionalEmails(e.target.value)}
-                  placeholder="Enter additional email addresses, separated by commas"
+                  placeholder="Enter additional email addresses, separated by commas&#10;Example: john@example.com, jane@example.com"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm resize-none"
                   rows={3}
                   disabled={isSendingEmail}

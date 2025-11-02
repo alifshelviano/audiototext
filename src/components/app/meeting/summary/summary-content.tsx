@@ -12,6 +12,8 @@ export function SummaryContent({ meeting }: SummaryContentProps) {
   const getStructuredSummary = () => {
     if (meeting?.summary?.meeting_summary) {
       const summary = meeting.summary.meeting_summary;
+
+      // Ensure emotion_analysis has proper structure
       if (summary.emotion_analysis) {
         summary.emotion_analysis = {
           overall_sentiment: summary.emotion_analysis.overall_sentiment || "neutral",
@@ -28,17 +30,20 @@ export function SummaryContent({ meeting }: SummaryContentProps) {
           tension_points: summary.emotion_analysis.tension_points || [],
         };
       }
+
       return summary;
     }
 
-    const participants = Array.from(new Set(meeting?.transcripts?.map((t: any) => t.name) || []));
+    // Get ONLY registered participants (those with emails)
+    const registeredParticipants = meeting?.participants?.filter((p) => p.email && p.name).map((p) => p.name) || [];
+
     const meetingDate = new Date(meeting?.time || new Date());
 
     return {
       title: meeting?.name || "Untitled Meeting",
       date: meetingDate.toISOString().split("T")[0],
       time: `${meetingDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} WIB`,
-      participants,
+      participants: registeredParticipants,
       key_points: ["Automatic analysis in progress...", "Please wait for AI to process the transcripts"],
       insights_decisions: [],
       action_items: [],
@@ -93,8 +98,8 @@ export function SummaryContent({ meeting }: SummaryContentProps) {
             </p>
           </div>
           <div className="col-span-2 bg-white/60 rounded-xl p-4">
-            <span className="font-semibold text-blue-700 block mb-1">Participants</span>
-            <p className="text-blue-900">{structuredSummary.participants.join(", ")}</p>
+            <span className="font-semibold text-blue-700 block mb-1">Registered Participants ({structuredSummary.participants.length})</span>
+            {structuredSummary.participants.length > 0 ? <p className="text-blue-900">{structuredSummary.participants.join(", ")}</p> : <p className="text-blue-700 italic">No registered participants</p>}
           </div>
         </div>
       </div>
