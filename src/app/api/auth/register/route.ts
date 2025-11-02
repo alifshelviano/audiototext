@@ -1,6 +1,6 @@
 // app/api/auth/register/route.ts
 import { NextResponse } from "next/server";
-import clientPromise from "@/lib/mongodb";
+import clientPromise from "@/lib/database/mongodb";
 import bcrypt from "bcryptjs";
 import { ObjectId } from "mongodb";
 

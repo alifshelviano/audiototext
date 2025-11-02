@@ -1,9 +1,9 @@
 // app/api/auth/forgot-password/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import clientPromise from "@/lib/mongodb";
+import clientPromise from "@/lib/database/mongodb";
 import { ObjectId } from "mongodb";
 import crypto from "crypto";
-import { sendPasswordResetEmail } from "@/lib/email-service";
+import { sendPasswordResetEmail } from "@/lib/services/email-service";
 
 export async function POST(req: NextRequest) {
   try {
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     );
 
     // Create reset link
-    const resetLink = `${process.env.NEXTAUTH_URL}/reset-password?token=${resetToken}`;
+    const resetLink = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${resetToken}`;
 
     console.log("🔗 Password reset link:", resetLink); // For testing
 

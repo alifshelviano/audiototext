@@ -1,7 +1,7 @@
 // app/api/auth/reset-password/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import clientPromise from "@/lib/mongodb";
+import clientPromise from "@/lib/database/mongodb";
 import { ObjectId } from "mongodb";
 
 export async function POST(req: NextRequest) {

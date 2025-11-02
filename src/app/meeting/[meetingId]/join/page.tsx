@@ -2,25 +2,26 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { useAuth } from "@/app/AuthProvider";
-import { Header } from "@/components/app/header";
-import { Sidebar } from "@/components/app/sidebar";
+import { useAuth } from "@/app/providers/AuthProvider";
+import { Header } from "@/components/layout/header";
+import { Sidebar } from "@/components/layout/sidebar";
 import { MeetingHeader } from "@/components/app/meeting/meeting-header";
 import { TabNavigation } from "@/components/app/meeting/tab-navigation";
 import { TranscriptList } from "@/components/app/meeting/transcript-list";
-import { SummaryTab } from "@/components/app/meeting/summary-tab";
+import { SummaryTab } from "@/components/app/meeting/summary/summary-tab";
 import { InsightsTab } from "@/components/app/meeting/insights-tab";
 import { SentimentTab } from "@/components/app/meeting/sentiment-tab";
 import { MeetingChat } from "@/components/app/meeting/meeting-chat";
 import { FloatingRecordingControls } from "@/components/app/meeting/floating-recording-controls";
 import { useMeetingData } from "@/hooks/use-meeting-data";
 import { AlertCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 import { JoinMeetingForm } from "@/components/app/meeting/join-meeting-form";
-import { addParticipantToMeeting } from "@/lib/meetings";
+import { addParticipantToMeeting } from "@/lib/services/meeting-service";
 
 // Define the specific tab types for type safety
 type Tab = "transcript" | "summary" | "insights" | "sentiment" | "chat";
+type AnalysisStatus = "idle" | "analyzing" | "success" | "error";
 
 // Custom hook to check if the screen is desktop size
 const useIsDesktop = () => {
@@ -43,9 +44,13 @@ export default function JoinMeetingPage() {
   const [isOpen, setIsOpen] = useState(false);
   const { user, setGuest } = useAuth();
   const [hasAddedParticipant, setHasAddedParticipant] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(5);
 
   const meetingId = isClient && pathname ? pathname.split("/").slice(-2, -1)[0] : null;
   const { meeting, loading, analysisStatus, lastAnalysisTime, isAnalyzing, fetchMeetingData, handleAutoAnalyze } = useMeetingData(meetingId);
+
+  // Convert the analysisStatus to the correct type
+  const normalizedAnalysisStatus: AnalysisStatus = (analysisStatus as AnalysisStatus) || "idle";
 
   useEffect(() => {
     setIsClient(true);
@@ -114,6 +119,15 @@ export default function JoinMeetingPage() {
     }
   };
 
+  // Add pagination handlers
+  const handleLoadMore = () => {
+    setVisibleCount((prev) => prev + 5);
+  };
+
+  const handleShowLess = () => {
+    setVisibleCount((prev) => Math.max(10, prev - 5));
+  };
+
   const renderContent = () => {
     if (!isClient || loading) {
       return <LoadingState />;
@@ -126,7 +140,20 @@ export default function JoinMeetingPage() {
       return <JoinMeetingForm onJoin={handleJoinAsGuest} />;
     }
 
-    return <MeetingContent meeting={meeting} meetingId={meetingId} isAnalyzing={isAnalyzing} analysisStatus={analysisStatus} lastAnalysisTime={lastAnalysisTime} onDataRefresh={fetchMeetingData} onAutoAnalyze={handleAutoAnalyze} />;
+    return (
+      <MeetingContent
+        meeting={meeting}
+        meetingId={meetingId}
+        isAnalyzing={isAnalyzing}
+        analysisStatus={normalizedAnalysisStatus}
+        lastAnalysisTime={lastAnalysisTime}
+        onDataRefresh={fetchMeetingData}
+        onAutoAnalyze={handleAutoAnalyze}
+        visibleCount={visibleCount}
+        onLoadMore={handleLoadMore}
+        onShowLess={handleShowLess}
+      />
+    );
   };
 
   return (
@@ -162,7 +189,7 @@ function MeetingNotFound() {
         </div>
         <h1 className="text-2xl font-bold text-gray-800 mb-4">Meeting not found</h1>
         <p className="text-gray-600 mb-6">The meeting you're looking for doesn't exist or has been deleted.</p>
-        <button onClick={() => router.push("/")} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-lg transition-all shadow-md hover:shadow-lg">
+        <button onClick={() => router.push("/dashboard")} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-lg transition-all shadow-md hover:shadow-lg">
           Return Home
         </button>
       </div>
@@ -170,7 +197,20 @@ function MeetingNotFound() {
   );
 }
 
-function MeetingContent({ meeting, meetingId, isAnalyzing, analysisStatus, lastAnalysisTime, onDataRefresh, onAutoAnalyze }: any) {
+interface MeetingContentProps {
+  meeting: any;
+  meetingId: string;
+  isAnalyzing: boolean;
+  analysisStatus: AnalysisStatus; // Use the specific type here
+  lastAnalysisTime: Date | null;
+  onDataRefresh: () => void;
+  onAutoAnalyze: () => void;
+  visibleCount: number;
+  onLoadMore: () => void;
+  onShowLess: () => void;
+}
+
+function MeetingContent({ meeting, meetingId, isAnalyzing, analysisStatus, lastAnalysisTime, onDataRefresh, onAutoAnalyze, visibleCount, onLoadMore, onShowLess }: MeetingContentProps) {
   const [activeTab, setActiveTab] = useState<Tab>("transcript");
 
   return (
@@ -178,18 +218,47 @@ function MeetingContent({ meeting, meetingId, isAnalyzing, analysisStatus, lastA
       <MeetingHeader meeting={meeting} analysisStatus={analysisStatus} lastAnalysisTime={lastAnalysisTime} />
       <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
         <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
-        <TabContent activeTab={activeTab} meeting={meeting} meetingId={meetingId} isAnalyzing={isAnalyzing} onReanalyze={onAutoAnalyze} onDataRefresh={onDataRefresh} />
+        <TabContent
+          activeTab={activeTab}
+          meeting={meeting}
+          meetingId={meetingId}
+          isAnalyzing={isAnalyzing}
+          onReanalyze={onAutoAnalyze}
+          onDataRefresh={onDataRefresh}
+          visibleCount={visibleCount}
+          onLoadMore={onLoadMore}
+          onShowLess={onShowLess}
+        />
       </div>
-      {activeTab === "transcript" && <FloatingRecordingControls meetingId={meetingId} onTranscriptAdded={onDataRefresh} />}
+      {activeTab === "transcript" && (
+        <div className="pb-24">
+          {" "}
+          {/* Add padding at bottom for floating button */}
+          <FloatingRecordingControls meetingId={meetingId} onTranscriptAdded={onDataRefresh} />
+        </div>
+      )}
     </div>
   );
 }
 
-function TabContent({ activeTab, meeting, meetingId, isAnalyzing, onReanalyze, onDataRefresh }: any) {
+interface TabContentProps {
+  activeTab: Tab;
+  meeting: any;
+  meetingId: string;
+  isAnalyzing: boolean;
+  onReanalyze: () => void;
+  onDataRefresh: () => void;
+  visibleCount: number;
+  onLoadMore: () => void;
+  onShowLess: () => void;
+}
+
+function TabContent({ activeTab, meeting, meetingId, isAnalyzing, onReanalyze, onDataRefresh, visibleCount, onLoadMore, onShowLess }: TabContentProps) {
   const tabContentProps = { meeting, isAnalyzing, onReanalyze };
+
   return (
     <div className="flex flex-col">
-      {activeTab === "transcript" && <TranscriptList transcripts={meeting.transcripts || []} visibleCount={100} onLoadMore={() => {}} onShowLess={() => {}} />}
+      {activeTab === "transcript" && <TranscriptList transcripts={meeting.transcripts || []} visibleCount={visibleCount} onLoadMore={onLoadMore} onShowLess={onShowLess} />}
       {activeTab === "summary" && <SummaryTab {...tabContentProps} />}
       {activeTab === "insights" && <InsightsTab meeting={meeting} />}
       {activeTab === "sentiment" && <SentimentTab meeting={meeting} meetingId={meetingId} isAnalyzing={isAnalyzing} onReanalyze={onReanalyze} onDataRefresh={onDataRefresh} />}

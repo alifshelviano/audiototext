@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState, MouseEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -40,14 +40,9 @@ const Hero: React.FC = () => {
             LISN AI automatically summarizes your meetings in real-time. Record, transcribe, and get instant meeting insights.
           </motion.p>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
-          >
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, delay: 0.4 }} className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
             <motion.button
-              onClick={() => router.push('/login')}
+              onClick={() => router.push("/auth/login")}
               whileHover={{ scale: 1.05, y: -5, boxShadow: "0px 10px 20px rgba(0, 0, 0, 0.1)" }}
               whileTap={{ scale: 0.97 }}
               className="bg-indigo-600 text-white px-8 py-3 rounded-lg hover:bg-indigo-700 transition text-lg shadow-md"
@@ -85,13 +80,7 @@ const Hero: React.FC = () => {
       {/* ==== POPUP VIDEO ==== */}
       <AnimatePresence>
         {showVideo && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50"
-            onClick={handleOverlayClick}
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50" onClick={handleOverlayClick}>
             <motion.div
               initial={{ scale: 0.8, rotateX: 30 }}
               animate={{ scale: 1, rotateX: 0 }}

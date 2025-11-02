@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Users, Briefcase, Key, ArrowRight, X, Plus, Calendar, Clock, Search } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { DashboardLayout } from "@/components/app/dashboard-layout";
-import { CreateMeetingDialog } from "@/components/app/create-meeting-dialog";
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import { CreateMeetingDialog } from "@/components/app/create-meeting/create-meeting-dialog";
 
 interface Meeting {
   id: string;
@@ -123,7 +123,7 @@ export default function Page() {
 
         {/* Create Meeting Card */}
         {status === "authenticated" && (
-          <Link href="/create-meetings" className="block h-full">
+          <Link href="/meeting/create-meetings" className="block h-full">
             <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-5 sm:p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 h-full cursor-pointer group">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
@@ -180,7 +180,7 @@ export default function Page() {
             </Link>
 
             {status === "authenticated" && (
-              <Link href="/history">
+              <Link href="/dashboard/history">
                 <div className="flex items-center justify-between p-3 sm:p-4 border border-gray-200 rounded-xl hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 cursor-pointer group">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center group-hover:bg-purple-200 transition-colors">
@@ -209,7 +209,7 @@ export default function Page() {
               </h3>
               <div className="space-y-3">
                 {recentMeetings.map((meeting) => (
-                  <Link key={meeting.id} href={`/meeting/${meeting.id}`}>
+                  <Link key={meeting.id} href={`/meeting/${meeting.id}/join`}>
                     <div className="flex items-center justify-between p-3 border border-gray-200 rounded-xl hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 cursor-pointer group">
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-gray-700 truncate text-sm sm:text-base">{meeting.name}</p>
@@ -221,7 +221,7 @@ export default function Page() {
                 ))}
               </div>
               {meetings.length > 3 && (
-                <Link href="/history">
+                <Link href="/dashboard/history">
                   <div className="mt-4 text-center text-sm text-blue-600 hover:text-blue-700 font-medium cursor-pointer">View all {meetings.length} meetings</div>
                 </Link>
               )}

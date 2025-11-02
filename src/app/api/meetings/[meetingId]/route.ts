@@ -1,8 +1,8 @@
 // app/api/meetings/[meetingId]/route.ts
 import { NextResponse } from "next/server";
-import { updateMeeting, deleteMeeting } from "@/lib/meetings";
+import { updateMeeting, deleteMeeting } from "@/lib/services/meeting-service";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { authOptions } from "@/lib/auth/auth";
 
 export async function PUT(req: Request, { params }: { params: Promise<{ meetingId: string }> }) {
   try {
