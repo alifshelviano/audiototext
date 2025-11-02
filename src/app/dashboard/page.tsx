@@ -140,7 +140,7 @@ export default function Page() {
         {/* Join Meeting Card */}
         <div
           onClick={() => setShowJoinModal(true)}
-          className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-5 sm:p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 h-full cursor-pointer group"
+          className="bg-cyan-500 rounded-2xl p-5 sm:p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 h-full cursor-pointer group"
         >
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
@@ -148,7 +148,7 @@ export default function Page() {
             </div>
             <h3 className="font-semibold text-sm sm:text-base">Join Meeting</h3>
           </div>
-          <p className="text-blue-100 text-xs sm:text-sm mb-4 opacity-90">Join existing meeting with passkey</p>
+          <p className="text-cyan-100 text-xs sm:text-sm mb-4 opacity-90">Join existing meeting with passkey</p>
           <div className="w-full bg-white/20 backdrop-blur-sm py-2 px-4 rounded-xl font-medium group-hover:bg-white/30 transition-all duration-200 text-center text-sm flex items-center justify-center gap-2">
             Join Now <ArrowRight className="h-4 w-4" />
           </div>
@@ -160,12 +160,12 @@ export default function Page() {
         {/* Quick Access Card */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Users className="h-5 w-5 text-blue-600" />
+            <Users className="h-5 w-5 text-cyan-600" />
             Quick Access
           </h3>
           <div className="space-y-3">
             <Link href="/public-meetings">
-              <div className="flex items-center justify-between p-3 sm:p-4 border border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 cursor-pointer group">
+              <div className="flex items-center justify-between p-3 sm:p-4 border border-gray-200 rounded-xl hover:border-cyan-300 hover:bg-cyan-50 transition-all duration-200 cursor-pointer group">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center group-hover:bg-green-200 transition-colors">
                     <Search className="h-5 w-5 text-green-600" />
@@ -175,7 +175,7 @@ export default function Page() {
                     <span className="text-gray-500 text-xs">Discover and join public meetings</span>
                   </div>
                 </div>
-                <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-cyan-600 transition-colors" />
               </div>
             </Link>
 
@@ -222,19 +222,19 @@ export default function Page() {
               </div>
               {meetings.length > 3 && (
                 <Link href="/dashboard/history">
-                  <div className="mt-4 text-center text-sm text-blue-600 hover:text-blue-700 font-medium cursor-pointer">View all {meetings.length} meetings</div>
+                  <div className="mt-4 text-center text-sm text-cyan-600 hover:text-cyan-700 font-medium cursor-pointer">View all {meetings.length} meetings</div>
                 </Link>
               )}
             </div>
           )}
 
           {/* How to Join Card */}
-          <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6">
+          <div className="bg-gradient-to-br from-gray-50 to-cyan-50 rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">How to Join a Meeting</h3>
             <div className="space-y-4">
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-blue-600 text-sm font-bold">1</span>
+                <div className="w-8 h-8 bg-cyan-100 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-cyan-600 text-sm font-bold">1</span>
                 </div>
                 <div>
                   <p className="font-medium text-gray-700 text-sm">Get the Passkey</p>
@@ -242,8 +242,8 @@ export default function Page() {
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-blue-600 text-sm font-bold">2</span>
+                <div className="w-8 h-8 bg-cyan-100 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-cyan-600 text-sm font-bold">2</span>
                 </div>
                 <div>
                   <p className="font-medium text-gray-700 text-sm">Enter Passkey</p>
@@ -251,8 +251,8 @@ export default function Page() {
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-blue-600 text-sm font-bold">3</span>
+                <div className="w-8 h-8 bg-cyan-100 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-cyan-600 text-sm font-bold">3</span>
                 </div>
                 <div>
                   <p className="font-medium text-gray-700 text-sm">Start Collaborating</p>
@@ -292,7 +292,7 @@ export default function Page() {
                   value={passkey}
                   onChange={(e) => setPasskey(e.target.value.toUpperCase())}
                   placeholder="Enter 6-character passkey"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono uppercase text-center text-lg tracking-widest placeholder-gray-400"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent font-mono uppercase text-center text-lg tracking-widest placeholder-gray-400"
                   required
                   disabled={isJoining}
                   maxLength={6}
@@ -308,7 +308,7 @@ export default function Page() {
                 <button
                   type="submit"
                   disabled={isJoining || !passkey || passkey.length !== 6}
-                  className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-3 bg-cyan-600 text-white rounded-xl hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2"
                 >
                   {isJoining ? (
                     <>
@@ -325,12 +325,12 @@ export default function Page() {
               </div>
             </form>
 
-            <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
-              <h4 className="text-sm font-medium text-blue-900 mb-2 flex items-center gap-2">
+            <div className="mt-6 p-4 bg-cyan-50 rounded-xl border border-cyan-200">
+              <h4 className="text-sm font-medium text-cyan-900 mb-2 flex items-center gap-2">
                 <Key className="h-4 w-4" />
                 Need help finding the passkey?
               </h4>
-              <ul className="text-xs text-blue-700 space-y-1">
+              <ul className="text-xs text-cyan-700 space-y-1">
                 <li>• Ask the meeting organizer for the passkey</li>
                 <li>• The passkey is a 6-character code (letters and numbers)</li>
                 <li>• Example: ABC123, XYZ789, MEET12</li>

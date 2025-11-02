@@ -1,17 +1,21 @@
 "use client";
 
+
 import { FileText, Zap, CheckCircle, CalendarIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { MeetingData } from "@/types/models/Meeting";
+
 
 interface SummaryContentProps {
   meeting: MeetingData;
 }
 
+
 export function SummaryContent({ meeting }: SummaryContentProps) {
   const getStructuredSummary = () => {
     if (meeting?.summary?.meeting_summary) {
       const summary = meeting.summary.meeting_summary;
+
 
       // Ensure emotion_analysis has proper structure
       if (summary.emotion_analysis) {
@@ -31,13 +35,17 @@ export function SummaryContent({ meeting }: SummaryContentProps) {
         };
       }
 
+
       return summary;
     }
+
 
     // Get ONLY registered participants (those with emails)
     const registeredParticipants = meeting?.participants?.filter((p) => p.email && p.name).map((p) => p.name) || [];
 
+
     const meetingDate = new Date(meeting?.time || new Date());
+
 
     return {
       title: meeting?.name || "Untitled Meeting",
@@ -58,7 +66,9 @@ export function SummaryContent({ meeting }: SummaryContentProps) {
     };
   };
 
+
   const structuredSummary = getStructuredSummary();
+
 
   if (!meeting?.summary) {
     return (
@@ -75,6 +85,7 @@ export function SummaryContent({ meeting }: SummaryContentProps) {
       </div>
     );
   }
+
 
   return (
     <div className="space-y-6">
@@ -104,6 +115,7 @@ export function SummaryContent({ meeting }: SummaryContentProps) {
         </div>
       </div>
 
+
       {/* Key Points */}
       <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
         <div className="flex items-center gap-2 mb-4">
@@ -121,6 +133,7 @@ export function SummaryContent({ meeting }: SummaryContentProps) {
           ))}
         </ul>
       </div>
+
 
       {/* Action Items */}
       <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
@@ -157,3 +170,6 @@ export function SummaryContent({ meeting }: SummaryContentProps) {
     </div>
   );
 }
+
+
+

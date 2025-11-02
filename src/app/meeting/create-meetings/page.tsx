@@ -82,9 +82,9 @@ export default function MeetingsPage() {
 
   if (status === "loading") {
     return (
-      <div className="h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
+      <div className="h-screen bg-gradient-to-br from-cyan-50 to-teal-50 flex items-center justify-center">
         <div className="animate-pulse text-center">
-          <div className="w-16 h-16 bg-blue-200 rounded-full mx-auto mb-4"></div>
+          <div className="w-16 h-16 bg-cyan-200 rounded-full mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
         </div>
       </div>
@@ -106,7 +106,7 @@ export default function MeetingsPage() {
   };
 
   return (
-    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen">
+    <div className="bg-gradient-to-br from-cyan-50 to-indigo-50 min-h-screen">
       <Sidebar isOpen={isOpen} isDesktop={isDesktop} toggleSidebar={() => setIsOpen(!isOpen)} />
       <div className={cn("relative flex flex-col min-h-screen transition-all duration-300 ease-in-out", isOpen && isDesktop ? "lg:ml-64" : "ml-0")}>
         <Header toggleSidebar={() => setIsOpen(!isOpen)} />
@@ -115,12 +115,12 @@ export default function MeetingsPage() {
             {/* Header Section */}
             <div className="mb-8 text-center lg:text-left">
               <div className="flex items-center justify-center lg:justify-start gap-3 mb-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Calendar className="h-6 w-6 text-blue-600" />
+                <div className="p-2 bg-cyan-100 rounded-lg">
+                  <Calendar className="h-6 w-6 text-cyan-600" />
                 </div>
-                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{createdMeeting ? "Meeting Created Successfully!" : "Create a New Meeting"}</h1>
+                <h1 className="text-xl lg:text-3xl font-bold text-gray-900">{createdMeeting ? "Meeting Created Successfully!" : "Create a New Meeting"}</h1>
               </div>
-              <p className="text-gray-600 max-w-2xl mx-auto lg:mx-0">{createdMeeting ? "Your meeting room is ready! Share the details below with participants." : "Fill out the form below to create a new meeting room."}</p>
+              <p className="text-gray-600 max-w-xl mx-auto lg:mx-0">{createdMeeting ? "Your meeting room is ready! Share the details below with participants." : "Fill out the form below to create a new meeting room."}</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
@@ -130,15 +130,15 @@ export default function MeetingsPage() {
                   {createdMeeting ? (
                     <div className="space-y-6">
                       {/* Back Button */}
-                      <button onClick={handleCreateNewMeeting} className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors font-medium mb-4">
+                      <button onClick={handleCreateNewMeeting} className="flex items-center gap-2 text-cyan-700 hover:text-teal-800 transition-colors font-medium mb-4">
                         <ArrowLeft className="h-4 w-4" />
                         Create New Meeting
                       </button>
 
                       {/* Meeting Details Card */}
-                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+                      <div className="bg-gradient-to-r from-cyan-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                          <Shield className="h-5 w-5 text-blue-600" />
+                          <Shield className="h-5 w-5 text-cyan-600" />
                           Meeting Details
                         </h3>
                         <div className="space-y-4">

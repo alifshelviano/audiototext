@@ -27,7 +27,7 @@ const Hero: React.FC = () => {
             whileHover={{ y: -5, transition: { type: "spring", stiffness: 300 } }} // Subtle lift on hover
             className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-6"
           >
-            Meeting Summaries, <span className="text-indigo-600">Made Simple</span>
+            Meeting Summaries, <span className="text-cyan-500">Made Simple</span>
           </motion.h1>
 
           <motion.p
@@ -45,7 +45,7 @@ const Hero: React.FC = () => {
               onClick={() => router.push("/auth/login")}
               whileHover={{ scale: 1.05, y: -5, boxShadow: "0px 10px 20px rgba(0, 0, 0, 0.1)" }}
               whileTap={{ scale: 0.97 }}
-              className="bg-indigo-600 text-white px-8 py-3 rounded-lg hover:bg-indigo-700 transition text-lg shadow-md"
+              className="bg-cyan-500 text-white px-8 py-3 rounded-lg hover:bg-cyan-600 transition text-lg shadow-md"
             >
               Start Free Trial
             </motion.button>
@@ -54,7 +54,7 @@ const Hero: React.FC = () => {
               whileHover={{ scale: 1.05, y: -5, boxShadow: "0px 10px 20px rgba(0, 0, 0, 0.1)" }}
               whileTap={{ scale: 0.97 }}
               onClick={() => setShowVideo(true)}
-              className="border border-indigo-600 text-indigo-600 px-8 py-3 rounded-lg hover:bg-indigo-50 transition text-lg shadow-sm"
+              className="border border-cyan-500 text-cyan-500 px-8 py-3 rounded-lg hover:bg-cyan-50 transition text-lg shadow-sm"
             >
               Watch Demo
             </motion.button>

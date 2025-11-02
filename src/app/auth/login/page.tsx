@@ -131,20 +131,12 @@ export default function LoginPage() {
   ];
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="flex min-h-screen bg-gradient-to-br from-cyan-50 via-white to-teal-50">
       {/* Left Side - Brand & Features with Background Image */}
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 text-white relative overflow-hidden">
-        {/* Background Image with Overlay */}
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: "url('/signin-background.jpg')", // Replace with your image path
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        />
+        
         {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/80 via-purple-900/70 to-blue-800/80" />
+        <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/80 via-cyan-900/70 to-teal-800/80" />
 
         {/* Content */}
         <div className="relative z-10">
@@ -160,7 +152,7 @@ export default function LoginPage() {
           <h1 className="text-5xl font-bold mb-6 leading-tight">
             Welcome to <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-pink-300">LISN</span>
           </h1>
-          <p className="text-xl text-blue-100 mb-12 leading-relaxed">Transform your meetings with AI-powered transcription, real-time insights, and seamless collaboration.</p>
+          <p className="text-xl text-cyan-100 mb-12 leading-relaxed">Transform your meetings with AI-powered transcription, real-time insights, and seamless collaboration.</p>
 
           <div className="space-y-6">
             {features.map((feature, index) => (
@@ -168,14 +160,14 @@ export default function LoginPage() {
                 <div className="p-2 bg-white/20 rounded-lg text-white">{feature.icon}</div>
                 <div>
                   <h3 className="font-semibold text-lg text-white">{feature.title}</h3>
-                  <p className="text-blue-100 text-sm">{feature.description}</p>
+                  <p className="text-cyan-100 text-sm">{feature.description}</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="relative z-10 text-blue-200 text-sm">© 2025 LISN. Transforming conversations into insights.</div>
+        <div className="relative z-10 text-cyan-200 text-sm">© 2025 LISN. Transforming conversations into insights.</div>
       </div>
 
       {/* Right Side - Login Form */}
@@ -183,10 +175,10 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           {/* Mobile Brand */}
           <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-xl flex items-center justify-center">
               <Sparkles className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">LISN</span>
+            <span className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-cyan-500 bg-clip-text text-transparent">LISN</span>
           </div>
 
           <div className="bg-white rounded-3xl shadow-2xl p-8 border border-gray-100">
@@ -212,7 +204,7 @@ export default function LoginPage() {
                     </label>
                     <div className="relative">
                       <input
-                        className="w-full px-4 py-3 pl-11 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50/50"
+                        className="w-full px-4 py-3 pl-11 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200 bg-gray-50/50"
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -231,7 +223,7 @@ export default function LoginPage() {
                     </label>
                     <div className="relative">
                       <input
-                        className="w-full px-4 py-3 pl-11 pr-11 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50/50"
+                        className="w-full px-4 py-3 pl-11 pr-11 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200 bg-gray-50/50"
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -247,13 +239,13 @@ export default function LoginPage() {
                   </div>
 
                   <div className="flex items-center justify-between text-sm">
-                    <button type="button" onClick={() => setShowForgotPassword(true)} className="text-blue-600 hover:text-blue-700 font-medium transition-colors" disabled={isLoading}>
+                    <button type="button" onClick={() => setShowForgotPassword(true)} className="text-cyan-500 hover:text-cyan-600 font-medium transition-colors" disabled={isLoading}>
                       Forgot your password?
                     </button>
                   </div>
 
                   <button
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none flex items-center justify-center gap-2 shadow-lg"
+                    className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white font-semibold py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-all duration-200 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none flex items-center justify-center gap-2 shadow-lg"
                     type="submit"
                     disabled={isLoading}
                   >
@@ -278,7 +270,7 @@ export default function LoginPage() {
                 </div>
 
                 <button
-                  className="w-full bg-white hover:bg-gray-50 text-gray-700 font-medium py-3 px-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center gap-3 shadow-sm"
+                  className="w-full bg-white hover:bg-gray-50 text-gray-700 font-medium py-3 px-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center gap-3 shadow-sm"
                   onClick={handleGoogleLogin}
                   disabled={isLoading}
                 >
@@ -310,7 +302,7 @@ export default function LoginPage() {
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-gray-700">Email Address</label>
                       <input
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50/50"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200 bg-gray-50/50"
                         type="email"
                         value={resetEmail}
                         onChange={(e) => setResetEmail(e.target.value)}
@@ -326,7 +318,7 @@ export default function LoginPage() {
                       </button>
                       <button
                         type="submit"
-                        className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
+                        className="flex-1 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white font-semibold py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
                         disabled={resetLoading}
                       >
                         {resetLoading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : "Send Reset Link"}
