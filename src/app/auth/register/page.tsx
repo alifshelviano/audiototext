@@ -362,7 +362,7 @@ export default function RegisterPage() {
             </div>
 
             {/* Privacy notice */}
-            <div className="mt-4 text-center">
+            {/* <div className="mt-4 text-center">
               <p className="text-xs text-gray-500">
                 By creating an account, you agree to our{" "}
                 <a href="#" className="text-gray-600 hover:text-gray-800 underline">
@@ -373,7 +373,7 @@ export default function RegisterPage() {
                   Privacy Policy
                 </a>
               </p>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

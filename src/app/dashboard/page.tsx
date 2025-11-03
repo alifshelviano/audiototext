@@ -302,9 +302,9 @@ export default function Page() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <button type="button" onClick={resetJoinForm} className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium disabled:opacity-50" disabled={isJoining}>
+                {/* <button type="button" onClick={resetJoinForm} className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium disabled:opacity-50" disabled={isJoining}>
                   Cancel
-                </button>
+                </button> */}
                 <button
                   type="submit"
                   disabled={isJoining || !passkey || passkey.length !== 6}

@@ -42,7 +42,8 @@ async function getSentimentClassifier() {
         // "Xenova/multilingual-sentiment-analysis", // Proper multilingual sentiment model
         // "Xenova/roberta-base-go_emotions",
         // "Xenova/emotion_text_classifier",
-        "Xenova/distilbert-base-uncased-finetuned-sst-2-english",
+        // "Xenova/distilbert-base-uncased-finetuned-sst-2-english",
+        "Xenova/bert-turkish-text-classification",
         {
           quantized: true,
           progress_callback: (data: any) => {
