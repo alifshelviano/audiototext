@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart, Zap, Heart, CheckCircle, CalendarIcon, TrendingUp, TrendingDown } from "lucide-react";
+import { BarChart, Zap, Heart, CheckCircle, CalendarIcon, TrendingUp, TrendingDown, Users, Handshake, Sparkles } from "lucide-react";
 import type { MeetingData, Transcript } from "@/types/models/Meeting";
 
 interface InsightsTabProps {
@@ -44,11 +44,20 @@ export function InsightsTab({ meeting }: InsightsTabProps) {
     return "text-red-600 bg-red-50";
   };
 
-  const getScoreIcon = (score: number) => {
-    if (score >= 80) return <TrendingUp className="w-5 h-5" />;
-    if (score >= 40) return <span className="text-lg">➖</span>;
-    return <TrendingDown className="w-5 h-5" />;
+  const getScoreIcon = (label: string, score: number) => {
+    if (label === "Engagement") return <Users className="w-4 h-4 text-blue-600" />;
+    if (label === "Collaboration") return <Handshake className="w-4 h-4 text-indigo-600" />;
+    if (label === "Productivity") return <TrendingUp className="w-4 h-4 text-green-600" />;
+    if (label === "Clarity") return <Sparkles className="w-4 h-4 text-emerald-600" />;
+    if (score >= 80) return <TrendingUp className="w-4 h-4 text-green-500" />;
+    if (score < 40) return <TrendingDown className="w-4 h-4 text-red-500" />;
+    return <span className="text-sm text-gray-500">–</span>;
   };
+
+  //   if (score >= 80) return <TrendingUp className="w-5 h-5" />;
+  //   if (score >= 40) return <span className="text-lg"></span>;
+  //   return <TrendingDown className="w-5 h-5" />;
+  // };
 
   const hasNextMeetingContent = (nextMeeting: any) => {
     if (!nextMeeting) return false;
@@ -80,38 +89,46 @@ export function InsightsTab({ meeting }: InsightsTabProps) {
     }
 
     return (
-      <div className="space-y-6">
+      <>
         {/* Meeting Health Score */}
         {structuredSummary.meeting_health_score && (
-          <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-2xl p-6 border border-indigo-100 shadow-sm">
-            <div className="flex items-center gap-2 mb-6">
+          <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-2xl p-4 sm:p-6 border border-indigo-100 shadow-sm">
+            {/* Header */}
+            <div className="flex items-center gap-2 mb-4 sm:mb-6">
               <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
                 <Heart className="w-4 h-4 text-white" />
               </div>
-              <h4 className="text-lg font-bold text-indigo-900">Meeting Health Score</h4>
+              <h4 className="text-base sm:text-lg font-bold text-indigo-900">Meeting Health Score</h4>
             </div>
 
             {/* Overall Score */}
-            <div className="bg-white/70 rounded-xl p-6 mb-6 text-center">
-              <div className="text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">{structuredSummary.meeting_health_score.overall_score}</div>
-              <p className="text-gray-600 font-medium">Overall Health Score</p>
+            <div className="bg-white/70 rounded-xl p-4 sm:p-6 mb-5 sm:mb-6 text-center">
+              <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">{structuredSummary.meeting_health_score.overall_score}</div>
+              <p className="text-gray-600 text-sm sm:text-base font-medium">Overall Health Score</p>
             </div>
 
             {/* Score Breakdown */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-5 sm:mb-6">
               {[
                 { label: "Engagement", score: structuredSummary.meeting_health_score.engagement_score },
-                { label: "Productivity", score: structuredSummary.meeting_health_score.productivity_score },
                 { label: "Collaboration", score: structuredSummary.meeting_health_score.collaboration_score },
+                { label: "Productivity", score: structuredSummary.meeting_health_score.productivity_score },
                 { label: "Clarity", score: structuredSummary.meeting_health_score.clarity_score },
               ].map((metric, index) => (
-                <div key={index} className={`${getScoreColor(metric.score)} rounded-xl p-4`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-semibold text-sm">{metric.label}</span>
-                    {getScoreIcon(metric.score)}
+                <div key={index} className={`${getScoreColor(metric.score)} rounded-xl p-3 sm:p-4`}>
+                  <div className="flex items-center justify-between mb-1 sm:mb-2">
+                    <span className="font-semibold text-xs sm:text-sm">{metric.label}</span>
+                    {getScoreIcon(metric.label, metric.score)}
                   </div>
-                  <div className="text-2xl font-bold">{metric.score}</div>
+                  <div className="text-xl sm:text-2xl font-bold">{metric.score}</div>
                 </div>
+                // <div key={index} className={`${getScoreColor(metric.score)} rounded-xl p-3 sm:p-4`}>
+                //   <div className="flex items-center justify-between mb-1 sm:mb-2">
+                //     <span className="font-semibold text-xs sm:text-sm">{metric.label}</span>
+                //     {getScoreIcon(metric.score)}
+                //   </div>
+                //   <div className="text-xl sm:text-2xl font-bold">{metric.score}</div>
+                // </div>
               ))}
             </div>
 
@@ -128,6 +145,7 @@ export function InsightsTab({ meeting }: InsightsTabProps) {
                   ))}
                 </ul>
               </div>
+
               <div className="bg-orange-50 rounded-xl p-4 border border-orange-100">
                 <h5 className="font-semibold text-orange-800 mb-2 flex items-center gap-2">
                   <TrendingDown className="w-4 h-4" />
@@ -142,82 +160,7 @@ export function InsightsTab({ meeting }: InsightsTabProps) {
             </div>
           </div>
         )}
-
-        {/* Insights & Decisions */}
-        {structuredSummary.insights_decisions && structuredSummary.insights_decisions.length > 0 && (
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-100 shadow-sm">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
-                <Zap className="w-4 h-4 text-white" />
-              </div>
-              <h4 className="text-lg font-bold text-green-900">Insights & Decisions</h4>
-            </div>
-            <ul className="space-y-3">
-              {structuredSummary.insights_decisions.map((insight: string, index: number) => (
-                <li key={index} className="flex items-start gap-3 text-green-800 bg-white/60 p-4 rounded-xl">
-                  <span className="text-green-600 text-xl mt-0.5">💡</span>
-                  <span>{insight}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Summary Insights */}
-        {structuredSummary.summary_insights && structuredSummary.summary_insights.length > 0 && (
-          <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100 shadow-sm">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
-                <BarChart className="w-4 h-4 text-white" />
-              </div>
-              <h4 className="text-lg font-bold text-purple-900">Summary Insights</h4>
-            </div>
-            <ul className="space-y-3">
-              {structuredSummary.summary_insights.map((insight: string, index: number) => (
-                <li key={index} className="flex items-start gap-3 text-purple-800 bg-white/60 p-4 rounded-xl">
-                  <span className="text-purple-600 text-xl mt-0.5">📊</span>
-                  <span>{insight}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Next Meeting - Only show if there's actual content */}
-        {structuredSummary.next_meeting && hasNextMeetingContent(structuredSummary.next_meeting) && (
-          <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl p-6 border border-orange-100 shadow-sm">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center">
-                <CalendarIcon className="w-4 h-4 text-white" />
-              </div>
-              <h4 className="text-lg font-bold text-orange-900">Next Meeting</h4>
-            </div>
-            <div className="space-y-3">
-              {/* Only show date if it exists */}
-              {structuredSummary.next_meeting.date && structuredSummary.next_meeting.date !== null && (
-                <p className="text-orange-800 bg-white/60 p-4 rounded-xl">
-                  <span className="font-semibold">Date:</span> {structuredSummary.next_meeting.date}
-                </p>
-              )}
-
-              {/* Only show agenda if it has items */}
-              {structuredSummary.next_meeting.agenda && Array.isArray(structuredSummary.next_meeting.agenda) && structuredSummary.next_meeting.agenda.length > 0 && (
-                <div className="bg-white/60 p-4 rounded-xl">
-                  <span className="font-semibold text-orange-800 block mb-2">Agenda:</span>
-                  <ul className="space-y-2">
-                    {structuredSummary.next_meeting.agenda.map((item: string, index: number) => (
-                      <li key={index} className="flex items-start gap-2 text-orange-700">
-                        <span className="text-orange-500 mt-1">📌</span>
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
+      </>
     );
   };
 
