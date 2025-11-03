@@ -1,6 +1,8 @@
 # Ignore documentation and local development files
 *.md
 
+*.png
+*.jpg
 
 # Ignore build artifacts and dependencies
 /node_modules
