@@ -108,7 +108,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (error.message?.includes("SMTP configuration")) {
       errorMessage = "Email service is not configured properly";
       statusCode = 500;
-    } else if (error.message?.includes("connection")) {
+    } else if (error.message?.includes("connection") || error.code === 'ECONNRESET') {
       errorMessage = "Unable to connect to email service";
       statusCode = 503;
     } else if (error.message?.includes("authentication")) {
@@ -126,6 +126,3 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     );
   }
 }
-
-
-
