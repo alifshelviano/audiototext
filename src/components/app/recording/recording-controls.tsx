@@ -1,6 +1,3 @@
-"use client";
-
-
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { addTranscriptToMeeting, getMeeting } from "@/lib/services/meeting-service";
@@ -642,6 +639,3 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
     </div>
   );
 }
-
-
-
