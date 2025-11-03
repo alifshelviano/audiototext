@@ -47,7 +47,7 @@ const Services: React.FC = () => {
             >
               {/* IMAGE */}
               <div className={`${index % 2 === 1 ? "md:order-2" : "md:order-1"} flex justify-center`}>
-                <Image src={service.image} alt={service.title} width={500} height={400} className="rounded-3xl shadow-lg w-full max-w-md object-cover hover:scale-105 transition-transform duration-500" />
+                <Image src={service.image} alt={service.title} width={400} height={400} quality={100} className="rounded-3xl shadow-lg w-full max-w-md object-cover hover:scale-105 transition-transform duration-500" />
               </div>
 
               {/* TEXT */}

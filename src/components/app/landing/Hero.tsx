@@ -73,7 +73,7 @@ const Hero: React.FC = () => {
           }}
           className="lg:w-1/2 flex justify-center"
         >
-          <Image src="/assets/ilustrasi3.png" alt="Team collaboration" width={500} height={500} className="max-w-full w-[480px] drop-shadow-lg" />
+          <Image src="/assets/ilustrasi3.png" alt="Team collaboration" width={500} height={500} quality={100} className="max-w-full w-[480px] drop-shadow-lg" />
         </motion.div>
       </div>
 
