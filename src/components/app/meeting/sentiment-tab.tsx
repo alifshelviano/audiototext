@@ -187,6 +187,58 @@ export function SentimentTab({ meeting }: SentimentTabProps) {
 
         {/* Participant Emotions */}
         {emotionAnalysis.participant_emotions && emotionAnalysis.participant_emotions.length > 0 && (
+          <div className="bg-white rounded-2xl p-4 sm:p-6 border border-gray-200 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                <Users className="w-4 h-4 text-white" />
+              </div>
+              <h4 className="text-base sm:text-lg font-bold text-gray-900">Participant Emotions</h4>
+            </div>
+
+            <div className="space-y-4">
+              {emotionAnalysis.participant_emotions.map((participant: any, index: number) => {
+                const sentimentColor = getSentimentColor(participant.sentiment);
+                const toneColor = getEmotionalToneColor(participant.emotionalTone);
+                const confidenceColor = getConfidenceColor(participant.confidence || 0);
+
+                return (
+                  <div key={index} className={`bg-gradient-to-r ${sentimentColor.gradient} rounded-xl p-4 sm:p-5 border ${sentimentColor.border}`}>
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3 gap-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-md">
+                          <span className="text-white text-sm font-bold">{(participant.participant || "U").charAt(0).toUpperCase()}</span>
+                        </div>
+                        <div className="min-w-0">
+                          <h5 className="font-semibold text-gray-900 text-sm sm:text-base truncate max-w-[150px] sm:max-w-none">{participant.participant || "Unknown"}</h5>
+                          <p className="text-xs text-gray-500">{participant.statements || 0} statements</p>
+                        </div>
+                      </div>
+                      <div className="flex sm:block justify-end">{getSentimentIcon(participant.sentiment)}</div>
+                    </div>
+
+                    {/* Responsive grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                      <div className="bg-white/80 rounded-lg p-3">
+                        <span className="text-gray-600 text-xs block mb-1">Sentiment</span>
+                        <span className={`font-semibold capitalize ${sentimentColor.text}`}>{participant.sentiment || "neutral"}</span>
+                      </div>
+                      <div className="bg-white/80 rounded-lg p-3">
+                        <span className="text-gray-600 text-xs block mb-1">Tone</span>
+                        <span className={`font-semibold capitalize ${toneColor}`}>{participant.emotionalTone || "neutral"}</span>
+                      </div>
+                      <div className="bg-white/80 rounded-lg p-3">
+                        <span className="text-gray-600 text-xs block mb-1">AI Accuracy</span>
+                        <span className={`font-semibold ${confidenceColor}`}>{Math.round((participant.confidence || 0) * 100)}%</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* {emotionAnalysis.participant_emotions && emotionAnalysis.participant_emotions.length > 0 && (
           <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
@@ -235,7 +287,7 @@ export function SentimentTab({ meeting }: SentimentTabProps) {
               })}
             </div>
           </div>
-        )}
+        )} */}
 
         {/* Emotional Highlights */}
         {emotionAnalysis.emotional_highlights && emotionAnalysis.emotional_highlights.length > 0 && (

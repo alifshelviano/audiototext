@@ -15,18 +15,18 @@ const Pricing: React.FC = () => {
     {
       name: "Daily",
       price: "$0.05/day",
-      features: ["Up to 3 meetings per day", "Basic AI transcription", "Standard summary output"],
+      features: ["60 transcription minutes", "Advance AI Summarizer", "Meeting Health Score and Sentiment Analysis"],
     },
     {
       name: "Weekly",
       price: "$3/week",
-      features: ["Unlimited meetings", "Advanced AI summarization", "Team collaboration tools", "Export summaries (PDF, DOCX)"],
+      features: ["420 transcription minutes", "Advanced AI Summarizer", "Meeting Health Score and Sentiment Analysis"],
       highlight: true,
     },
     {
       name: "Monthly",
       price: "$12/months",
-      features: ["Dedicated workspace", "Priority AI processing", "Admin dashboard & analytics", "Premium support 24/7"],
+      features: ["1800 transcription minutes", "Advance AI Summarizer", "Meeting Health Score and Sentiment Analysis"],
     },
   ];
 
