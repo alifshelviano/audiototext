@@ -77,7 +77,7 @@ export function Header({ toggleSidebar, mainContentRef }: HeaderProps) {
         <div className="flex items-center gap-3">
           {user && (
             <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full border bg-white/20 border-white/30">
-              <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
               <span className="text-xs font-medium text-white">Online</span>
             </div>
           )}

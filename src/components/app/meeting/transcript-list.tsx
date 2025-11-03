@@ -30,7 +30,7 @@ export function TranscriptList({ transcripts, visibleCount, onLoadMore, onShowLe
   const displayedTranscripts = transcripts.slice(startIndex);
 
   const canLoadMore = visibleCount < totalTranscripts;
-  const canShowLess = visibleCount > 10;
+  const canShowLess = visibleCount > 5;
 
   console.log("Transcripts debug:", {
     total: totalTranscripts,

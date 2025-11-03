@@ -193,7 +193,7 @@ export default function PublicMeetingsPage() {
             onClick={fetchMeetings}
             disabled={isLoading}
             variant="outline"
-            className="flex items-center gap-3 px-6 py-3 border-2 border-gray-200 hover:border-cyan-300 rounded-xl hover:bg-cyan-50 transition-all duration-300 disabled:opacity-50"
+            className="flex items-center gap-3 px-6 py-3 border-2 border-gray-200 hover:border-teal-200 rounded-xl hover:bg-cyan-400 transition-all duration-300 disabled:opacity-50"
           >
             <RefreshCw className={`w-5 h-5 ${isLoading ? "animate-spin" : ""}`} />
             <span className="font-semibold">Refresh</span>

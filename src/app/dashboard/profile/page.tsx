@@ -257,8 +257,8 @@ export default function ProfilePage() {
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3">Profile Settings</h1>
-            <p className="text-xl text-gray-600">Manage your personal information and account preferences</p>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-500 to-cyan-500 bg-clip-text text-transparent mb-3">Profile Settings</h1>
+            <p className="text-l text-gray-600">Manage your personal information and account preferences</p>
           </div>
           <div className="flex gap-3">
             {isEditing ? (
@@ -273,7 +273,7 @@ export default function ProfilePage() {
                 </Button>
               </>
             ) : (
-              <Button onClick={() => setIsEditing(true)} className="gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
+              <Button onClick={() => setIsEditing(true)} className="gap-2 bg-gradient-to-r from-cyan-500 to-teal-600 hover:from-cyan-600 hover:to-teal-700">
                 <Edit3 className="w-4 h-4" />
                 Edit Profile
               </Button>
@@ -286,12 +286,12 @@ export default function ProfilePage() {
           <div className="xl:col-span-1 space-y-6">
             {/* Profile Card */}
             <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-gray-50 to-blue-50">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-purple-600/10 rounded-full -translate-y-16 translate-x-16"></div>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-cyan-500/10 to-cyan-600/10 rounded-full -translate-y-16 translate-x-16"></div>
               <CardHeader className="text-center relative z-10">
                 <div className="relative inline-block">
                   <Avatar className="h-32 w-32 mx-auto border-4 border-white shadow-2xl">
                     <AvatarImage src={profileData.avatar} alt="Profile" />
-                    <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-blue-500 to-purple-600 text-white">{getUserInitials(profileData.name)}</AvatarFallback>
+                    <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-cyan-500 to-teal-600 text-white">{getUserInitials(profileData.name)}</AvatarFallback>
                   </Avatar>
                 </div>
                 <CardTitle className="text-2xl mt-6 text-gray-900">{profileData.name}</CardTitle>

@@ -526,7 +526,7 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
               <Button
                 onClick={handleStartRecording}
                 size="sm"
-                className={`h-10 ${showLabels ? "px-4" : "px-3"} bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 font-semibold shadow-md hover:shadow-lg transition-all`}
+                className={`h-10 ${showLabels ? "px-4" : "px-3"} bg-gradient-to-r from-cyan-600 to-teal-700 hover:from-cyan-700 hover:to-teal-800 font-semibold shadow-md hover:shadow-lg transition-all`}
                 disabled={isProcessing || !isConnected}
               >
                 <Mic className="w-4 h-4" />
@@ -593,7 +593,7 @@ export function RecordingControls({ meetingId, onTranscriptAdded, compact = fals
             onClick={isRecording ? handleStopRecording : handleStartRecording}
             size="lg"
             className={`h-16 w-16 rounded-full shadow-lg hover:shadow-xl transition-all ${
-              isRecording ? "bg-gradient-to-br from-red-600 to-red-700 hover:from-red-700 hover:to-red-800" : "bg-gradient-to-br from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800"
+              isRecording ? "bg-gradient-to-br from-red-600 to-red-700 hover:from-red-700 hover:to-red-800" : "bg-gradient-to-br from-cyan-600 to-teal-700 hover:from-cyan-700 hover:to-teal-800"
             }`}
             disabled={isProcessing || !isConnected}
           >
