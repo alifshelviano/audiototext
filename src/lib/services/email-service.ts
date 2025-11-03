@@ -5,6 +5,7 @@ import { notifyEmailRecipients } from "@/lib/services/notification-service";
 import { getSocketIOInstance } from "@/lib/socket"; // You'll need to create this export
 import clientPromise from "@/lib/database/mongodb"; // Import your MongoDB client
 
+
 interface EmailOptions {
   to: string | string[];
   subject: string;
@@ -16,36 +17,44 @@ interface EmailOptions {
   };
 }
 
+
 // Enhanced meeting data optimization with size limits
 function optimizeMeetingData(meeting: any, summary: any) {
   const structuredSummary = summary?.meeting_summary || summary;
+
 
   // Function to safely truncate arrays with ellipsis
   const truncateArray = (arr: any[], maxLength: number) => {
     if (!Array.isArray(arr)) return [];
     if (arr.length <= maxLength) return arr;
 
+
     return [...arr.slice(0, maxLength - 1), `... and ${arr.length - (maxLength - 1)} more`];
   };
+
 
   // Function to safely truncate strings
   const truncateString = (str: string, maxLength: number) => {
     if (typeof str !== "string") return str;
     if (str.length <= maxLength) return str;
 
+
     return str.substring(0, maxLength - 3) + "...";
   };
+
 
   return {
     // Basic meeting info with truncation
     name: truncateString(meeting.name || "Untitled Meeting", 100),
     time: meeting.time,
 
+
     // Optimized summary data with strict limits
     summary: {
       title: truncateString(structuredSummary?.title || meeting.name || "Meeting Summary", 80),
       date: structuredSummary?.date || new Date(meeting.time).toISOString().split("T")[0],
       time: structuredSummary?.time || new Date(meeting.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+
 
       // Strict array limits to prevent large emails
       participants: truncateArray(structuredSummary?.participants || [], 6),
@@ -54,6 +63,7 @@ function optimizeMeetingData(meeting: any, summary: any) {
       action_items: truncateArray(structuredSummary?.action_items || [], 3),
       summary_insights: truncateArray(structuredSummary?.summary_insights || [], 2),
 
+
       // Minimal sentiment data
       emotion_analysis: structuredSummary?.emotion_analysis
         ? {
@@ -61,6 +71,7 @@ function optimizeMeetingData(meeting: any, summary: any) {
             overall_confidence: Math.round((structuredSummary.emotion_analysis.overall_confidence || 0) * 100),
           }
         : null,
+
 
       // Minimal health score data
       meeting_health_score: structuredSummary?.meeting_health_score
@@ -73,6 +84,7 @@ function optimizeMeetingData(meeting: any, summary: any) {
           }
         : null,
 
+
       // Minimal next meeting data
       next_meeting: structuredSummary?.next_meeting
         ? {
@@ -84,10 +96,12 @@ function optimizeMeetingData(meeting: any, summary: any) {
   };
 }
 
+
 // Create transporter with better configuration
 let transporter: nodemailer.Transporter | null = null;
 let lastVerification: number = 0;
 const VERIFICATION_INTERVAL = 5 * 60 * 1000; // 5 minutes
+
 
 function getTransporter(): nodemailer.Transporter {
   if (!transporter) {
@@ -95,11 +109,13 @@ function getTransporter(): nodemailer.Transporter {
     const requiredEnvVars = ["SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD"];
     const missingVars = requiredEnvVars.filter((varName) => !process.env[varName]);
 
+
     if (missingVars.length > 0) {
       throw new Error(`Missing SMTP configuration: ${missingVars.join(", ")}`);
     }
     const port = parseInt(process.env.SMTP_PORT || "587");
     const isSecure = port === 465;
+
 
     const transporterConfig: SMTPTransport.Options = {
       host: process.env.SMTP_HOST!,
@@ -115,12 +131,15 @@ function getTransporter(): nodemailer.Transporter {
       greetingTimeout: 10000,
     };
 
+
     transporter = nodemailer.createTransport(transporterConfig);
+
 
     // Add event listeners for better debugging
     transporter.on("idle", () => {
       console.log("SMTP transporter is idle");
     });
+
 
     transporter.on("error", (error) => {
       console.error("SMTP transporter error:", error);
@@ -129,16 +148,20 @@ function getTransporter(): nodemailer.Transporter {
   return transporter;
 }
 
+
 // Enhanced SMTP connection verification with caching
 async function verifySMTPConnection(): Promise<boolean> {
   const now = Date.now();
+
 
   // Only verify every 5 minutes to avoid unnecessary checks
   if (now - lastVerification < VERIFICATION_INTERVAL) {
     return true;
   }
 
+
   const currentTransporter = getTransporter();
+
 
   try {
     await currentTransporter.verify();
@@ -148,19 +171,24 @@ async function verifySMTPConnection(): Promise<boolean> {
   } catch (error) {
     console.error("❌ SMTP connection failed:", error);
 
+
     // Reset transporter to force reconnection on next attempt
     transporter = null;
+
 
     throw new Error(`Failed to connect to email server: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 
+
 // Improved email size estimation
 function estimateEmailSize(htmlContent: string, pdfContent?: string): { sizeBytes: number; sizeMB: number } {
   let sizeBytes = Buffer.byteLength(htmlContent, "utf8");
 
+
   // Add overhead for email headers and structure (approx 2KB)
   sizeBytes += 2048;
+
 
   if (pdfContent) {
     // PDF content is base64, actual size is about 75% of base64 string
@@ -168,10 +196,13 @@ function estimateEmailSize(htmlContent: string, pdfContent?: string): { sizeByte
     sizeBytes += Math.floor(pdfContent.length * 0.75) + 1024;
   }
 
+
   const sizeMB = sizeBytes / (1024 * 1024);
+
 
   return { sizeBytes, sizeMB };
 }
+
 
 // Enhanced email sending with better error handling, retries, and notifications
 export async function sendEmailWithAttachment(options: EmailOptions): Promise<{
@@ -183,14 +214,17 @@ export async function sendEmailWithAttachment(options: EmailOptions): Promise<{
   let retryCount = 0;
   const maxRetries = 2;
 
+
   while (retryCount <= maxRetries) {
     try {
       await verifySMTPConnection();
       const currentTransporter = getTransporter();
 
+
       // Optimize data for email to reduce size
       const optimizedData = optimizeMeetingData(options.meeting, options.summary);
       const emailHtml = generateEmailHTML(optimizedData);
+
 
       const mailOptions: nodemailer.SendMailOptions = {
         from: process.env.SMTP_FROM || `LISN <${process.env.SMTP_USER}>`,
@@ -206,17 +240,22 @@ export async function sendEmailWithAttachment(options: EmailOptions): Promise<{
         },
       };
 
+
       // Handle PDF attachment with size checks
       let attachmentSkipped = false;
       let estimatedSize = estimateEmailSize(emailHtml);
 
+
       if (options.pdfAttachment) {
         estimatedSize = estimateEmailSize(emailHtml, options.pdfAttachment.content);
 
+
         console.log(`📧 Estimated email size: ${estimatedSize.sizeMB.toFixed(2)} MB`);
+
 
         // Conservative size limit (Gmail limit is 25MB, but let's use 15MB for safety)
         const SIZE_LIMIT_MB = 15;
+
 
         if (estimatedSize.sizeMB < SIZE_LIMIT_MB) {
           mailOptions.attachments = [
@@ -231,11 +270,13 @@ export async function sendEmailWithAttachment(options: EmailOptions): Promise<{
           console.warn(`⚠️ Email too large (${estimatedSize.sizeMB.toFixed(2)} MB), sending without PDF attachment`);
           attachmentSkipped = true;
 
+
           // Add note to email about attachment being too large
           const sizeNote = `<p style="color: #d32f2f; font-size: 12px; margin-top: 15px; padding: 10px; background: #ffebee; border-radius: 4px;">
-            <strong>Note:</strong> The PDF report (${estimatedSize.sizeMB.toFixed(1)} MB) was too large to send via email. 
+            <strong>Note:</strong> The PDF report (${estimatedSize.sizeMB.toFixed(1)} MB) was too large to send via email.
             Please access the complete documentation in your LISN dashboard.
           </p>`;
+
 
           // Ensure html is a string before calling replace
           if (typeof mailOptions.html === "string") {
@@ -247,16 +288,20 @@ export async function sendEmailWithAttachment(options: EmailOptions): Promise<{
         }
       }
 
+
       const result = await currentTransporter.sendMail(mailOptions);
       console.log(`✅ Email sent successfully: ${result.messageId}`);
+
 
       // NEW: Trigger notifications for email recipients
       try {
         await notifyEmailRecipients(options.meeting.id, options.meeting.name, Array.isArray(options.to) ? options.to : [options.to]);
 
+
         // Also emit Socket.IO event for real-time notification
         const io = getSocketIOInstance();
         const validEmails = Array.isArray(options.to) ? options.to : [options.to];
+
 
         for (const email of validEmails) {
           // Get userId from email
@@ -265,6 +310,7 @@ export async function sendEmailWithAttachment(options: EmailOptions): Promise<{
           const user = await db.collection("users").findOne({
             email: email.toLowerCase(),
           });
+
 
           if (user) {
             io.to(`user-${user._id.toString()}`).emit("new-notification", {
@@ -281,6 +327,7 @@ export async function sendEmailWithAttachment(options: EmailOptions): Promise<{
         console.error("❌ Failed to send notifications:", notificationError);
       }
 
+
       return {
         success: true,
         messageId: result.messageId,
@@ -291,6 +338,7 @@ export async function sendEmailWithAttachment(options: EmailOptions): Promise<{
       retryCount++;
       console.error(`❌ Email sending failed (attempt ${retryCount}/${maxRetries + 1}):`, error);
 
+
       if (retryCount > maxRetries) {
         // Final failure
         if (error instanceof Error) {
@@ -300,6 +348,7 @@ export async function sendEmailWithAttachment(options: EmailOptions): Promise<{
         }
       }
 
+
       // Wait before retry (exponential backoff)
       const waitTime = 1000 * Math.pow(2, retryCount);
       console.log(`⏳ Retrying in ${waitTime}ms...`);
@@ -307,9 +356,11 @@ export async function sendEmailWithAttachment(options: EmailOptions): Promise<{
     }
   }
 
+
   // This should never be reached, but TypeScript wants a return
   throw new Error("Unexpected error in email sending");
 }
+
 
 // Simplified function for emails without attachments
 export async function sendEmailWithoutAttachment(options: Omit<EmailOptions, "pdfAttachment">): Promise<{
@@ -320,10 +371,12 @@ export async function sendEmailWithoutAttachment(options: Omit<EmailOptions, "pd
   await verifySMTPConnection();
   const currentTransporter = getTransporter();
 
+
   // Optimize data for email to reduce size
   const optimizedData = optimizeMeetingData(options.meeting, options.summary);
   const emailHtml = generateEmailHTML(optimizedData);
   const estimatedSize = estimateEmailSize(emailHtml);
+
 
   const mailOptions: nodemailer.SendMailOptions = {
     from: process.env.SMTP_FROM || `LISN <${process.env.SMTP_USER}>`,
@@ -337,9 +390,11 @@ export async function sendEmailWithoutAttachment(options: Omit<EmailOptions, "pd
     },
   };
 
+
   try {
     const result = await currentTransporter.sendMail(mailOptions);
     console.log(`✅ Email sent successfully without attachment: ${result.messageId}`);
+
 
     // NEW: Also trigger notifications for emails without attachments
     try {
@@ -347,6 +402,7 @@ export async function sendEmailWithoutAttachment(options: Omit<EmailOptions, "pd
     } catch (notificationError) {
       console.error("❌ Failed to send notifications:", notificationError);
     }
+
 
     return {
       success: true,
@@ -359,19 +415,23 @@ export async function sendEmailWithoutAttachment(options: Omit<EmailOptions, "pd
   }
 }
 
+
 // Generate plain text version for better email client compatibility
 function generateTextVersion(data: any): string {
   const meeting = data;
   const summary = data.summary;
 
+
   let text = `MEETING SUMMARY: ${summary.title}\n`;
   text += `Date: ${summary.date} | Time: ${summary.time}\n`;
   text += "=".repeat(50) + "\n\n";
+
 
   if (summary.participants.length > 0) {
     text += "PARTICIPANTS:\n";
     text += summary.participants.join(", ") + "\n\n";
   }
+
 
   if (summary.key_points.length > 0) {
     text += "KEY POINTS:\n";
@@ -380,6 +440,7 @@ function generateTextVersion(data: any): string {
     });
     text += "\n";
   }
+
 
   if (summary.action_items.length > 0) {
     text += "ACTION ITEMS:\n";
@@ -390,17 +451,21 @@ function generateTextVersion(data: any): string {
     text += "\n";
   }
 
+
   text += "---\n";
   text += "This summary was generated by LISN Documentation System\n";
   text += "Complete documentation available in your LISN dashboard\n";
 
+
   return text;
 }
+
 
 // Enhanced HTML email template
 function generateEmailHTML(data: any): string {
   const meeting = data;
   const summary = data.summary;
+
 
   // Safe HTML escaping function
   const escapeHtml = (unsafe: any): string => {
@@ -408,9 +473,11 @@ function generateEmailHTML(data: any): string {
     return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
   };
 
+
   // Helper to render array items safely
   const renderListItems = (items: any[]): string => {
     if (!Array.isArray(items) || items.length === 0) return "";
+
 
     return items
       .map((item) => {
@@ -420,6 +487,7 @@ function generateEmailHTML(data: any): string {
       .join("");
   };
 
+
   // Helper to get sentiment class
   const getSentimentClass = (sentiment: string): string => {
     const lowerSentiment = sentiment.toLowerCase();
@@ -428,6 +496,7 @@ function generateEmailHTML(data: any): string {
     return "sentiment-neutral";
   };
 
+
   return `
 <!DOCTYPE html>
 <html>
@@ -435,12 +504,12 @@ function generateEmailHTML(data: any): string {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { 
-      font-family: 'Segoe UI', Arial, sans-serif; 
-      line-height: 1.5; 
-      color: #333333; 
-      max-width: 600px; 
-      margin: 0 auto; 
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      line-height: 1.5;
+      color: #333333;
+      max-width: 600px;
+      margin: 0 auto;
       padding: 20px;
       background: #f8f9fa;
     }
@@ -456,8 +525,8 @@ function generateEmailHTML(data: any): string {
       padding-bottom: 20px;
       border-bottom: 2px solid #e9ecef;
     }
-    .section { 
-      margin-bottom: 25px; 
+    .section {
+      margin-bottom: 25px;
     }
     .section-title {
       font-size: 16px;
@@ -467,12 +536,12 @@ function generateEmailHTML(data: any): string {
       padding-bottom: 6px;
       border-bottom: 1px solid #e9ecef;
     }
-    ul { 
-      padding-left: 20px; 
-      margin: 0; 
+    ul {
+      padding-left: 20px;
+      margin: 0;
     }
-    li { 
-      margin-bottom: 6px; 
+    li {
+      margin-bottom: 6px;
       line-height: 1.4;
     }
     .badge {
@@ -485,7 +554,7 @@ function generateEmailHTML(data: any): string {
       margin-left: 8px;
       font-weight: 500;
     }
-    .footer { 
+    .footer {
       margin-top: 30px;
       padding-top: 20px;
       border-top: 1px solid #e9ecef;
@@ -536,7 +605,7 @@ function generateEmailHTML(data: any): string {
       <h1 style="margin: 0 0 8px 0; font-size: 24px; color: #2c5aa0;">📋 ${escapeHtml(summary.title)}</h1>
       <p style="margin: 0; color: #6c757d; font-size: 14px;">${escapeHtml(summary.date)} • ${escapeHtml(summary.time)}</p>
     </div>
-    
+   
     <!-- Participants -->
     ${
       summary.participants.length > 0
@@ -550,6 +619,7 @@ function generateEmailHTML(data: any): string {
     `
         : ""
     }
+
 
     <!-- Key Points -->
     ${
@@ -565,6 +635,7 @@ function generateEmailHTML(data: any): string {
         : ""
     }
 
+
     <!-- Action Items -->
     ${
       summary.action_items.length > 0
@@ -579,6 +650,7 @@ function generateEmailHTML(data: any): string {
             const status = escapeHtml(item.status || "Pending");
             const statusColor = status.toLowerCase() === "completed" ? "#28a745" : status.toLowerCase() === "in progress" ? "#ffc107" : "#6c757d";
 
+
             return `<li>
             <strong>${task}</strong><br>
             <small style="color: #6c757d;">👤 ${assignedTo} • <span style="color: ${statusColor}">${status}</span></small>
@@ -590,6 +662,7 @@ function generateEmailHTML(data: any): string {
     `
         : ""
     }
+
 
     <!-- Insights & Decisions -->
     ${
@@ -604,6 +677,7 @@ function generateEmailHTML(data: any): string {
     `
         : ""
     }
+
 
     <!-- Sentiment Analysis -->
     ${
@@ -623,6 +697,7 @@ function generateEmailHTML(data: any): string {
     `
         : ""
     }
+
 
     <!-- Meeting Health Score -->
     ${
@@ -659,6 +734,7 @@ function generateEmailHTML(data: any): string {
         : ""
     }
 
+
     <!-- Footer -->
     <div class="footer">
       <p style="margin: 0 0 10px 0;">
@@ -674,20 +750,24 @@ function generateEmailHTML(data: any): string {
 </html>`;
 }
 
+
 // Enhanced utility functions
 export function shouldIncludePDF(meeting: any): boolean {
   const transcriptCount = meeting.transcripts?.length || 0;
   const estimatedSize = estimatePDFSize(meeting);
 
+
   // More conservative limits
   return transcriptCount < 30 && estimatedSize < 10 * 1024 * 1024; // 10MB limit
 }
+
 
 export function estimatePDFSize(meeting: any): number {
   const transcriptCount = meeting.transcripts?.length || 0;
   // More accurate estimate: 3KB per transcript + 20KB base for formatting
   return (transcriptCount * 3 + 20) * 1024;
 }
+
 
 // New function to close transporter (useful for cleanup)
 export async function closeTransporter(): Promise<void> {
@@ -697,6 +777,7 @@ export async function closeTransporter(): Promise<void> {
     console.log("📧 SMTP transporter closed");
   }
 }
+
 
 // Health check function
 export async function checkEmailServiceHealth(): Promise<{
@@ -724,13 +805,16 @@ export async function checkEmailServiceHealth(): Promise<{
   }
 }
 
+
 // Fixed password reset email function
 export async function sendPasswordResetEmail(email: string, resetToken: string): Promise<void> {
   await verifySMTPConnection();
   const currentTransporter = getTransporter();
 
+
   // Use the correct frontend URL
   const resetUrl = `${process.env.FRONTEND_URL || process.env.NEXTAUTH_URL || "http://localhost:3000"}/auth/reset-password?token=${resetToken}`;
+
 
   // Store the token temporarily (in production, use your database)
   const resetTokens = new Map();
@@ -738,6 +822,7 @@ export async function sendPasswordResetEmail(email: string, resetToken: string):
     email,
     expires: Date.now() + 60 * 5  * 1000, //5 minutes from now
   });
+
 
   const mailOptions: nodemailer.SendMailOptions = {
     from: process.env.SMTP_FROM || "LISN <noreply@lisn.com>",
@@ -765,20 +850,23 @@ export async function sendPasswordResetEmail(email: string, resetToken: string):
             <div class="content">
               <p>Hello,</p>
               <p>You requested to reset your password for your LISN account. Click the button below to create a new password:</p>
-              
+             
               <div style="text-align: center; margin: 30px 0;">
                 <a href="${resetUrl}" class="button">Reset Password</a>
               </div>
+
 
               <div class="warning">
                 <strong>Important:</strong> This link will expire in 5 minutes for security reasons.
                 If you didn't request this reset, please ignore this email.
               </div>
 
+
               <p style="color: #666; font-size: 14px; margin-top: 20px;">
                 If the button doesn't work, copy and paste this URL into your browser:<br>
                 <a href="${resetUrl}" style="color: #667eea; word-break: break-all;">${resetUrl}</a>
               </p>
+
 
               <div class="footer">
                 <p>© ${new Date().getFullYear()} LISN. All rights reserved.</p>
@@ -790,6 +878,7 @@ export async function sendPasswordResetEmail(email: string, resetToken: string):
     `,
   };
 
+
   try {
     const result = await currentTransporter.sendMail(mailOptions);
     console.log(`✅ Password reset email sent to ${email}: ${result.messageId}`);
@@ -798,3 +887,6 @@ export async function sendPasswordResetEmail(email: string, resetToken: string):
     throw new Error(`Failed to send password reset email: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
+
+
+
