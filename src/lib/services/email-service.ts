@@ -204,6 +204,35 @@ function estimateEmailSize(htmlContent: string, pdfContent?: string): { sizeByte
 }
 
 
+// Add this function to compress PDF before sending
+function compressPDFContent(pdfBase64: string): string {
+  const base64Content = pdfBase64.includes(",") ? pdfBase64.split(",")[1] : pdfBase64;
+
+
+  // Calculate actual size
+  const estimatedSize = (base64Content.length * 0.75) / (1024 * 1024); // MB
+
+
+  console.log(`📊 PDF size before compression: ${estimatedSize.toFixed(2)} MB`);
+
+
+  // More conservative limits for email
+  if (estimatedSize > 15) {
+    // 15MB limit for email
+    throw new Error(`PDF too large for email (${estimatedSize.toFixed(1)} MB). Please use export instead.`);
+  }
+
+
+  if (estimatedSize > 5) {
+    // 5MB warning
+    console.warn(`⚠️ Large PDF for email: ${estimatedSize.toFixed(1)} MB`);
+  }
+
+
+  return base64Content;
+}
+
+
 // Enhanced email sending with better error handling, retries, and notifications
 export async function sendEmailWithAttachment(options: EmailOptions): Promise<{
   success: boolean;
@@ -258,10 +287,11 @@ export async function sendEmailWithAttachment(options: EmailOptions): Promise<{
 
 
         if (estimatedSize.sizeMB < SIZE_LIMIT_MB) {
+          const compressedContent = compressPDFContent(options.pdfAttachment.content);
           mailOptions.attachments = [
             {
               filename: options.pdfAttachment.filename,
-              content: options.pdfAttachment.content,
+              content: compressedContent,
               encoding: "base64" as const,
               contentType: "application/pdf",
             },
@@ -482,19 +512,94 @@ function generateEmailHTML(data: any): string {
     return items
       .map((item) => {
         const text = typeof item === "string" ? item : item.task || JSON.stringify(item);
-        return `<li>${escapeHtml(text)}</li>`;
+        return `<li class="list-item">${escapeHtml(text)}</li>`;
       })
       .join("");
   };
 
 
-  // Helper to get sentiment class
-  const getSentimentClass = (sentiment: string): string => {
+  // Helper to get sentiment class and emoji
+  const getSentimentConfig = (sentiment: string) => {
     const lowerSentiment = sentiment.toLowerCase();
-    if (lowerSentiment.includes("positive")) return "sentiment-positive";
-    if (lowerSentiment.includes("negative")) return "sentiment-negative";
-    return "sentiment-neutral";
+    if (lowerSentiment.includes("positive"))
+      return {
+        class: "sentiment-positive",
+        emoji: "😊",
+      };
+    if (lowerSentiment.includes("negative"))
+      return {
+        class: "sentiment-negative",
+        emoji: "😔",
+      };
+    return {
+      class: "sentiment-neutral",
+      emoji: "😐",
+    };
   };
+
+
+  // Helper to render participant chips
+  const renderParticipants = (participants: string[]): string => {
+    if (!participants.length) return "";
+
+
+    return participants.map((participant) => `<span class="participant-chip">${escapeHtml(participant)}</span>`).join("");
+  };
+
+
+  // Helper to render action items with status
+  const renderActionItems = (items: any[]): string => {
+    if (!items.length) return "";
+
+
+    return items
+      .map((item) => {
+        const task = escapeHtml(typeof item === "string" ? item : item.task);
+        const assignedTo = escapeHtml(item.assigned_to || "Not assigned");
+        const status = escapeHtml(item.status || "Pending");
+        const statusConfig = getStatusConfig(status);
+
+
+        return `
+          <div class="action-item">
+            <div class="action-content">
+              <span class="action-icon">✅</span>
+              <div class="action-details">
+                <div class="action-task">${task}</div>
+                <div class="action-meta">
+                  <span class="assignee">👤 ${assignedTo}</span>
+                  <span class="status ${statusConfig.class}">${statusConfig.emoji} ${status}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+  };
+
+
+  // Helper to get status configuration
+  const getStatusConfig = (status: string) => {
+    const lowerStatus = status.toLowerCase();
+    if (lowerStatus.includes("completed"))
+      return {
+        class: "status-completed",
+        emoji: "✅",
+      };
+    if (lowerStatus.includes("progress"))
+      return {
+        class: "status-progress",
+        emoji: "🔄",
+      };
+    return {
+      class: "status-pending",
+      emoji: "⏳",
+    };
+  };
+
+
+  const sentimentConfig = summary.emotion_analysis ? getSentimentConfig(summary.emotion_analysis.overall_sentiment) : { class: "sentiment-neutral", emoji: "😐" };
 
 
   return `
@@ -503,247 +608,549 @@ function generateEmailHTML(data: any): string {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meeting Summary: ${escapeHtml(summary.title)}</title>
   <style>
-    body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      line-height: 1.5;
-      color: #333333;
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-      background: #f8f9fa;
+    /* Base Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
+   
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      color: #2d3748;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+    }
+   
+    .email-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+   
     .email-container {
       background: #ffffff;
-      border-radius: 8px;
-      padding: 30px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e2e8f0;
     }
+   
+    /* Header Section */
     .header {
       text-align: center;
-      margin-bottom: 25px;
-      padding-bottom: 20px;
-      border-bottom: 2px solid #e9ecef;
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 2px solid #e2e8f0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      margin: -40px -40px 32px -40px;
+      padding: 40px;
+      border-radius: 16px 16px 0 0;
+      color: white;
     }
-    .section {
-      margin-bottom: 25px;
+   
+    .header-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      display: block;
     }
-    .section-title {
+   
+    .header-title {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: white;
+    }
+   
+    .header-subtitle {
       font-size: 16px;
-      font-weight: 600;
-      color: #2c5aa0;
-      margin-bottom: 12px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid #e9ecef;
+      opacity: 0.9;
+      color: white;
     }
-    ul {
-      padding-left: 20px;
-      margin: 0;
-    }
-    li {
-      margin-bottom: 6px;
-      line-height: 1.4;
-    }
-    .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      background: #2c5aa0;
-      color: #ffffff;
+   
+    /* Section Styles */
+    .section {
+      margin-bottom: 32px;
+      background: #f8fafc;
+      padding: 24px;
       border-radius: 12px;
-      font-size: 10px;
-      margin-left: 8px;
+      border-left: 4px solid #667eea;
+    }
+   
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+   
+    .section-icon {
+      font-size: 20px;
+    }
+   
+    /* Participants */
+    .participants-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+   
+    .participant-chip {
+      background: #667eea;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
       font-weight: 500;
+      border: 2px solid transparent;
+      transition: all 0.2s ease;
     }
-    .footer {
-      margin-top: 30px;
-      padding-top: 20px;
-      border-top: 1px solid #e9ecef;
+   
+    .participant-chip:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+    }
+   
+    /* Lists */
+    .list {
+      list-style: none;
+      space-y: 12px;
+    }
+   
+    .list-item {
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      border-left: 3px solid #667eea;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      transition: all 0.2s ease;
+    }
+   
+    .list-item:hover {
+      transform: translateX(4px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+   
+    /* Action Items */
+    .action-item {
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      border: 1px solid #e2e8f0;
+      transition: all 0.2s ease;
+    }
+   
+    .action-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+   
+    .action-content {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+   
+    .action-icon {
+      font-size: 18px;
+      margin-top: 2px;
+    }
+   
+    .action-details {
+      flex: 1;
+    }
+   
+    .action-task {
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 4px;
+    }
+   
+    .action-meta {
+      display: flex;
+      gap: 16px;
+      font-size: 14px;
+      color: #718096;
+    }
+   
+    .assignee {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+   
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 12px;
       font-size: 12px;
-      color: #6c757d;
-      text-align: center;
+      font-weight: 600;
     }
+   
+    .status-completed {
+      background: #c6f6d5;
+      color: #22543d;
+    }
+   
+    .status-progress {
+      background: #bee3f8;
+      color: #1a365d;
+    }
+   
+    .status-pending {
+      background: #fed7d7;
+      color: #742a2a;
+    }
+   
+    /* Sentiment Analysis */
+    .sentiment-card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      border: 2px solid;
+      transition: all 0.3s ease;
+    }
+   
+    .sentiment-card:hover {
+      transform: scale(1.02);
+    }
+   
+    .sentiment-positive {
+      border-color: #48bb78;
+      background: linear-gradient(135deg, #c6f6d5, #ffffff);
+    }
+   
+    .sentiment-neutral {
+      border-color: #ed8936;
+      background: linear-gradient(135deg, #fed7d7, #ffffff);
+    }
+   
+    .sentiment-negative {
+      border-color: #f56565;
+      background: linear-gradient(135deg, #fed7d7, #ffffff);
+    }
+   
+    .sentiment-emoji {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+   
+    .sentiment-text {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+   
+    .sentiment-confidence {
+      font-size: 14px;
+      color: #718096;
+    }
+   
+    /* Health Score */
+    .health-score {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      border-radius: 16px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+   
+    .health-score-value {
+      font-size: 48px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+   
+    .health-score-label {
+      font-size: 16px;
+      opacity: 0.9;
+    }
+   
     .health-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      margin-top: 12px;
+      gap: 12px;
     }
-    .health-item {
+   
+    .health-metric {
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
       text-align: center;
-      padding: 10px;
-      border: 1px solid #e9ecef;
-      border-radius: 6px;
-      background: #f8f9fa;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
-    .health-value {
-      font-size: 18px;
-      font-weight: 600;
-      color: #2c5aa0;
+   
+    .metric-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #667eea;
+      margin-bottom: 4px;
     }
-    .health-label {
-      font-size: 11px;
-      color: #6c757d;
-      margin-top: 4px;
-    }
-    .sentiment-indicator {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 15px;
+   
+    .metric-label {
       font-size: 12px;
-      font-weight: 500;
-      margin-right: 8px;
+      color: #718096;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
     }
-    .sentiment-positive { background: #d4edda; color: #155724; }
-    .sentiment-neutral { background: #e2e3e5; color: #383d41; }
-    .sentiment-negative { background: #f8d7da; color: #721c24; }
+   
+    /* Footer */
+    .footer {
+      margin-top: 40px;
+      padding-top: 24px;
+      border-top: 1px solid #e2e8f0;
+      text-align: center;
+      color: #718096;
+    }
+   
+    .footer-attachment {
+      background: #edf2f7;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+   
+    .footer-text {
+      font-size: 14px;
+      line-height: 1.5;
+    }
+   
+    .footer-copyright {
+      font-size: 12px;
+      margin-top: 8px;
+      opacity: 0.7;
+    }
+   
+    /* Responsive Design */
+    @media (max-width: 480px) {
+      body {
+        padding: 10px;
+      }
+     
+      .email-container {
+        padding: 20px;
+      }
+     
+      .header {
+        margin: -20px -20px 24px -20px;
+        padding: 30px 20px;
+      }
+     
+      .header-title {
+        font-size: 24px;
+      }
+     
+      .section {
+        padding: 16px;
+      }
+     
+      .health-grid {
+        grid-template-columns: 1fr;
+      }
+     
+      .action-meta {
+        flex-direction: column;
+        gap: 8px;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="email-container">
-    <!-- Header -->
-    <div class="header">
-      <h1 style="margin: 0 0 8px 0; font-size: 24px; color: #2c5aa0;">📋 ${escapeHtml(summary.title)}</h1>
-      <p style="margin: 0; color: #6c757d; font-size: 14px;">${escapeHtml(summary.date)} • ${escapeHtml(summary.time)}</p>
-    </div>
-   
-    <!-- Participants -->
-    ${
-      summary.participants.length > 0
-        ? `
-    <div class="section">
-      <h2 class="section-title">👥 Participants (${summary.participants.length})</h2>
-      <div style="color: #495057;">
-        ${summary.participants.map((p: string) => `<span style="display: inline-block; margin: 0 8px 6px 0;">${escapeHtml(p)}</span>`).join("")}
+  <div class="email-wrapper">
+    <div class="email-container">
+      <!-- Header -->
+      <div class="header">
+        <span class="header-icon">📋</span>
+        <h1 class="header-title">${escapeHtml(summary.title)}</h1>
+        <p class="header-subtitle">${escapeHtml(summary.date)} • ${escapeHtml(summary.time)}</p>
       </div>
-    </div>
-    `
-        : ""
-    }
-
-
-    <!-- Key Points -->
-    ${
-      summary.key_points.length > 0
-        ? `
-    <div class="section">
-      <h2 class="section-title">🎯 Key Discussion Points</h2>
-      <ul>
-        ${renderListItems(summary.key_points)}
-      </ul>
-    </div>
-    `
-        : ""
-    }
-
-
-    <!-- Action Items -->
-    ${
-      summary.action_items.length > 0
-        ? `
-    <div class="section">
-      <h2 class="section-title">✅ Action Items</h2>
-      <ul>
-        ${summary.action_items
-          .map((item: any) => {
-            const task = escapeHtml(typeof item === "string" ? item : item.task);
-            const assignedTo = escapeHtml(item.assigned_to || "Not assigned");
-            const status = escapeHtml(item.status || "Pending");
-            const statusColor = status.toLowerCase() === "completed" ? "#28a745" : status.toLowerCase() === "in progress" ? "#ffc107" : "#6c757d";
-
-
-            return `<li>
-            <strong>${task}</strong><br>
-            <small style="color: #6c757d;">👤 ${assignedTo} • <span style="color: ${statusColor}">${status}</span></small>
-          </li>`;
-          })
-          .join("")}
-      </ul>
-    </div>
-    `
-        : ""
-    }
-
-
-    <!-- Insights & Decisions -->
-    ${
-      summary.insights_decisions.length > 0
-        ? `
-    <div class="section">
-      <h2 class="section-title">💡 Insights & Decisions</h2>
-      <ul>
-        ${renderListItems(summary.insights_decisions)}
-      </ul>
-    </div>
-    `
-        : ""
-    }
-
-
-    <!-- Sentiment Analysis -->
-    ${
-      summary.emotion_analysis
-        ? `
-    <div class="section">
-      <h2 class="section-title">😊 Meeting Sentiment</h2>
-      <div>
-        <span class="sentiment-indicator ${getSentimentClass(summary.emotion_analysis.overall_sentiment)}">
-          ${escapeHtml(summary.emotion_analysis.overall_sentiment.toUpperCase())}
-        </span>
-        <span style="font-size: 13px; color: #6c757d;">
-          Confidence: ${summary.emotion_analysis.overall_confidence}%
-        </span>
-      </div>
-    </div>
-    `
-        : ""
-    }
-
-
-    <!-- Meeting Health Score -->
-    ${
-      summary.meeting_health_score
-        ? `
-    <div class="section">
-      <h2 class="section-title">📈 Meeting Health Score</h2>
-      <div style="text-align: center; margin-bottom: 15px;">
-        <div style="font-size: 32px; font-weight: 700; color: #2c5aa0; margin-bottom: 5px;">
-          ${summary.meeting_health_score.overall_score}
-        </div>
-        <div style="font-size: 12px; color: #6c757d;">Overall Score / 100</div>
-      </div>
-      <div class="health-grid">
-        <div class="health-item">
-          <div class="health-value">${summary.meeting_health_score.engagement_score}</div>
-          <div class="health-label">Engagement</div>
-        </div>
-        <div class="health-item">
-          <div class="health-value">${summary.meeting_health_score.productivity_score}</div>
-          <div class="health-label">Productivity</div>
-        </div>
-        <div class="health-item">
-          <div class="health-value">${summary.meeting_health_score.collaboration_score}</div>
-          <div class="health-label">Collaboration</div>
-        </div>
-        <div class="health-item">
-          <div class="health-value">${summary.meeting_health_score.clarity_score}</div>
-          <div class="health-label">Clarity</div>
+     
+      <!-- Participants -->
+      ${
+        summary.participants.length > 0
+          ? `
+      <div class="section">
+        <h2 class="section-title">
+          <span class="section-icon">👥</span>
+          Participants (${summary.participants.length})
+        </h2>
+        <div class="participants-grid">
+          ${renderParticipants(summary.participants)}
         </div>
       </div>
-    </div>
-    `
-        : ""
-    }
+      `
+          : ""
+      }
 
 
-    <!-- Footer -->
-    <div class="footer">
-      <p style="margin: 0 0 10px 0;">
-        <strong>📎 Complete meeting documentation is available in your LISN dashboard</strong>
-      </p>
-      <p style="margin: 0; font-size: 11px;">
-        This summary was generated automatically by LISN AI Documentation System<br>
-        © ${new Date().getFullYear()} LISN. All rights reserved.
-      </p>
+      <!-- Key Points -->
+      ${
+        summary.key_points.length > 0
+          ? `
+      <div class="section">
+        <h2 class="section-title">
+          <span class="section-icon">🎯</span>
+          Key Discussion Points
+        </h2>
+        <ul class="list">
+          ${renderListItems(summary.key_points)}
+        </ul>
+      </div>
+      `
+          : ""
+      }
+
+
+      <!-- Action Items -->
+      ${
+        summary.action_items.length > 0
+          ? `
+      <div class="section">
+        <h2 class="section-title">
+          <span class="section-icon">✅</span>
+          Action Items
+        </h2>
+        <div class="action-items">
+          ${renderActionItems(summary.action_items)}
+        </div>
+      </div>
+      `
+          : ""
+      }
+
+
+      <!-- Insights & Decisions -->
+      ${
+        summary.insights_decisions.length > 0
+          ? `
+      <div class="section">
+        <h2 class="section-title">
+          <span class="section-icon">💡</span>
+          Insights & Decisions
+        </h2>
+        <ul class="list">
+          ${renderListItems(summary.insights_decisions)}
+        </ul>
+      </div>
+      `
+          : ""
+      }
+
+
+      <!-- Summary Insights -->
+      ${
+        summary.summary_insights.length > 0
+          ? `
+      <div class="section">
+        <h2 class="section-title">
+          <span class="section-icon">📊</span>
+          Summary Insights
+        </h2>
+        <ul class="list">
+          ${renderListItems(summary.summary_insights)}
+        </ul>
+      </div>
+      `
+          : ""
+      }
+
+
+      <!-- Sentiment Analysis -->
+      ${
+        summary.emotion_analysis
+          ? `
+      <div class="section">
+        <h2 class="section-title">
+          <span class="section-icon">😊</span>
+          Meeting Sentiment
+        </h2>
+        <div class="sentiment-card ${sentimentConfig.class}">
+          <div class="sentiment-emoji">${sentimentConfig.emoji}</div>
+          <div class="sentiment-text">
+            ${escapeHtml(summary.emotion_analysis.overall_sentiment.toUpperCase())}
+          </div>
+          <div class="sentiment-confidence">
+            ${summary.emotion_analysis.overall_confidence}% Confidence
+          </div>
+        </div>
+      </div>
+      `
+          : ""
+      }
+
+
+      <!-- Meeting Health Score -->
+      ${
+        summary.meeting_health_score
+          ? `
+      <div class="section">
+        <h2 class="section-title">
+          <span class="section-icon">📈</span>
+          Meeting Health Score
+        </h2>
+        <div class="health-score">
+          <div class="health-score-value">${summary.meeting_health_score.overall_score}</div>
+          <div class="health-score-label">Overall Meeting Health / 100</div>
+        </div>
+        <div class="health-grid">
+          <div class="health-metric">
+            <div class="metric-value">${summary.meeting_health_score.engagement_score}</div>
+            <div class="metric-label">Engagement</div>
+          </div>
+          <div class="health-metric">
+            <div class="metric-value">${summary.meeting_health_score.productivity_score}</div>
+            <div class="metric-label">Productivity</div>
+          </div>
+          <div class="health-metric">
+            <div class="metric-value">${summary.meeting_health_score.collaboration_score}</div>
+            <div class="metric-label">Collaboration</div>
+          </div>
+          <div class="health-metric">
+            <div class="metric-value">${summary.meeting_health_score.clarity_score}</div>
+            <div class="metric-label">Clarity</div>
+          </div>
+        </div>
+      </div>
+      `
+          : ""
+      }
+
+
+      <!-- Footer -->
+      <div class="footer">
+        <div class="footer-attachment">
+          <span style="font-size: 20px;">📎</span>
+          <div>
+            <strong>Complete meeting documentation attached</strong>
+            <div style="font-size: 12px; opacity: 0.8;">Detailed PDF report included with this email</div>
+          </div>
+        </div>
+        <p class="footer-text">
+          This meeting summary was generated automatically by<br>
+          <strong>LISN AI Documentation System</strong>
+        </p>
+        <p class="footer-copyright">
+          © ${new Date().getFullYear()} LISN. All rights reserved.
+        </p>
+      </div>
     </div>
   </div>
 </body>
@@ -820,7 +1227,7 @@ export async function sendPasswordResetEmail(email: string, resetToken: string):
   const resetTokens = new Map();
   resetTokens.set(resetToken, {
     email,
-    expires: Date.now() + 60 * 5  * 1000, //5 minutes from now
+    expires: Date.now() + 60 * 60 * 1000, // 1 hour
   });
 
 
@@ -835,9 +1242,9 @@ export async function sendPasswordResetEmail(email: string, resetToken: string):
           <style>
             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px; }
             .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-            .header { background: linear-gradient(135deg,rgb(106, 200, 223) 0%,rgb(19, 154, 163) 100%); padding: 30px; text-align: center; color: white; }
+            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; color: white; }
             .content { padding: 30px; background: #f9f9f9; }
-            .button { background: linear-gradient(135deg, rgb(106, 200, 223) 0%, rgb(19, 154, 163) 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold; }
+            .button { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold; }
             .footer { text-align: center; margin-top: 20px; color: #666; font-size: 14px; }
             .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 4px; margin: 15px 0; font-size: 14px; }
           </style>
@@ -857,7 +1264,7 @@ export async function sendPasswordResetEmail(email: string, resetToken: string):
 
 
               <div class="warning">
-                <strong>Important:</strong> This link will expire in 5 minutes for security reasons.
+                <strong>Important:</strong> This link will expire in 1 hour for security reasons.
                 If you didn't request this reset, please ignore this email.
               </div>
 

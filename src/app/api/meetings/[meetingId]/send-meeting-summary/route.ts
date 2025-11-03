@@ -4,9 +4,6 @@ import { getMeeting } from "@/lib/services/meeting-service";
 import { sendEmailWithAttachment, sendEmailWithoutAttachment, shouldIncludePDF, estimatePDFSize } from "@/lib/services/email-service";
 
 
-export const dynamic = "force-dynamic";
-
-
 export async function POST(request: NextRequest, { params }: { params: Promise<{ meetingId: string }> }) {
   try {
     const { recipientEmails, pdfContent } = await request.json();
@@ -108,7 +105,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (error.message?.includes("SMTP configuration")) {
       errorMessage = "Email service is not configured properly";
       statusCode = 500;
-    } else if (error.message?.includes("connection") || error.code === 'ECONNRESET') {
+    } else if (error.message?.includes("connection")) {
       errorMessage = "Unable to connect to email service";
       statusCode = 503;
     } else if (error.message?.includes("authentication")) {
@@ -126,3 +123,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     );
   }
 }
+
+
+
+
+

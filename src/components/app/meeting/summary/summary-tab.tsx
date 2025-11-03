@@ -227,7 +227,22 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
       }
 
 
+      // Check PDF size before proceeding
       const pdfData = pdfBase64.split(",")[1];
+      const pdfSizeMB = (pdfData.length * 0.75) / (1024 * 1024);
+
+
+      console.log(`📊 Generated PDF size: ${pdfSizeMB.toFixed(2)} MB`);
+
+
+      if (pdfSizeMB > 15) {
+        throw new Error(`PDF is too large for email (${pdfSizeMB.toFixed(1)} MB). Please use export instead.`);
+      }
+
+
+      if (pdfSizeMB > 10) {
+        setEmailMessage(`Warning: Large PDF (${pdfSizeMB.toFixed(1)} MB) may take longer to send...`);
+      }
 
 
       // Get only selected and valid emails
@@ -251,13 +266,30 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
       });
 
 
+      // Handle both HTML and JSON responses
+      const responseText = await response.text();
+
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to send emails");
+        // Check if it's HTML error page
+        if (responseText.startsWith("<!DOCTYPE") || responseText.includes("<html")) {
+          console.error("Server returned HTML error:", responseText.substring(0, 500));
+          throw new Error("Server error occurred. Please try again later.");
+        }
+
+
+        // Try to parse as JSON
+        try {
+          const errorData = JSON.parse(responseText);
+          throw new Error(errorData.message || "Failed to send emails");
+        } catch {
+          throw new Error(`Request failed with status ${response.status}`);
+        }
       }
 
 
-      const result = await response.json();
+      // Parse successful JSON response
+      const result = JSON.parse(responseText);
 
 
       setEmailStatus("success");
@@ -440,14 +472,14 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
 
         {/* Desktop Actions */}
         <div className="hidden md:flex gap-2">
-          <Button onClick={onReanalyze} disabled={isAnalyzing || !meeting.transcripts?.length} variant="outline" size="sm" className="hover:bg-blue-600 border-blue-200">
+          <Button onClick={onReanalyze} disabled={isAnalyzing || !meeting.transcripts?.length} variant="outline" size="sm" className="hover:bg-blue-50 border-blue-200">
             <RefreshCw className={`w-4 h-4 mr-2 ${isAnalyzing ? "animate-spin" : ""}`} />
             {isAnalyzing ? "Analyzing..." : "Re-analyze"}
           </Button>
 
 
           <div className="relative">
-            <Button variant="outline" size="sm" disabled={!meeting.summary || isExporting} onClick={() => setShowExportMenu(!showExportMenu)} className="hover:bg-green-600 border-green-200">
+            <Button variant="outline" size="sm" disabled={!meeting.summary || isExporting} onClick={() => setShowExportMenu(!showExportMenu)} className="hover:bg-green-50 border-green-200">
               <Download className="w-4 h-4 mr-2" />
               {isExporting ? "Exporting..." : "Export Document"}
               <ChevronDown className="w-4 h-4 ml-1" />
@@ -479,7 +511,7 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
 
           {/* Only show email button to creator */}
           {isCreator && (
-            <Button onClick={() => setShowEmailModal(true)} variant="outline" size="sm" disabled={!meeting.summary || isSendingEmail} className="hover:bg-orange-600 border-orange-200">
+            <Button onClick={() => setShowEmailModal(true)} variant="outline" size="sm" disabled={!meeting.summary || isSendingEmail} className="hover:bg-orange-50 border-orange-200">
               <Mail className="w-4 h-4 mr-2" />
               {isSendingEmail ? "Sending..." : "Email Summary"}
               {participantCount > 0 && <span className="ml-2 bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">{participantCount}</span>}
@@ -566,8 +598,6 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
                   )}
                 </div>
               </div>
-
-
               {/* Additional Emails */}
               <div>
                 <label htmlFor="additionalEmails" className="block text-sm font-medium text-gray-700 mb-2">
@@ -584,8 +614,6 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
                 />
                 <p className="text-xs text-gray-500 mt-1">Separate multiple emails with commas. Invalid emails will be highlighted.</p>
               </div>
-
-
               {/* Status Message */}
               {emailMessage && (
                 <div
@@ -594,6 +622,11 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
                   }`}
                 >
                   {emailMessage}
+                </div>
+              )}
+              {emailStatus === "idle" && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
+                  <strong>Note:</strong> PDF attachments are automatically compressed for email. For very large meetings, the PDF may be skipped to ensure delivery.
                 </div>
               )}
             </div>
@@ -624,6 +657,7 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
     </div>
   );
 }
+
 
 
 

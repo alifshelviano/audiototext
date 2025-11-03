@@ -1,6 +1,7 @@
 // app/history/page.tsx
 "use client";
 
+
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -10,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useSession } from "next-auth/react";
 import { Trash2, Edit, Calendar, Users, Globe, Lock, FileText, Clock, Search, Eye, MoreVertical, Sparkles, Key, Copy, CheckCircle } from "lucide-react";
+
 
 interface Meeting {
   id: string;
@@ -21,6 +23,7 @@ interface Meeting {
   transcripts?: any[];
   summary?: any;
 }
+
 
 export default function HistoryPage() {
   const { data: session, status } = useSession();
@@ -34,11 +37,13 @@ export default function HistoryPage() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [copiedPasskey, setCopiedPasskey] = useState<string | null>(null);
 
+
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/auth/login");
     }
   }, [status, router]);
+
 
   const fetchMeetings = useCallback(async (userId: string) => {
     try {
@@ -58,11 +63,13 @@ export default function HistoryPage() {
     }
   }, []);
 
+
   useEffect(() => {
     if (status === "authenticated" && session?.user?.id) {
       fetchMeetings(session.user.id);
     }
   }, [status, session, fetchMeetings]);
+
 
   useEffect(() => {
     if (searchQuery.trim() === "") {
@@ -72,6 +79,7 @@ export default function HistoryPage() {
       setFilteredMeetings(filtered);
     }
   }, [searchQuery, meetings]);
+
 
   const handleDelete = async (meetingId: string) => {
     if (!confirm("Are you sure you want to delete this meeting?")) return;
@@ -85,11 +93,27 @@ export default function HistoryPage() {
     }
   };
 
+
   const handleEdit = (meeting: Meeting) => {
     setEditingMeeting(meeting.id);
-    setEditForm({ name: meeting.name, time: new Date(meeting.time).toISOString().slice(0, 16) });
+
+
+    // Convert meeting time to local datetime string for the input
+    const meetingDate = new Date(meeting.time);
+
+
+    // Adjust for timezone offset to get correct local time display
+    const timezoneOffset = meetingDate.getTimezoneOffset() * 60000; // offset in milliseconds
+    const localDate = new Date(meetingDate.getTime() - timezoneOffset);
+
+
+    setEditForm({
+      name: meeting.name,
+      time: localDate.toISOString().slice(0, 16),
+    });
     setActiveMenu(null);
   };
+
 
   const handleUpdate = async (meetingId: string) => {
     try {
@@ -108,7 +132,9 @@ export default function HistoryPage() {
     }
   };
 
+
   const handleCancelEdit = () => setEditingMeeting(null);
+
 
   const handleCopyPasskey = (passkey: string) => {
     navigator.clipboard.writeText(passkey).then(() => {
@@ -116,6 +142,7 @@ export default function HistoryPage() {
       setTimeout(() => setCopiedPasskey(null), 2000);
     });
   };
+
 
   const getLanguageInfo = (language: string) => {
     const languages: { [key: string]: { name: string; flag: string; color: string } } = {
@@ -125,6 +152,7 @@ export default function HistoryPage() {
     };
     return languages[language] || { name: language, flag: "🌐", color: "bg-gray-100 text-gray-700 border-gray-200" };
   };
+
 
   const formatDateTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -136,12 +164,15 @@ export default function HistoryPage() {
     };
   };
 
+
   const hasTranscripts = (m: Meeting) => m.transcripts && m.transcripts.length > 0;
   const hasSummary = (m: Meeting) => m.summary && Object.keys(m.summary).length > 0;
+
 
   const renderMeetingCard = (meeting: Meeting) => {
     const datetime = formatDateTime(meeting.time);
     const langInfo = getLanguageInfo(meeting.language);
+
 
     if (editingMeeting === meeting.id) {
       return (
@@ -159,6 +190,7 @@ export default function HistoryPage() {
         </div>
       );
     }
+
 
     return (
       <div key={meeting.id} className="group bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-2xl transition-all duration-300 hover:scale-105 hover:border-cyan-200">
@@ -181,18 +213,23 @@ export default function HistoryPage() {
           </div>
         </div>
 
+
         <div className="flex items-center gap-2 mb-4 flex-wrap">
           {meeting.isPublic ? (
-            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200"><Globe className="w-3 h-3 mr-1.5" />Public</Badge>
+            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+              <Globe className="w-3 h-3 mr-1.5" />
+              Public
+            </Badge>
           ) : (
-            <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200"><Lock className="w-3 h-3 mr-1.5" />Private</Badge>
+            <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+              <Lock className="w-3 h-3 mr-1.5" />
+              Private
+            </Badge>
           )}
           {!meeting.isPublic && meeting.passkey && (
             <Badge
               variant="outline"
-              className={`bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100 cursor-pointer gap-1.5 transition-all ${
-                copiedPasskey === meeting.passkey ? "!bg-green-50 !text-green-700 !border-green-200" : ""
-              }`}
+              className={`bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100 cursor-pointer gap-1.5 transition-all ${copiedPasskey === meeting.passkey ? "!bg-green-50 !text-green-700 !border-green-200" : ""}`}
               onClick={() => handleCopyPasskey(meeting.passkey!)}
               title="Click to copy passkey"
             >
@@ -201,6 +238,7 @@ export default function HistoryPage() {
             </Badge>
           )}
         </div>
+
 
         <div className="space-y-3 mb-6">
           <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
@@ -220,14 +258,28 @@ export default function HistoryPage() {
               <span className="text-lg">{langInfo.flag}</span>
               <p className="text-sm font-medium text-gray-700 capitalize">{meeting.language}</p>
             </div>
-            <Badge variant="outline" className={langInfo.color}>{langInfo.name}</Badge>
+            <Badge variant="outline" className={langInfo.color}>
+              {langInfo.name}
+            </Badge>
           </div>
         </div>
 
+
         <div className="flex items-center gap-4 mb-6">
-          {hasTranscripts(meeting) && <Badge variant="outline" className="bg-green-100 text-green-800"><Users className="w-3 h-3 mr-1.5"/>Transcripts</Badge>}
-          {hasSummary(meeting) && <Badge variant="outline" className="bg-cyan-100 text-cyan-800"><FileText className="w-3 h-3 mr-1.5"/>Summary</Badge>}
+          {hasTranscripts(meeting) && (
+            <Badge variant="outline" className="bg-green-100 text-green-800">
+              <Users className="w-3 h-3 mr-1.5" />
+              Transcripts
+            </Badge>
+          )}
+          {hasSummary(meeting) && (
+            <Badge variant="outline" className="bg-cyan-100 text-cyan-800">
+              <FileText className="w-3 h-3 mr-1.5" />
+              Summary
+            </Badge>
+          )}
         </div>
+
 
         <Link href={`/meeting/${meeting.id}/join`} className="flex-1">
           <Button className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-semibold flex items-center justify-center gap-2">
@@ -238,6 +290,7 @@ export default function HistoryPage() {
       </div>
     );
   };
+
 
   const renderSkeleton = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -258,6 +311,7 @@ export default function HistoryPage() {
     </div>
   );
 
+
   const renderEmptyState = () => (
     <div className="text-center py-20 border-2 border-dashed border-gray-300 rounded-2xl bg-gradient-to-br from-gray-50 to-cyan-50/30">
       <div className="w-20 h-20 bg-cyan-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
@@ -266,16 +320,16 @@ export default function HistoryPage() {
       <h3 className="text-2xl font-bold text-gray-800 mb-3">No Meetings Created Yet</h3>
       <p className="text-gray-500 mb-8 max-w-md mx-auto text-lg">Start by creating your first meeting room.</p>
       <Link href="/meeting/create-meetings">
-        <Button className="bg-cyan-600 hover:bg-cyan-700 text-white px-8 py-3 rounded-xl text-lg font-semibold shadow-lg">
-          Create Your First Meeting
-        </Button>
+        <Button className="bg-cyan-600 hover:bg-cyan-700 text-white px-8 py-3 rounded-xl text-lg font-semibold shadow-lg">Create Your First Meeting</Button>
       </Link>
     </div>
   );
 
+
   if (status === "loading" || !session) {
     return <DashboardLayout>{renderSkeleton()}</DashboardLayout>;
   }
+
 
   return (
     <DashboardLayout>
@@ -283,7 +337,8 @@ export default function HistoryPage() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8">
           <div className="flex-1">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-600 to-teal-700 bg-clip-text text-transparent">My Meetings</h1>
-            
+
+
             <p className="text-xl text-gray-600 max-w-2xl">Manage and review all your created meetings.</p>
           </div>
           <Link href="/meeting/create-meetings">
@@ -293,6 +348,7 @@ export default function HistoryPage() {
             </Button>
           </Link>
         </div>
+
 
         <div className="relative max-w-2xl mb-8">
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -306,6 +362,7 @@ export default function HistoryPage() {
         </div>
       </div>
 
+
       {!isLoading && meetings.length > 0 && (
         <div className="mb-6">
           <p className="text-gray-600 text-lg">
@@ -314,6 +371,7 @@ export default function HistoryPage() {
         </div>
       )}
 
+
       {isLoading ? (
         renderSkeleton()
       ) : filteredMeetings.length > 0 ? (
@@ -321,9 +379,7 @@ export default function HistoryPage() {
       ) : searchQuery ? (
         <div className="text-center py-16">
           <h3 className="text-2xl font-bold text-gray-800">No meetings found</h3>
-          <p className="text-gray-500">
-            No meetings match "{searchQuery}"
-          </p>
+          <p className="text-gray-500">No meetings match "{searchQuery}"</p>
           <Button onClick={() => setSearchQuery("")} className="mt-4 bg-cyan-600 text-white">
             Clear search
           </Button>
@@ -334,3 +390,6 @@ export default function HistoryPage() {
     </DashboardLayout>
   );
 }
+
+
+

@@ -1,15 +1,19 @@
 // components/app/meeting-form.tsx
 "use client";
 
+
 import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+
 
 interface MeetingFormProps {
   onMeetingCreated: (meetingData: any) => void;
 }
 
+
 type Language = "english" | "indonesian" | "korean";
+
 
 export function MeetingForm({ onMeetingCreated }: MeetingFormProps) {
   const [name, setName] = useState("");
@@ -19,13 +23,16 @@ export function MeetingForm({ onMeetingCreated }: MeetingFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
 
+
     try {
       console.log("Submitting meeting data:", { name, time, isPublic, language });
+
 
       const response = await fetch("/api/meetings", {
         method: "POST",
@@ -40,6 +47,7 @@ export function MeetingForm({ onMeetingCreated }: MeetingFormProps) {
         }),
       });
 
+
       if (!response.ok) {
         let errorMessage = "Failed to create meeting";
         try {
@@ -52,16 +60,20 @@ export function MeetingForm({ onMeetingCreated }: MeetingFormProps) {
         throw new Error(errorMessage);
       }
 
+
       const data = await response.json();
       console.log("API Response data:", data);
+
 
       // Ensure we have a valid meeting ID
       if (!data.meetingId && !data.id) {
         throw new Error("No meeting ID returned from server");
       }
 
+
       // Call the callback with the entire response data
       onMeetingCreated(data);
+
 
       // Reset form
       setName("");
@@ -76,17 +88,20 @@ export function MeetingForm({ onMeetingCreated }: MeetingFormProps) {
     }
   };
 
+
   function getDefaultTime() {
     const now = new Date();
-    now.setHours(now.getHours() + 1);
+    now.setHours(now.getHours() + 7);
     return now.toISOString().slice(0, 16);
   }
+
 
   const languageOptions = [
     { value: "english", label: "English", flag: "🇺🇸" },
     { value: "indonesian", label: "Indonesian", flag: "🇮🇩" },
     { value: "korean", label: "Korean", flag: "🇰🇷" },
   ];
+
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -95,6 +110,7 @@ export function MeetingForm({ onMeetingCreated }: MeetingFormProps) {
           <p className="text-red-800 text-sm">{error}</p>
         </div>
       )}
+
 
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
@@ -112,6 +128,7 @@ export function MeetingForm({ onMeetingCreated }: MeetingFormProps) {
         />
       </div>
 
+
       <div>
         <label htmlFor="time" className="block text-sm font-medium text-gray-700 mb-1">
           Meeting Time *
@@ -127,6 +144,7 @@ export function MeetingForm({ onMeetingCreated }: MeetingFormProps) {
           disabled={isLoading}
         />
       </div>
+
 
       <div>
         <label htmlFor="language" className="block text-sm font-medium text-gray-700 mb-1">
@@ -149,6 +167,7 @@ export function MeetingForm({ onMeetingCreated }: MeetingFormProps) {
         <p className="text-xs text-gray-500 mt-1">This will be used for transcription and summary generation</p>
       </div>
 
+
       <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
         <div className="flex-1">
           <Label htmlFor="is-public" className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
@@ -158,6 +177,7 @@ export function MeetingForm({ onMeetingCreated }: MeetingFormProps) {
           <p className="text-xs text-gray-500 mt-1 ml-10">{isPublic ? "Anyone with the link can join" : "Participants need a passkey to join"}</p>
         </div>
       </div>
+
 
       {!isPublic && (
         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -170,6 +190,7 @@ export function MeetingForm({ onMeetingCreated }: MeetingFormProps) {
           <p className="text-xs text-yellow-700">A passkey will be automatically generated for this meeting. Share it only with intended participants.</p>
         </div>
       )}
+
 
       <button
         type="submit"
@@ -188,3 +209,6 @@ export function MeetingForm({ onMeetingCreated }: MeetingFormProps) {
     </form>
   );
 }
+
+
+
