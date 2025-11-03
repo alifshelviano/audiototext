@@ -256,10 +256,10 @@ export default function SettingsPage() {
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3">Settings & Preferences</h1>
-            <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-400">Customize your LISN experience and account settings</p>
+            <h1 className="text-2xl sm:text-2xl font-bold bg-gradient-to-r from-cyan-600 to-teal-600 bg-clip-text text-transparent mb-3">Settings & Preferences</h1>
+            <p className="text-lg sm:text-lg text-gray-600 dark:text-gray-400">Customize your LISN experience and account settings</p>
           </div>
-          <Button onClick={handleSaveSettings} disabled={saveLoading} className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg">
+          <Button onClick={handleSaveSettings} disabled={saveLoading} className="gap-2 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 shadow-lg">
             <Save className="w-4 h-4" />
             {saveLoading ? "Saving..." : "Save Changes"}
           </Button>

@@ -107,24 +107,24 @@ export default function Page() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
         {/* Total Meetings Card - Only show if user is authenticated */}
         {status === "authenticated" && (
-          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-5 sm:p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+          <div className="bg-gradient-to-br from-[#125B9A] to-[#1679AB] rounded-2xl p-5 sm:p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
                   <Briefcase className="h-5 w-5" />
                 </div>
-                <h3 className="font-semibold text-sm sm:text-base">My Meetings</h3>
+                <h3 className="font-bold text-sm sm:text-base">My Meetings</h3>
               </div>
               {isLoading ? <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <span className="text-2xl sm:text-3xl font-bold">{userMeetingsCount}</span>}
             </div>
-            <p className="text-purple-100 text-xs sm:text-sm opacity-90">Meetings you've created</p>
+            <p className="text-grey-300 text-xs sm:text-sm opacity-90">Meetings you've created</p>
           </div>
         )}
 
         {/* Create Meeting Card */}
         {status === "authenticated" && (
           <Link href="/meeting/create-meetings" className="block h-full">
-            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-5 sm:p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 h-full cursor-pointer group">
+            <div className="bg-gradient-to-br from-[#10B981] to-[#059669] rounded-2xl p-5 sm:p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 h-full cursor-pointer group">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
                   <Plus className="h-5 w-5" />
@@ -132,7 +132,7 @@ export default function Page() {
                 <h3 className="font-semibold text-sm sm:text-base">Create Meeting</h3>
               </div>
               <p className="text-green-100 text-xs sm:text-sm mb-4 opacity-90">Start a new meeting room and invite collaborators</p>
-              <div className="w-full bg-white/20 backdrop-blur-sm py-2 px-4 rounded-xl font-medium group-hover:bg-white/30 transition-all duration-200 text-center text-sm">Get Started</div>
+              <div className="w-full bg-white/20 backdrop-blur-sm py-2 px-4 rounded-xl font-medium group-hover:bg-white/30 transition-all duration-200 text-center text-sm">Create Now</div>
             </div>
           </Link>
         )}

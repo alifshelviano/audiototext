@@ -736,7 +736,7 @@ export async function sendPasswordResetEmail(email: string, resetToken: string):
   const resetTokens = new Map();
   resetTokens.set(resetToken, {
     email,
-    expires: Date.now() + 60 * 60 * 1000, // 1 hour
+    expires: Date.now() + 60 * 5  * 1000, //5 minutes from now
   });
 
   const mailOptions: nodemailer.SendMailOptions = {
@@ -750,9 +750,9 @@ export async function sendPasswordResetEmail(email: string, resetToken: string):
           <style>
             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px; }
             .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; color: white; }
+            .header { background: linear-gradient(135deg,rgb(106, 200, 223) 0%,rgb(19, 154, 163) 100%); padding: 30px; text-align: center; color: white; }
             .content { padding: 30px; background: #f9f9f9; }
-            .button { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold; }
+            .button { background: linear-gradient(135deg, rgb(106, 200, 223) 0%, rgb(19, 154, 163) 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold; }
             .footer { text-align: center; margin-top: 20px; color: #666; font-size: 14px; }
             .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 4px; margin: 15px 0; font-size: 14px; }
           </style>
@@ -771,7 +771,7 @@ export async function sendPasswordResetEmail(email: string, resetToken: string):
               </div>
 
               <div class="warning">
-                <strong>Important:</strong> This link will expire in 1 hour for security reasons.
+                <strong>Important:</strong> This link will expire in 5 minutes for security reasons.
                 If you didn't request this reset, please ignore this email.
               </div>
 

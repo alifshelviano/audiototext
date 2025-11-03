@@ -113,13 +113,13 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
 
     switch (type) {
       case "email_received":
-        return <Mail className={cn(iconClass, "text-blue-500")} />;
+        return <Mail className={cn(iconClass, "text-cyan-500")} />;
       case "action_item":
-        return <CheckCircle className={cn(iconClass, "text-orange-500")} />;
+        return <CheckCircle className={cn(iconClass, "text-cyan-500")} />;
       case "meeting_summary":
-        return <Calendar className={cn(iconClass, "text-green-500")} />;
+        return <Calendar className={cn(iconClass, "text-cyan-500")} />;
       case "mention":
-        return <MessageSquare className={cn(iconClass, "text-purple-500")} />;
+        return <MessageSquare className={cn(iconClass, "text-cyan-500")} />;
       default:
         return <Bell className={cn(iconClass, "text-gray-500")} />;
     }
@@ -173,7 +173,7 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
 
         <DropdownMenuContent ref={dropdownRef} align="end" className="w-96 max-h-[600px] overflow-hidden shadow-xl border-0" sideOffset={8}>
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
+          <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-cyan-50 to-teal-50">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
                 <Bell className="h-5 w-5 text-blue-600" />
@@ -200,19 +200,6 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
                   </TooltipContent>
                 </Tooltip>
               )}
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="sm" asChild className="h-8 w-8 p-0">
-                    <Link href="/notifications/settings">
-                      <Settings className="h-3.5 w-3.5" />
-                    </Link>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Notification settings</p>
-                </TooltipContent>
-              </Tooltip>
             </div>
           </div>
 
@@ -231,9 +218,9 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
 
           {/* Browser Notification Permission */}
           {!permissionRequested && "Notification" in window && Notification.permission === "default" && (
-            <div className="px-4 py-3 bg-blue-50 border-b border-blue-200">
-              <p className="text-xs text-blue-800 mb-2 font-medium">Enable desktop notifications to stay updated</p>
-              <Button size="sm" variant="outline" className="w-full text-xs bg-white hover:bg-blue-100" onClick={handleRequestPermission} disabled={loading}>
+            <div className="px-4 py-3 bg-cyan-50 border-b border-cyan-200">
+              <p className="text-xs text-cyan-800 mb-2 font-medium">Enable desktop notifications to stay updated</p>
+              <Button size="sm" variant="outline" className="w-full text-xs bg-white hover:bg-cyan-100" onClick={handleRequestPermission} disabled={loading}>
                 <Bell className="h-3 w-3 mr-1" />
                 Enable Notifications
               </Button>
@@ -268,7 +255,7 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
                       key={getNotificationKey(notification, index)}
                       className={cn(
                         "group relative rounded-lg p-3 transition-all duration-200 cursor-pointer mb-2 border",
-                        !notification.read ? "bg-blue-50 border-blue-200 shadow-sm" : "bg-white border-gray-200 hover:bg-gray-50",
+                        !notification.read ? "bg-cyan-50 border-cyan-200 shadow-sm" : "bg-white border-gray-200 hover:bg-gray-50",
                         isProcessing && "opacity-60 pointer-events-none"
                       )}
                       onClick={() => handleNotificationClick(notification)}
@@ -276,7 +263,7 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
                       {/* Processing Overlay */}
                       {isProcessing && (
                         <div className="absolute inset-0 bg-white bg-opacity-70 rounded-lg flex items-center justify-center z-10">
-                          <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                          <Loader2 className="h-4 w-4 animate-spin text-cyan-600" />
                         </div>
                       )}
 
@@ -303,9 +290,9 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
 
                           {/* Action Item */}
                           {notification.actionItem && (
-                            <div className="bg-orange-50 border border-orange-200 rounded-lg px-3 py-2">
-                              <p className="text-xs font-medium text-orange-800 mb-1">📋 {notification.actionItem.task}</p>
-                              <p className="text-xs text-orange-600">⏰ Due: {notification.actionItem.deadline}</p>
+                            <div className="bg-cyan-50 border border-cyan-200 rounded-lg px-3 py-2">
+                              <p className="text-xs font-medium text-cyan-800 mb-1">📋 {notification.actionItem.task}</p>
+                              <p className="text-xs text-cyan-600">⏰ Due: {notification.actionItem.deadline}</p>
                             </div>
                           )}
 
@@ -329,7 +316,7 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
                               {notification.meetingId && (
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <Button variant="ghost" size="sm" asChild className="h-6 w-6 p-0 hover:bg-blue-100" onClick={(e) => e.stopPropagation()}>
+                                    <Button variant="ghost" size="sm" asChild className="h-6 w-6 p-0 hover:bg-cyan-100" onClick={(e) => e.stopPropagation()}>
                                       <Link href={`/meeting/${notification.meetingId}/join`}>
                                         <ExternalLink className="h-3 w-3" />
                                       </Link>
@@ -381,7 +368,7 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
               <DropdownMenuSeparator />
               <div className="p-2">
                 <DropdownMenuItem asChild className="cursor-pointer">
-                  <Link href="/notifications" className="w-full text-center py-2 text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center justify-center gap-2" onClick={() => setIsOpen(false)}>
+                  <Link href="/notifications" className="w-full text-center py-2 text-sm text-cyan-600 hover:text-cyan-700 font-medium flex items-center justify-center gap-2" onClick={() => setIsOpen(false)}>
                     View all notifications
                     <ExternalLink className="h-3 w-3" />
                   </Link>

@@ -19,13 +19,13 @@ export default function NotificationsPage() {
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case "email_received":
-        return <Mail className="h-5 w-5 text-blue-500" />;
+        return <Mail className="h-5 w-5 text-cyan-500" />;
       case "action_item":
-        return <CheckCircle className="h-5 w-5 text-orange-500" />;
+        return <CheckCircle className="h-5 w-5 text-cyan-500" />;
       case "meeting_summary":
-        return <Bell className="h-5 w-5 text-green-500" />;
+        return <Bell className="h-5 w-5 text-cyan-500" />;
       case "mention":
-        return <AlertCircle className="h-5 w-5 text-purple-500" />;
+        return <AlertCircle className="h-5 w-5 text-cyan-500" />;
       default:
         return <Bell className="h-5 w-5 text-gray-500" />;
     }
@@ -36,13 +36,10 @@ export default function NotificationsPage() {
 
     switch (type) {
       case "email_received":
-        return "bg-blue-50 border-l-4 border-l-blue-500";
       case "action_item":
-        return "bg-orange-50 border-l-4 border-l-orange-500";
       case "meeting_summary":
-        return "bg-green-50 border-l-4 border-l-green-500";
       case "mention":
-        return "bg-purple-50 border-l-4 border-l-purple-500";
+        return "bg-cyan-50 border-l-4 border-l-cyan-500";
       default:
         return "bg-gray-50";
     }
@@ -119,8 +116,8 @@ export default function NotificationsPage() {
 
             <div className="bg-white rounded-lg p-4 border shadow-sm">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-orange-100 rounded-lg">
-                  <AlertCircle className="h-5 w-5 text-orange-600" />
+                <div className="p-2 bg-red-100 rounded-lg">
+                  <AlertCircle className="h-5 w-5 text-red-600" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900">{unreadCount}</p>
@@ -162,7 +159,7 @@ export default function NotificationsPage() {
           <div className="bg-white rounded-lg border p-12 text-center">
             <Bell className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2">{filter === "unread" ? "All caught up!" : "No notifications yet"}</h3>
-            <p className="text-gray-600">{filter === "unread" ? "You've read all your notifications." : "When you receive notifications, they'll appear here."}</p>
+            <p className="text-gray-600">{filter === "unread" ? "You\'ve read all your notifications." : "When you receive notifications, they\'ll appear here."}</p>
           </div>
         ) : (
           <div className="space-y-6">
@@ -203,9 +200,9 @@ export default function NotificationsPage() {
                           )}
 
                           {notification.actionItem && (
-                            <div className="bg-white border border-orange-200 rounded-lg p-3 mb-3">
+                            <div className="bg-white border border-cyan-200 rounded-lg p-3 mb-3">
                               <p className="text-sm font-medium text-gray-900 mb-1">📋 {notification.actionItem.task}</p>
-                              <p className="text-xs text-orange-600">⏰ Due: {notification.actionItem.deadline}</p>
+                              <p className="text-xs text-cyan-600">⏰ Due: {notification.actionItem.deadline}</p>
                             </div>
                           )}
 

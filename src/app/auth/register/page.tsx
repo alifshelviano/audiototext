@@ -185,14 +185,6 @@ export default function RegisterPage() {
       {/* Left Side - Register Form */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
-          {/* Mobile Brand */}
-          <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-gradient-to-r from-cyan-500 to-teal-500 rounded-xl flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-cyan-500 to-teal-500 bg-clip-text text-transparent">LISN</span>
-          </div>
-
           <div className="bg-white rounded-3xl shadow-2xl p-8 border border-gray-100">
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">Create Account</h2>
@@ -360,20 +352,6 @@ export default function RegisterPage() {
                 </a>
               </p>
             </div>
-
-            {/* Privacy notice */}
-            {/* <div className="mt-4 text-center">
-              <p className="text-xs text-gray-500">
-                By creating an account, you agree to our{" "}
-                <a href="#" className="text-gray-600 hover:text-gray-800 underline">
-                  Terms
-                </a>{" "}
-                and{" "}
-                <a href="#" className="text-gray-600 hover:text-gray-800 underline">
-                  Privacy Policy
-                </a>
-              </p>
-            </div> */}
           </div>
         </div>
       </div>
@@ -385,13 +363,6 @@ export default function RegisterPage() {
 
         {/* Content */}
         <div className="relative z-10 space-y-12">
-            <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                <Sparkles className="w-6 h-6 text-white" />
-                </div>
-                <span className="text-2xl font-bold text-white">LISN</span>
-            </div>
-
             <div className="max-w-md">
                 <h1 className="text-5xl font-bold mb-6 leading-tight text-white">
                 Join <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-pink-300">LISN</span> Today

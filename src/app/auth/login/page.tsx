@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
+import Image from "next/image";
 import { FcGoogle } from "react-icons/fc";
-import { Eye, EyeOff, Mail, Lock, ArrowRight, Sparkles, Users, Video, FileText } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ArrowRight, Users, Video, FileText } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -139,15 +140,6 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/80 via-cyan-900/70 to-teal-800/80" />
 
         {/* Content */}
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-              <Sparkles className="w-6 h-6" />
-            </div>
-            <span className="text-2xl font-bold">LISN</span>
-          </div>
-        </div>
-
         <div className="relative z-10 max-w-md">
           <h1 className="text-5xl font-bold mb-6 leading-tight">
             Welcome to <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-pink-300">LISN</span>
@@ -173,14 +165,6 @@ export default function LoginPage() {
       {/* Right Side - Login Form */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
-          {/* Mobile Brand */}
-          <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-xl flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-cyan-500 bg-clip-text text-transparent">LISN</span>
-          </div>
-
           <div className="bg-white rounded-3xl shadow-2xl p-8 border border-gray-100">
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">Welcome Back</h2>
