@@ -2,8 +2,8 @@
 import nodemailer from "nodemailer";
 import SMTPTransport from "nodemailer/lib/smtp-transport";
 import { notifyEmailRecipients } from "@/lib/services/notification-service";
-import { getSocketIOInstance } from "@/lib/socket";
-import clientPromise from "@/lib/database/mongodb";
+import { getSocketIOInstance } from "@/lib/socket"; // You'll need to create this export
+import clientPromise from "@/lib/database/mongodb"; // Import your MongoDB client
 
 
 interface EmailOptions {

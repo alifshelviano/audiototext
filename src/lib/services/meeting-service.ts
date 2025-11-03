@@ -1,9 +1,11 @@
 "use server";
 
+
 import { summarizeTranscribedText } from "@/ai/flows/summarize-transcribed-text";
 import clientPromise from "@/lib/database/mongodb";
 import { ObjectId } from "mongodb";
 import type { MeetingData } from "@/types/models/Meeting";
+
 
 // Define interfaces for type safety
 export interface Transcript {
@@ -13,10 +15,12 @@ export interface Transcript {
   createdAt: Date;
 }
 
+
 export interface Participant {
   name: string;
   email: string;
 }
+
 
 export interface Meeting {
   _id?: ObjectId;
@@ -34,11 +38,13 @@ export interface Meeting {
   passkey?: string; // Only for private meetings
 }
 
+
 export async function createMeeting(meetingData: { name: string; time: string; userId: string; isPublic: boolean; language: "english" | "indonesian" | "korean"; passkey?: string }): Promise<{ meetingId: string }> {
   try {
     const client = await clientPromise;
     const db = client.db();
     const meetingsCollection = db.collection<Meeting>("meetings");
+
 
     const meeting = {
       ...meetingData,
@@ -47,14 +53,18 @@ export async function createMeeting(meetingData: { name: string; time: string; u
       participants: [],
     };
 
+
     const result = await meetingsCollection.insertOne(meeting);
+
 
     if (!result.acknowledged) {
       throw new Error("Failed to create meeting");
     }
 
+
     // Return the string representation of the MongoDB ObjectId
     const meetingId = result.insertedId.toString();
+
 
     return { meetingId };
   } catch (error) {
@@ -62,6 +72,7 @@ export async function createMeeting(meetingData: { name: string; time: string; u
     throw new Error("Failed to create meeting");
   }
 }
+
 
 export async function getMeetings({ userId, isPublic }: { userId?: string; isPublic?: boolean }): Promise<
   Array<{
@@ -78,18 +89,23 @@ export async function getMeetings({ userId, isPublic }: { userId?: string; isPub
     const db = client.db();
     const meetingsCollection = db.collection<Meeting>("meetings");
 
+
     // Build query based on parameters
     const query: any = {};
+
 
     if (userId) {
       query.userId = userId;
     }
 
+
     if (isPublic !== undefined) {
       query.isPublic = isPublic;
     }
 
+
     const meetings = await meetingsCollection.find(query).sort({ createdAt: -1 }).toArray();
+
 
     return meetings.map((meeting) => ({
       id: meeting._id!.toString(),
@@ -105,6 +121,7 @@ export async function getMeetings({ userId, isPublic }: { userId?: string; isPub
   }
 }
 
+
 // In meeting-service.ts, update the getMeeting function:
 export async function getMeeting({ meetingId }: { meetingId: string }): Promise<MeetingData | null> {
   try {
@@ -112,17 +129,21 @@ export async function getMeeting({ meetingId }: { meetingId: string }): Promise<
       return null;
     }
 
+
     const client = await clientPromise;
     const db = client.db();
     const meetingsCollection = db.collection<Meeting>("meetings");
+
 
     const meeting = await meetingsCollection.findOne({
       _id: new ObjectId(meetingId),
     });
 
+
     if (!meeting) {
       return null;
     }
+
 
     // Return all required fields including userId and createdAt
     return {
@@ -146,6 +167,7 @@ export async function getMeeting({ meetingId }: { meetingId: string }): Promise<
   }
 }
 
+
 // Function to verify passkey for private meetings
 export async function verifyMeetingPasskey({ meetingId, passkey }: { meetingId: string; passkey: string }): Promise<{ success: boolean; error?: string }> {
   try {
@@ -153,31 +175,38 @@ export async function verifyMeetingPasskey({ meetingId, passkey }: { meetingId: 
       return { success: false, error: "Invalid meeting ID" };
     }
 
+
     const client = await clientPromise;
     const db = client.db();
     const meetingsCollection = db.collection<Meeting>("meetings");
+
 
     const meeting = await meetingsCollection.findOne({
       _id: new ObjectId(meetingId),
     });
 
+
     if (!meeting) {
       return { success: false, error: "Meeting not found" };
     }
+
 
     // If meeting is public, no passkey needed
     if (meeting.isPublic) {
       return { success: true };
     }
 
+
     // If meeting is private, verify passkey
     if (!meeting.passkey) {
       return { success: false, error: "This meeting requires a passkey but none is set" };
     }
 
+
     if (meeting.passkey !== passkey.toUpperCase()) {
       return { success: false, error: "Invalid passkey" };
     }
+
 
     return { success: true };
   } catch (error) {
@@ -186,21 +215,25 @@ export async function verifyMeetingPasskey({ meetingId, passkey }: { meetingId: 
   }
 }
 
+
 export async function addTranscriptToMeeting({ meetingId, transcript }: { meetingId: string; transcript: Omit<Transcript, "createdAt"> & { createdAt?: Date } }): Promise<{ success: boolean; error?: string }> {
   try {
     if (!ObjectId.isValid(meetingId)) {
       return { success: false, error: "Invalid meeting ID" };
     }
 
+
     const client = await clientPromise;
     const db = client.db();
     const meetingsCollection = db.collection<Meeting>("meetings");
+
 
     // Prepare the transcript with createdAt
     const transcriptWithDate = {
       ...transcript,
       createdAt: transcript.createdAt || new Date(),
     };
+
 
     // Add the transcript
     const result = await meetingsCollection.updateOne(
@@ -212,9 +245,11 @@ export async function addTranscriptToMeeting({ meetingId, transcript }: { meetin
       }
     );
 
+
     if (result.matchedCount === 0) {
       return { success: false, error: "Meeting not found" };
     }
+
 
     return { success: true };
   } catch (error) {
@@ -223,6 +258,7 @@ export async function addTranscriptToMeeting({ meetingId, transcript }: { meetin
   }
 }
 
+
 // In your meetings.ts server file, update the addParticipantToMeeting function:
 export async function addParticipantToMeeting({ meetingId, participant }: { meetingId: string; participant: Participant }): Promise<{ success: boolean; error?: string }> {
   try {
@@ -230,9 +266,11 @@ export async function addParticipantToMeeting({ meetingId, participant }: { meet
       return { success: false, error: "Invalid meeting ID" };
     }
 
+
     const client = await clientPromise;
     const db = client.db();
     const meetingsCollection = db.collection<Meeting>("meetings");
+
 
     // Check if participant already exists (case-insensitive)
     const existingMeeting = await meetingsCollection.findOne({
@@ -240,9 +278,11 @@ export async function addParticipantToMeeting({ meetingId, participant }: { meet
       "participants.email": { $regex: `^${participant.email}$`, $options: "i" },
     });
 
+
     if (existingMeeting) {
       return { success: true }; // Participant already exists
     }
+
 
     // Add the participant
     const result = await meetingsCollection.updateOne(
@@ -254,9 +294,11 @@ export async function addParticipantToMeeting({ meetingId, participant }: { meet
       }
     );
 
+
     if (result.matchedCount === 0) {
       return { success: false, error: "Meeting not found" };
     }
+
 
     return { success: true };
   } catch (error) {
@@ -265,6 +307,7 @@ export async function addParticipantToMeeting({ meetingId, participant }: { meet
   }
 }
 
+
 // Function to update meeting summary with structured data
 export async function updateMeetingSummary({ meetingId, summary }: { meetingId: string; summary: any }): Promise<{ success: boolean; error?: string }> {
   try {
@@ -272,9 +315,11 @@ export async function updateMeetingSummary({ meetingId, summary }: { meetingId: 
       return { success: false, error: "Invalid meeting ID" };
     }
 
+
     const client = await clientPromise;
     const db = client.db();
     const meetingsCollection = db.collection<Meeting>("meetings");
+
 
     const result = await meetingsCollection.updateOne(
       { _id: new ObjectId(meetingId) },
@@ -286,9 +331,11 @@ export async function updateMeetingSummary({ meetingId, summary }: { meetingId: 
       }
     );
 
+
     if (result.matchedCount === 0) {
       return { success: false, error: "Meeting not found" };
     }
+
 
     return { success: true };
   } catch (error) {
@@ -297,6 +344,7 @@ export async function updateMeetingSummary({ meetingId, summary }: { meetingId: 
   }
 }
 
+
 // Function to generate meeting summary using Gemini
 export async function generateMeetingSummary({ meetingId, transcripts, language }: { meetingId: string; transcripts: any[]; language: "english" | "indonesian" | "korean" }): Promise<{ success: boolean; summary?: any; error?: string }> {
   try {
@@ -304,19 +352,23 @@ export async function generateMeetingSummary({ meetingId, transcripts, language 
       return { success: false, error: "No transcripts available" };
     }
 
+
     // Get meeting data to access language and time
     const meeting = await getMeeting({ meetingId });
     if (!meeting) {
       return { success: false, error: "Meeting not found" };
     }
 
+
     // Combine all transcripts into a single text
     const combinedTranscript = transcripts.map((t: any) => `${t.name}: ${t.transcript}`).join("\n\n");
+
 
     // Format meeting date and time
     const meetingDate = new Date(meeting.time);
     const formattedDate = meetingDate.toISOString().split("T")[0];
     const formattedTime = meetingDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
 
     // Call the Gemini flow with language parameter and actual meeting date/time
     const result = await summarizeTranscribedText({
@@ -325,6 +377,7 @@ export async function generateMeetingSummary({ meetingId, transcripts, language 
       meetingDate: formattedDate, // Use the actual meeting date
       meetingTime: formattedTime, // Use the actual meeting time
     });
+
 
     // Parse the JSON summary
     let parsedSummary;
@@ -347,15 +400,18 @@ export async function generateMeetingSummary({ meetingId, transcripts, language 
       };
     }
 
+
     // Save to database
     const updateResult = await updateMeetingSummary({
       meetingId,
       summary: parsedSummary,
     });
 
+
     if (!updateResult.success) {
       return { success: false, error: updateResult.error };
     }
+
 
     return { success: true, summary: parsedSummary };
   } catch (error) {
@@ -364,6 +420,7 @@ export async function generateMeetingSummary({ meetingId, transcripts, language 
   }
 }
 
+
 // Additional utility functions
 export async function deleteMeeting({ meetingId, userId }: { meetingId: string; userId: string }): Promise<{ success: boolean; error?: string }> {
   try {
@@ -371,29 +428,36 @@ export async function deleteMeeting({ meetingId, userId }: { meetingId: string; 
       return { success: false, error: "Invalid meeting ID" };
     }
 
+
     const client = await clientPromise;
     const db = client.db();
     const meetingsCollection = db.collection<Meeting>("meetings");
+
 
     const meeting = await meetingsCollection.findOne({
       _id: new ObjectId(meetingId),
     });
 
+
     if (!meeting) {
       return { success: false, error: "Meeting not found" };
     }
+
 
     if (meeting.userId !== userId) {
       return { success: false, error: "Forbidden" };
     }
 
+
     const result = await meetingsCollection.deleteOne({
       _id: new ObjectId(meetingId),
     });
 
+
     if (result.deletedCount === 0) {
       return { success: false, error: "Meeting not found" };
     }
+
 
     return { success: true };
   } catch (error) {
@@ -402,15 +466,18 @@ export async function deleteMeeting({ meetingId, userId }: { meetingId: string; 
   }
 }
 
+
 export async function updateMeeting(meetingId: string, updates: Partial<Pick<Meeting, "name" | "time" | "isPublic" | "language" | "passkey">>): Promise<{ success: boolean }> {
   try {
     if (!ObjectId.isValid(meetingId)) {
       return { success: false };
     }
 
+
     const client = await clientPromise;
     const db = client.db();
     const meetingsCollection = db.collection<Meeting>("meetings");
+
 
     const result = await meetingsCollection.updateOne(
       { _id: new ObjectId(meetingId) },
@@ -419,12 +486,14 @@ export async function updateMeeting(meetingId: string, updates: Partial<Pick<Mee
       }
     );
 
+
     return { success: result.matchedCount === 1 };
   } catch (error) {
     console.error("Error updating meeting:", error);
     return { success: false };
   }
 }
+
 
 // Function to get meeting access info (for join page)
 export async function getMeetingAccessInfo({ meetingId }: { meetingId: string }): Promise<{
@@ -439,17 +508,21 @@ export async function getMeetingAccessInfo({ meetingId }: { meetingId: string })
       return null;
     }
 
+
     const client = await clientPromise;
     const db = client.db();
     const meetingsCollection = db.collection<Meeting>("meetings");
+
 
     const meeting = await meetingsCollection.findOne({
       _id: new ObjectId(meetingId),
     });
 
+
     if (!meeting) {
       return null;
     }
+
 
     return {
       id: meeting._id!.toString(),
@@ -463,3 +536,6 @@ export async function getMeetingAccessInfo({ meetingId }: { meetingId: string })
     return null;
   }
 }
+
+
+
