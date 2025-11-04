@@ -45,17 +45,13 @@ export class ExportService {
     }
   }
 
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/filbert_fix_prompt
   // lib/export-service.ts
   static async generatePDFBase64(element: HTMLElement): Promise<string | null> {
     try {
       // Use the same method as exportToPDF for consistency
       const html2pdf = (await import("html2pdf.js")).default;
 
-<<<<<<< HEAD
 
       const options = {
         margin: 15,
@@ -78,47 +74,19 @@ export class ExportService {
       };
 
 
-=======
-      const options = {
-        margin: 15,
-        filename: "temp.pdf", // Not used for base64
-        image: {
-          type: "jpeg" as const,
-          quality: 0.7, // Lower quality for smaller email attachments
-        },
-        html2canvas: {
-          scale: 1.5, // Lower scale for smaller files
-          useCORS: true,
-          logging: false,
-          width: 800,
-        },
-        jsPDF: {
-          unit: "mm" as const,
-          format: "a4" as const,
-          orientation: "portrait" as const,
-        },
-      };
-
->>>>>>> origin/filbert_fix_prompt
       // Generate base64 directly
       const pdfOutput = await html2pdf().set(options).from(element).output("datauristring");
       return pdfOutput;
     } catch (error) {
       console.error("PDF base64 generation failed:", error);
 
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/filbert_fix_prompt
       // Fallback to the original method but with optimizations
       try {
         const html2canvas = (await import("html2canvas")).default;
         const jsPDF = (await import("jspdf")).default;
 
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/filbert_fix_prompt
         const canvas = await html2canvas(element, {
           scale: 1.5, // Reduced from 2 to 1.5
           useCORS: true,
@@ -127,30 +95,19 @@ export class ExportService {
           imageTimeout: 0, // Prevent image loading issues
         });
 
-<<<<<<< HEAD
 
         // Convert to JPEG instead of PNG for better compression
         const imgData = canvas.toDataURL("image/jpeg", 0.7); // 70% quality
 
 
-=======
-        // Convert to JPEG instead of PNG for better compression
-        const imgData = canvas.toDataURL("image/jpeg", 0.7); // 70% quality
-
->>>>>>> origin/filbert_fix_prompt
         const pdf = new jsPDF("p", "mm", "a4");
         const imgWidth = 210;
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-<<<<<<< HEAD
 
         pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, imgHeight);
 
 
-=======
-        pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, imgHeight);
-
->>>>>>> origin/filbert_fix_prompt
         return pdf.output("datauristring");
       } catch (fallbackError) {
         console.error("Fallback PDF generation also failed:", fallbackError);
