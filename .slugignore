@@ -9,4 +9,5 @@ node_modules
 /.idx
 
 # Ignore large media assets
-
+/npm-debug.log
+/.next/
