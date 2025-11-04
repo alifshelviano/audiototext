@@ -1,9 +1,9 @@
-# Ignore documentation files
+# Ignore documentation and local development files
 *.md
-/docs
-
-# Ignore IDE-specific files
-/.idx
-
-# Ignore large media assets
 *.mp4
+
+
+# Ignore build artifacts and dependencies
+/node_modules
+/npm-debug.log
+/.next/
