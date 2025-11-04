@@ -9,4 +9,4 @@ node_modules
 /.idx
 
 # Ignore large media assets
-*.mp4
+

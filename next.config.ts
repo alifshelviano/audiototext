@@ -31,6 +31,7 @@
                   },
                 ],
               },
+              productionBrowserSourceMaps: false,
               allowedDevOrigins: ['9002-firebase-lisn-1761831573586.cluster-ulqnojp5endvgve6krhe7klaws.cloudworkstations.dev'],
             };
             
