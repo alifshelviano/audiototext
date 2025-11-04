@@ -1,4 +1,3 @@
-
 # Ignore documentation files
 *.md
 /docs
@@ -7,4 +6,4 @@
 /.idx
 
 # Ignore large media assets
-/public/videos
+*.mp4
