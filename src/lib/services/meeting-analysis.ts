@@ -6,6 +6,7 @@ import { summarizeTranscribedText } from "@/ai/flows/summarize-transcribed-text"
 import { notifyActionItemAssignees } from "./notification-service";
 import { getSocketIOInstance } from "@/lib/socket";
 import clientPromise from "@/lib/database/mongodb";
+import { getSocketIOInstanceSafe, isSocketIOInitialized } from "@/lib/socket";
 
 export async function analyzeMeeting(meetingId: string): Promise<{
   success: boolean;
@@ -91,7 +92,7 @@ export async function analyzeMeeting(meetingId: string): Promise<{
   }
 }
 
-// NEW: Helper function to trigger action item notifications
+// // NEW: Helper function to trigger action item notifications
 async function triggerActionItemNotifications(meetingId: string, meeting: any, summary: any): Promise<void> {
   try {
     // Check if we have action items in the summary
@@ -103,8 +104,17 @@ async function triggerActionItemNotifications(meetingId: string, meeting: any, s
       // Create notifications for assignees
       await notifyActionItemAssignees(meetingId, meeting.name, actionItems, meeting.participants || []);
 
-      // Also emit Socket.IO events for real-time notifications
-      const io = getSocketIOInstance();
+      // ✅ SAFE: Only emit Socket.IO events if initialized
+      if (!isSocketIOInitialized()) {
+        console.warn("⚠️ Socket.IO not initialized - skipping real-time action item notifications");
+        return;
+      }
+
+      const io = getSocketIOInstanceSafe();
+      if (!io) {
+        console.warn("⚠️ Socket.IO instance unavailable - skipping real-time notifications");
+        return;
+      }
 
       for (const item of actionItems) {
         const assignedTo = item.assigned_to;
@@ -113,29 +123,34 @@ async function triggerActionItemNotifications(meetingId: string, meeting: any, s
           const participant = meeting.participants.find((p: any) => p.name?.toLowerCase() === assignedTo.toLowerCase() || p.email?.toLowerCase() === assignedTo.toLowerCase());
 
           if (participant && participant.email) {
-            const client = await clientPromise;
-            const db = client.db();
-            const user = await db.collection("users").findOne({
-              email: participant.email.toLowerCase(),
-            });
-
-            if (user) {
-              io.to(`user-${user._id.toString()}`).emit("new-notification", {
-                type: "action_item",
-                title: "New Action Item Assigned",
-                message: `You have been assigned: "${item.task}"`,
-                meetingId,
-                meetingName: meeting.name,
-                actionItem: {
-                  task: item.task,
-                  deadline: item.deadline,
-                  assignedTo: item.assigned_to,
-                },
-                timestamp: new Date().toISOString(),
+            try {
+              const client = await clientPromise;
+              const db = client.db();
+              const user = await db.collection("users").findOne({
+                email: participant.email.toLowerCase(),
               });
-              console.log(`✅ Sent real-time notification for action item to ${participant.email}`);
-            } else {
-              console.log(`ℹ️ User not found for email: ${participant.email}`);
+
+              if (user) {
+                io.to(`user-${user._id.toString()}`).emit("new-notification", {
+                  type: "action_item",
+                  title: "New Action Item Assigned",
+                  message: `You have been assigned: "${item.task}"`,
+                  meetingId,
+                  meetingName: meeting.name,
+                  actionItem: {
+                    task: item.task,
+                    deadline: item.deadline,
+                    assignedTo: item.assigned_to,
+                  },
+                  timestamp: new Date().toISOString(),
+                });
+                console.log(`✅ Sent real-time notification for action item to ${participant.email}`);
+              } else {
+                console.log(`ℹ️ User not found for email: ${participant.email}`);
+              }
+            } catch (userError) {
+              console.error(`Failed to send notification for ${participant.email}:`, userError);
+              // Continue with other participants
             }
           } else {
             console.log(`ℹ️ No participant found for assigned_to: ${assignedTo}`);

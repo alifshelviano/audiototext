@@ -41,47 +41,65 @@ export class ExportService {
     }
   }
 
+  // lib/export-service.ts
   static async generatePDFBase64(element: HTMLElement): Promise<string | null> {
     try {
-      // Dynamically import required libraries
-      const html2canvas = (await import("html2canvas")).default;
-      const jsPDF = (await import("jspdf")).default;
+      // Use the same method as exportToPDF for consistency
+      const html2pdf = (await import("html2pdf.js")).default;
 
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: "#ffffff",
-      });
+      const options = {
+        margin: 15,
+        filename: "temp.pdf", // Not used for base64
+        image: {
+          type: "jpeg" as const,
+          quality: 0.7, // Lower quality for smaller email attachments
+        },
+        html2canvas: {
+          scale: 1.5, // Lower scale for smaller files
+          useCORS: true,
+          logging: false,
+          width: 800,
+        },
+        jsPDF: {
+          unit: "mm" as const,
+          format: "a4" as const,
+          orientation: "portrait" as const,
+        },
+      };
 
-      const imgData = canvas.toDataURL("image/png");
-
-      // Calculate PDF dimensions
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 297; // A4 height in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-      const pdf = new jsPDF("p", "mm", "a4");
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      // Add first page
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      // Add additional pages if content is too long
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-
-      // Return base64 string directly
-      return pdf.output("datauristring");
+      // Generate base64 directly
+      const pdfOutput = await html2pdf().set(options).from(element).output("datauristring");
+      return pdfOutput;
     } catch (error) {
-      console.error("PDF generation failed:", error);
-      return null;
+      console.error("PDF base64 generation failed:", error);
+
+      // Fallback to the original method but with optimizations
+      try {
+        const html2canvas = (await import("html2canvas")).default;
+        const jsPDF = (await import("jspdf")).default;
+
+        const canvas = await html2canvas(element, {
+          scale: 1.5, // Reduced from 2 to 1.5
+          useCORS: true,
+          logging: false,
+          backgroundColor: "#ffffff",
+          imageTimeout: 0, // Prevent image loading issues
+        });
+
+        // Convert to JPEG instead of PNG for better compression
+        const imgData = canvas.toDataURL("image/jpeg", 0.7); // 70% quality
+
+        const pdf = new jsPDF("p", "mm", "a4");
+        const imgWidth = 210;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, imgHeight);
+
+        return pdf.output("datauristring");
+      } catch (fallbackError) {
+        console.error("Fallback PDF generation also failed:", fallbackError);
+        return null;
+      }
     }
   }
 
@@ -105,14 +123,14 @@ export class ExportService {
           <style>
             /* Reset and base styles */
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { 
-              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-              line-height: 1.6; 
-              color: #1f2937; 
+            body {
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+              line-height: 1.6;
+              color: #1f2937;
               background: #ffffff;
               padding: 20px;
             }
-            
+           
             /* Header */
             .document-header {
               text-align: center;
@@ -131,7 +149,7 @@ export class ExportService {
               color: #6b7280;
               font-weight: 500;
             }
-            
+           
             /* Sections */
             .section {
               margin-bottom: 35px;
@@ -145,7 +163,7 @@ export class ExportService {
               padding-bottom: 10px;
               margin-bottom: 20px;
             }
-            
+           
             /* Meeting Overview */
             .overview-grid {
               display: grid;
@@ -169,7 +187,7 @@ export class ExportService {
               color: #111827;
               font-size: 15px;
             }
-            
+           
             /* Participants */
             .participant-list {
               display: flex;
@@ -185,7 +203,7 @@ export class ExportService {
               font-weight: 500;
               border: 1px solid #dbeafe;
             }
-            
+           
             /* Key Points */
             .key-points {
               list-style: none;
@@ -216,7 +234,7 @@ export class ExportService {
               font-weight: 700;
               flex-shrink: 0;
             }
-            
+           
             /* Insights & Decisions */
             .insight-item {
               background: #f0fdf4;
@@ -234,7 +252,7 @@ export class ExportService {
               flex-shrink: 0;
               margin-top: 2px;
             }
-            
+           
             /* Action Items */
             .action-item {
               background: #fff7ed;
@@ -271,7 +289,7 @@ export class ExportService {
             .status-in-progress { background: #dbeafe; color: #1e40af; }
             .status-pending { background: #fef3c7; color: #92400e; }
             .status-not-started { background: #f3f4f6; color: #374151; }
-            
+           
             /* Sentiment Analysis */
             .sentiment-grid {
               display: grid;
@@ -302,7 +320,7 @@ export class ExportService {
               text-transform: uppercase;
               letter-spacing: 0.5px;
             }
-            
+           
             /* Meeting Health Score */
             .health-score {
               text-align: center;
@@ -344,7 +362,7 @@ export class ExportService {
               text-transform: uppercase;
               letter-spacing: 0.5px;
             }
-            
+           
             /* Transcripts */
             .transcript-item {
               background: #f8fafc;
@@ -374,7 +392,7 @@ export class ExportService {
               color: #374151;
               line-height: 1.5;
             }
-            
+           
             /* Footer */
             .document-footer {
               text-align: center;
@@ -384,7 +402,7 @@ export class ExportService {
               color: #6b7280;
               font-size: 12px;
             }
-            
+           
             /* Print styles */
             @media print {
               body { padding: 0; }
@@ -400,6 +418,7 @@ export class ExportService {
               Meeting Documentation • ${structuredSummary.date} • ${structuredSummary.time}
             </div>
           </div>
+
 
           <!-- Meeting Overview -->
           <div class="section">
@@ -422,6 +441,7 @@ export class ExportService {
             </div>
           </div>
 
+
           <!-- Key Discussion Points -->
           ${
             keyPoints.length > 0
@@ -441,6 +461,7 @@ export class ExportService {
           `
               : ""
           }
+
 
           <!-- Insights & Decisions -->
           ${
@@ -465,6 +486,7 @@ export class ExportService {
               : ""
           }
 
+
           <!-- Summary Insights -->
           ${
             summaryInsights.length > 0
@@ -487,6 +509,7 @@ export class ExportService {
           `
               : ""
           }
+
 
           <!-- Action Items -->
           ${
@@ -517,6 +540,7 @@ export class ExportService {
           `
               : ""
           }
+
 
           <!-- Sentiment Analysis -->
           ${
@@ -560,6 +584,7 @@ export class ExportService {
               : ""
           }
 
+
           <!-- Meeting Health Score -->
           ${
             healthScore
@@ -592,6 +617,7 @@ export class ExportService {
           `
               : ""
           }
+
 
           <!-- Next Meeting -->
           ${
@@ -628,6 +654,7 @@ export class ExportService {
               : ""
           }
 
+
           <!-- Full Transcript -->
           ${
             transcripts.length > 0
@@ -656,9 +683,10 @@ export class ExportService {
               : ""
           }
 
+
           <!-- Document Footer -->
           <div class="document-footer">
-            Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()} • 
+            Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()} •
             Meeting AI Documentation System
           </div>
         </body>

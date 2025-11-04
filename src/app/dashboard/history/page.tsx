@@ -87,7 +87,18 @@ export default function HistoryPage() {
 
   const handleEdit = (meeting: Meeting) => {
     setEditingMeeting(meeting.id);
-    setEditForm({ name: meeting.name, time: new Date(meeting.time).toISOString().slice(0, 16) });
+
+    // Convert meeting time to local datetime string for the input
+    const meetingDate = new Date(meeting.time);
+
+    // Adjust for timezone offset to get correct local time display
+    const timezoneOffset = meetingDate.getTimezoneOffset() * 60000; // offset in milliseconds
+    const localDate = new Date(meetingDate.getTime() - timezoneOffset);
+
+    setEditForm({
+      name: meeting.name,
+      time: localDate.toISOString().slice(0, 16),
+    });
     setActiveMenu(null);
   };
 
@@ -183,16 +194,20 @@ export default function HistoryPage() {
 
         <div className="flex items-center gap-2 mb-4 flex-wrap">
           {meeting.isPublic ? (
-            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200"><Globe className="w-3 h-3 mr-1.5" />Public</Badge>
+            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+              <Globe className="w-3 h-3 mr-1.5" />
+              Public
+            </Badge>
           ) : (
-            <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200"><Lock className="w-3 h-3 mr-1.5" />Private</Badge>
+            <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+              <Lock className="w-3 h-3 mr-1.5" />
+              Private
+            </Badge>
           )}
           {!meeting.isPublic && meeting.passkey && (
             <Badge
               variant="outline"
-              className={`bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100 cursor-pointer gap-1.5 transition-all ${
-                copiedPasskey === meeting.passkey ? "!bg-green-50 !text-green-700 !border-green-200" : ""
-              }`}
+              className={`bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100 cursor-pointer gap-1.5 transition-all ${copiedPasskey === meeting.passkey ? "!bg-green-50 !text-green-700 !border-green-200" : ""}`}
               onClick={() => handleCopyPasskey(meeting.passkey!)}
               title="Click to copy passkey"
             >
@@ -220,13 +235,25 @@ export default function HistoryPage() {
               <span className="text-lg">{langInfo.flag}</span>
               <p className="text-sm font-medium text-gray-700 capitalize">{meeting.language}</p>
             </div>
-            <Badge variant="outline" className={langInfo.color}>{langInfo.name}</Badge>
+            <Badge variant="outline" className={langInfo.color}>
+              {langInfo.name}
+            </Badge>
           </div>
         </div>
 
         <div className="flex items-center gap-4 mb-6">
-          {hasTranscripts(meeting) && <Badge variant="outline" className="bg-green-100 text-green-800"><Users className="w-3 h-3 mr-1.5"/>Transcripts</Badge>}
-          {hasSummary(meeting) && <Badge variant="outline" className="bg-cyan-100 text-cyan-800"><FileText className="w-3 h-3 mr-1.5"/>Summary</Badge>}
+          {hasTranscripts(meeting) && (
+            <Badge variant="outline" className="bg-green-100 text-green-800">
+              <Users className="w-3 h-3 mr-1.5" />
+              Transcripts
+            </Badge>
+          )}
+          {hasSummary(meeting) && (
+            <Badge variant="outline" className="bg-cyan-100 text-cyan-800">
+              <FileText className="w-3 h-3 mr-1.5" />
+              Summary
+            </Badge>
+          )}
         </div>
 
         <Link href={`/meeting/${meeting.id}/join`} className="flex-1">
@@ -266,9 +293,7 @@ export default function HistoryPage() {
       <h3 className="text-2xl font-bold text-gray-800 mb-3">No Meetings Created Yet</h3>
       <p className="text-gray-500 mb-8 max-w-md mx-auto text-lg">Start by creating your first meeting room.</p>
       <Link href="/meeting/create-meetings">
-        <Button className="bg-cyan-600 hover:bg-cyan-700 text-white px-8 py-3 rounded-xl text-lg font-semibold shadow-lg">
-          Create Your First Meeting
-        </Button>
+        <Button className="bg-cyan-600 hover:bg-cyan-700 text-white px-8 py-3 rounded-xl text-lg font-semibold shadow-lg">Create Your First Meeting</Button>
       </Link>
     </div>
   );
@@ -283,7 +308,7 @@ export default function HistoryPage() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8">
           <div className="flex-1">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-600 to-teal-700 bg-clip-text text-transparent">My Meetings</h1>
-            
+
             <p className="text-xl text-gray-600 max-w-2xl">Manage and review all your created meetings.</p>
           </div>
           <Link href="/meeting/create-meetings">
@@ -321,9 +346,7 @@ export default function HistoryPage() {
       ) : searchQuery ? (
         <div className="text-center py-16">
           <h3 className="text-2xl font-bold text-gray-800">No meetings found</h3>
-          <p className="text-gray-500">
-            No meetings match "{searchQuery}"
-          </p>
+          <p className="text-gray-500">No meetings match "{searchQuery}"</p>
           <Button onClick={() => setSearchQuery("")} className="mt-4 bg-cyan-600 text-white">
             Clear search
           </Button>

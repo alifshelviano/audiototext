@@ -78,7 +78,7 @@ export function MeetingForm({ onMeetingCreated }: MeetingFormProps) {
 
   function getDefaultTime() {
     const now = new Date();
-    now.setHours(now.getHours() + 1);
+    now.setHours(now.getHours() + 7);
     return now.toISOString().slice(0, 16);
   }
 

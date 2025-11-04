@@ -201,7 +201,7 @@ interface MeetingContentProps {
   meeting: any;
   meetingId: string;
   isAnalyzing: boolean;
-  analysisStatus: AnalysisStatus; // Use the specific type here
+  analysisStatus: AnalysisStatus; 
   lastAnalysisTime: Date | null;
   onDataRefresh: () => void;
   onAutoAnalyze: () => void;

@@ -3,6 +3,7 @@ import { createServer } from "http";
 import { parse } from "url";
 import next from "next";
 import { Server as SocketIOServer } from "socket.io";
+import { setSocketIOInstance } from "@/lib/socket"; // Import the setter function
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
@@ -11,16 +12,7 @@ const port = parseInt(process.env.PORT || "9002", 10);
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
-// NEW: Socket.IO instance export for use in services
-let ioInstance: SocketIOServer | null = null;
-
-export function getSocketIOInstance(): SocketIOServer {
-  if (!ioInstance) {
-    throw new Error("Socket.IO not initialized");
-  }
-  return ioInstance;
-}
-
+// Remove the local ioInstance and use the lib/socket module instead
 app.prepare().then(() => {
   const server = createServer(async (req, res) => {
     try {
@@ -43,14 +35,14 @@ app.prepare().then(() => {
     transports: ["websocket", "polling"],
   });
 
-  // NEW: Store the io instance for export
-  ioInstance = io;
+  // ✅ FIX: Store the io instance in the lib/socket module
+  setSocketIOInstance(io);
 
   // Socket.IO connection handling
   io.on("connection", (socket) => {
     console.log("Client connected:", socket.id);
 
-    // NEW: Handle user joining their personal notification room
+    // Handle user joining their personal notification room
     socket.on("join-user-room", (userId: string) => {
       socket.join(`user-${userId}`);
       console.log(`User ${userId} joined their notification room`);
@@ -95,13 +87,13 @@ app.prepare().then(() => {
       io.to(`meeting-${data.meetingId}`).emit("status-update", data);
     });
 
-    // NEW: Handle notification acknowledgement
+    // Handle notification acknowledgement
     socket.on("notification-ack", (data: { notificationId: string; userId: string }) => {
       console.log(`Notification ${data.notificationId} acknowledged by user ${data.userId}`);
       // You can update the notification status in your database here
     });
 
-    // NEW: Handle notification read status
+    // Handle notification read status
     socket.on("mark-notification-read", (data: { notificationId: string; userId: string }) => {
       console.log(`Notification ${data.notificationId} marked as read by user ${data.userId}`);
       // Update the notification as read in your database
@@ -126,6 +118,6 @@ app.prepare().then(() => {
   server.listen(port, () => {
     console.log(`> Ready on http://${hostname}:${port}`);
     console.log(`> Socket.IO server running`);
-    console.log(`> Socket.IO instance exported for service use`);
+    console.log(`> Socket.IO instance properly initialized for service use`);
   });
 });
