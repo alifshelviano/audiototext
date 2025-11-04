@@ -1,13 +1,10 @@
-# Ignore build artifacts and development files
-/node_modules/
-/.next/
-/npm-debug.log
-/.DS_Store
 
-# Ignore documentation and local configuration
-/docs/
-/.env
-/README.md
+# Ignore documentation files
+*.md
+/docs
 
-# Ignore large media files
-/public/videos/
+# Ignore IDE-specific files
+/.idx
+
+# Ignore large media assets
+/public/videos
