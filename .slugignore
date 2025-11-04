@@ -1,9 +1,13 @@
-# Ignore documentation and local development files
-*.md
-*.mp4
-
-
-# Ignore build artifacts and dependencies
-/node_modules
-/npm-debug.log
+# Ignore build artifacts and development files
+/node_modules/
 /.next/
+/npm-debug.log
+/.DS_Store
+
+# Ignore documentation and local configuration
+/docs/
+/.env
+/README.md
+
+# Ignore large media files
+/public/videos/

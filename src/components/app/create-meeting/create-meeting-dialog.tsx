@@ -1,6 +1,5 @@
 "use client";
 
-
 import { useState, ReactNode, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -11,11 +10,9 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar, Users, Lock, Globe, Loader2, Check, Copy, ArrowRight, Video, Sparkles } from "lucide-react";
 
-
 interface CreateMeetingDialogProps {
   children: ReactNode;
 }
-
 
 export function CreateMeetingDialog({ children }: CreateMeetingDialogProps) {
   const [open, setOpen] = useState(false);
@@ -28,9 +25,7 @@ export function CreateMeetingDialog({ children }: CreateMeetingDialogProps) {
   const [newMeetingId, setNewMeetingId] = useState("");
   const [isCopied, setIsCopied] = useState(false);
 
-
   const router = useRouter();
-
 
   // Set default time to next hour
   useEffect(() => {
@@ -42,7 +37,6 @@ export function CreateMeetingDialog({ children }: CreateMeetingDialogProps) {
       setMeetingTime(now.toISOString().slice(0, 16));
     }
   }, [open, meetingTime]);
-
 
   // Reset state when dialog closes
   useEffect(() => {
@@ -60,13 +54,10 @@ export function CreateMeetingDialog({ children }: CreateMeetingDialogProps) {
     }
   }, [open]);
 
-
   const handleCreateMeeting = async () => {
     if (isButtonDisabled) return;
 
-
     setIsCreating(true);
-
 
     try {
       // Simulate API call
@@ -81,15 +72,12 @@ export function CreateMeetingDialog({ children }: CreateMeetingDialogProps) {
     }
   };
 
-
   const handleGoToMeeting = () => {
     router.push(`/meeting/${newMeetingId}/join`);
     setOpen(false);
   };
 
-
   const meetingLink = typeof window !== "undefined" ? `${window.location.origin}/meeting/${newMeetingId}/join` : "";
-
 
   const handleCopy = async () => {
     try {
@@ -101,9 +89,7 @@ export function CreateMeetingDialog({ children }: CreateMeetingDialogProps) {
     }
   };
 
-
   const isButtonDisabled = !meetingName.trim() || !meetingTime || isCreating;
-
 
   const SuccessView = () => (
     <div className="p-6 space-y-6">
@@ -117,7 +103,6 @@ export function CreateMeetingDialog({ children }: CreateMeetingDialogProps) {
           <p className="text-gray-500 mt-1">Your meeting room is ready for participants</p>
         </div>
       </div>
-
 
       {/* Meeting Details */}
       <div className="bg-blue-50 rounded-xl p-4 space-y-3">
@@ -137,7 +122,6 @@ export function CreateMeetingDialog({ children }: CreateMeetingDialogProps) {
           </div>
         </div>
       </div>
-
 
       {/* Share Link */}
       <div className="space-y-3">
@@ -163,7 +147,6 @@ export function CreateMeetingDialog({ children }: CreateMeetingDialogProps) {
         <p className="text-xs text-gray-500">Share this link with participants to join the meeting</p>
       </div>
 
-
       {/* Actions */}
       <div className="flex gap-3 pt-2">
         <DialogClose asChild>
@@ -179,7 +162,6 @@ export function CreateMeetingDialog({ children }: CreateMeetingDialogProps) {
     </div>
   );
 
-
   const CreateView = () => (
     <div className="space-y-6">
       {/* Header */}
@@ -191,7 +173,6 @@ export function CreateMeetingDialog({ children }: CreateMeetingDialogProps) {
         <p className="text-gray-500 text-sm mt-1">Set up your meeting room in seconds</p>
       </DialogHeader>
 
-
       {/* Form */}
       <div className="px-6 space-y-5">
         {/* Meeting Name */}
@@ -201,7 +182,6 @@ export function CreateMeetingDialog({ children }: CreateMeetingDialogProps) {
           </Label>
           <Input id="meeting-name" placeholder="Team standup, Client call, Project review..." value={meetingName} onChange={(e) => setMeetingName(e.target.value)} className="focus:ring-2 focus:ring-blue-500" />
         </div>
-
 
         {/* Date & Time */}
         <div className="space-y-2">
@@ -213,7 +193,6 @@ export function CreateMeetingDialog({ children }: CreateMeetingDialogProps) {
             <Input id="meeting-time" type="datetime-local" value={meetingTime} onChange={(e) => setMeetingTime(e.target.value)} className="pl-10 focus:ring-2 focus:ring-blue-500" />
           </div>
         </div>
-
 
         {/* Language */}
         <div className="space-y-2">
@@ -233,7 +212,6 @@ export function CreateMeetingDialog({ children }: CreateMeetingDialogProps) {
           <p className="text-xs text-gray-500">Used for transcription and AI analysis</p>
         </div>
 
-
         {/* Privacy Toggle */}
         <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border">
           <div className="space-y-1">
@@ -245,14 +223,12 @@ export function CreateMeetingDialog({ children }: CreateMeetingDialogProps) {
           <Switch id="privacy" checked={isPublic} onCheckedChange={setIsPublic} className="data-[state=checked]:bg-blue-600" />
         </div>
 
-
         {/* AI Features Badge */}
         <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-100">
           <Sparkles className="h-4 w-4 text-blue-600" />
           <span className="text-xs text-blue-700 font-medium">AI-powered transcription & summary included</span>
         </div>
       </div>
-
 
       {/* Create Button */}
       <DialogFooter className="px-6 pb-6 pt-2">
@@ -277,7 +253,6 @@ export function CreateMeetingDialog({ children }: CreateMeetingDialogProps) {
     </div>
   );
 
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
@@ -285,6 +260,3 @@ export function CreateMeetingDialog({ children }: CreateMeetingDialogProps) {
     </Dialog>
   );
 }
-
-
-

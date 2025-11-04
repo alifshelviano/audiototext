@@ -97,15 +97,12 @@ export default function HistoryPage() {
   const handleEdit = (meeting: Meeting) => {
     setEditingMeeting(meeting.id);
 
-
     // Convert meeting time to local datetime string for the input
     const meetingDate = new Date(meeting.time);
-
 
     // Adjust for timezone offset to get correct local time display
     const timezoneOffset = meetingDate.getTimezoneOffset() * 60000; // offset in milliseconds
     const localDate = new Date(meetingDate.getTime() - timezoneOffset);
-
 
     setEditForm({
       name: meeting.name,
@@ -337,8 +334,6 @@ export default function HistoryPage() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8">
           <div className="flex-1">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-600 to-teal-700 bg-clip-text text-transparent">My Meetings</h1>
-
-
             <p className="text-xl text-gray-600 max-w-2xl">Manage and review all your created meetings.</p>
           </div>
           <Link href="/meeting/create-meetings">
@@ -390,6 +385,3 @@ export default function HistoryPage() {
     </DashboardLayout>
   );
 }
-
-
-

@@ -176,7 +176,7 @@ export default function ProfilePage() {
       iconColor: "text-blue-600",
     },
     {
-      label: "Transcripts",
+      label: "Transcript Chats",
       value: userStats.transcriptsGenerated,
       icon: FileText,
       color: "from-green-500 to-green-600",
