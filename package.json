@@ -7,7 +7,7 @@
     "dev:turbo": "tsx server.ts",
     "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
     "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
-    "build": "next build",
+    "build": "XENOVA_CACHE_DIR=/tmp/xenova-cache next build",
     "start": "NODE_ENV=production tsx server.ts",
     "lint": "next lint",
     "typecheck": "tsc --noEmit"
