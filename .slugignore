@@ -1,13 +1,1 @@
-# Ignore node_modules
-node_modules
-
-# Ignore documentation files
-*.md
-/docs
-
-# Ignore IDE-specific files
-/.idx
-
-# Ignore large media assets
-/npm-debug.log
-/.next/
+.xenova/
