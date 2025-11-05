@@ -7,7 +7,7 @@
     "dev:turbo": "tsx server.ts",
     "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
     "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
-    "build": "next build && rm -rf ./.xenova",
+    "build": "next build && rm -rf ./.xenova && rm -rf .next/cache",
     "start": "NODE_ENV=production tsx server.ts",
     "lint": "next lint",
     "typecheck": "tsc --noEmit"
@@ -41,7 +41,6 @@
     "@radix-ui/react-tooltip": "^1.1.8",
     "@tailwindcss/line-clamp": "^0.4.4",
     "@types/dotenv": "^6.1.1",
-    "@xenova/transformers": "^2.17.2",
     "aos": "^2.3.4",
     "axios": "^1.13.1",
     "bcryptjs": "^3.0.2",
@@ -66,7 +65,6 @@
     "next-auth": "^4.24.11",
     "next-themes": "^0.4.6",
     "nodemailer": "^7.0.10",
-    "openai": "^6.7.0",
     "patch-package": "^8.0.0",
     "qrcode.react": "^4.2.0",
     "react": "^18.3.1",
@@ -81,7 +79,6 @@
     "socket.io-client": "^4.8.1",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7",
-    "tsx": "^4.16.2",
     "upscaler": "^1.0.0-beta.19",
     "zod": "^3.22.4"
   },
@@ -93,9 +90,12 @@
     "@types/react-dom": "^18",
     "@types/socket.io": "^3.0.1",
     "@types/socket.io-client": "^1.4.36",
+    "@xenova/transformers": "^2.17.2",
     "genkit-cli": "^1.20.0",
+    "openai": "^6.7.0",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
+    "tsx": "^4.16.2",
     "typescript": "^5"
   }
 }
