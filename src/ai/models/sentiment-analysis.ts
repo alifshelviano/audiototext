@@ -39,10 +39,10 @@ async function getSentimentClassifier() {
       // Use a proper multilingual sentiment analysis model
       sentimentClassifier = await pipeline(
         "text-classification",
-        // "Xenova/multilingual-sentiment-analysis", // Proper multilingual sentiment model
+        "Xenova/multilingual-sentiment-analysis", // Proper multilingual sentiment model
         // "Xenova/roberta-base-go_emotions",
         // "Xenova/emotion_text_classifier",
-        "Xenova/distilbert-base-uncased-finetuned-sst-2-english",
+        //"Xenova/distilbert-base-uncased-finetuned-sst-2-english",
         // "Xenova/bert-turkish-text-classification",
         {
           quantized: true,
@@ -860,5 +860,6 @@ export async function analyzeTranscriptEmotions(transcript: string, language: "e
   }
 }
 
-// Optional: Pre-load the model
+// Optional: Pre-load the model  
+// Remove this line to reduce slugsize
 getSentimentClassifier().catch(console.error);
