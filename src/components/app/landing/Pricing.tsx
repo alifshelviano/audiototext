@@ -15,24 +15,39 @@ const Pricing: React.FC = () => {
     {
       name: "Daily",
       price: "$0.05/day",
-      features: ["60 transcription minutes", "Advance AI Summarizer", "Meeting Health Score and Sentiment Analysis"],
+      features: [
+        "60 transcription minutes",
+        "Advance AI Summarizer",
+        "Meeting Health Score and Sentiment Analysis",
+      ],
     },
     {
       name: "Weekly",
       price: "$3/week",
-      features: ["420 transcription minutes", "Advanced AI Summarizer", "Meeting Health Score and Sentiment Analysis"],
+      features: [
+        "420 transcription minutes",
+        "Advanced AI Summarizer",
+        "Meeting Health Score and Sentiment Analysis",
+      ],
       highlight: true,
     },
     {
       name: "Monthly",
       price: "$12/months",
-      features: ["1800 transcription minutes", "Advance AI Summarizer", "Meeting Health Score and Sentiment Analysis"],
+      features: [
+        "1800 transcription minutes",
+        "Advance AI Summarizer",
+        "Meeting Health Score and Sentiment Analysis",
+      ],
     },
   ];
 
   return (
     <>
-      <section id="pricing" className="relative py-24 bg-gradient-to-br from-blue-50 via-white to-blue-100 overflow-hidden">
+      <section
+        id="pricing"
+        className="relative py-24 bg-gradient-to-br from-blue-50 via-white to-blue-100 overflow-hidden"
+      >
         {/* BACKGROUND GLOW */}
         <div className="absolute inset-0 -z-10 overflow-hidden">
           <div className="absolute w-[600px] h-[600px] bg-cyan-200/40 rounded-full blur-[120px] top-20 left-[-150px] animate-pulse"></div>
@@ -40,11 +55,23 @@ const Pricing: React.FC = () => {
         </div>
 
         <div className="container mx-auto px-6 lg:px-12 text-center">
-          <motion.h2 initial={{ opacity: 0, y: -20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} viewport={{ once: true }} className="text-4xl font-bold text-gray-800 mb-4">
+          <motion.h2
+            initial={{ opacity: 0, y: -20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-4xl font-bold text-gray-800 mb-4"
+          >
             Flexible Pricing for Everyone
           </motion.h2>
 
-          <motion.p initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }} viewport={{ once: true }} className="text-gray-600 max-w-2xl mx-auto mb-16">
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            viewport={{ once: true }}
+            className="text-gray-600 max-w-2xl mx-auto mb-16"
+          >
             No matter your team size start free, grow big, and experience LISN’s full potential.
           </motion.p>
 
@@ -70,13 +97,17 @@ const Pricing: React.FC = () => {
                 ${plan.highlight ? "border-indigo-400" : "border-blue-200 hover:border-indigo-300"}`}
                 ></div>
 
-                <h3 className="text-2xl font-bold text-indigo-700 mb-4 relative z-10">{plan.name}</h3>
-                <p className="text-3xl font-extrabold text-gray-800 mb-6 relative z-10">{plan.price}</p>
+                <h3 className="text-2xl font-bold text-indigo-700 mb-4 relative z-10">
+                  {plan.name}
+                </h3>
+                <p className="text-3xl font-extrabold text-gray-800 mb-6 relative z-10">
+                  {plan.price}
+                </p>
 
                 <ul className="space-y-3 text-gray-700 mb-8 relative z-10">
                   {plan.features.map((feature, i) => (
                     <li key={i} className="flex items-center justify-center gap-2">
-                      <span className="text-indigo-500 font-bold">✓</span> {feature}
+                      <span className="text-cyan-500 font-bold">✓</span> {feature}
                     </li>
                   ))}
                 </ul>
@@ -85,7 +116,7 @@ const Pricing: React.FC = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.98 }}
                   className={`px-6 py-3 rounded-full font-semibold transition-all relative z-10
-                  ${plan.highlight ? "bg-indigo-600 text-white shadow-lg hover:bg-indigo-700" : "bg-white/70 text-indigo-700 hover:bg-indigo-100"}`}
+                  ${plan.highlight ? "bg-cyan-600 text-white shadow-lg hover:bg-indigo-700" : "bg-white/70 text-indigo-700 hover:bg-indigo-100"}`}
                 >
                   {plan.highlight ? "Get Started" : "Learn More"}
                 </motion.button>
@@ -95,48 +126,6 @@ const Pricing: React.FC = () => {
         </div>
       </section>
     </>
-
-    // <section id="pricing" className="py-24 bg-gradient-to-br from-blue-50/70 via-white/80 to-blue-100/60 backdrop-blur-lg">
-    //   <div className="container mx-auto px-6 lg:px-12 text-center">
-    //     <motion.h2 initial={{ opacity: 0, y: -20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} viewport={{ once: true }} className="text-4xl font-bold text-gray-800 mb-4">
-    //       Choose Your Plan
-    //     </motion.h2>
-
-    //     <motion.p initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} viewport={{ once: true }} className="text-gray-600 max-w-2xl mx-auto mb-16">
-    //       Select the perfect plan to match your meeting needs — whether you are an individual, a small team, or a growing enterprise.
-    //     </motion.p>
-
-    //     <div className="grid md:grid-cols-3 gap-8">
-    //       {plans.map((plan, index) => (
-    //         <motion.div
-    //           key={index}
-    //           initial={{ opacity: 0, y: 40 }}
-    //           whileInView={{ opacity: 1, y: 0 }}
-    //           transition={{ duration: 0.6, delay: index * 0.1 }}
-    //           viewport={{ once: true }}
-    //           className={`rounded-3xl shadow-lg border border-blue-100 p-8 backdrop-blur-md bg-white/70 transition-transform transform hover:-translate-y-2 hover:shadow-xl ${
-    //             plan.highlight ? "border-indigo-400 ring-2 ring-indigo-200" : ""
-    //           }`}
-    //         >
-    //           <h3 className="text-2xl font-bold text-indigo-700 mb-4">{plan.name}</h3>
-    //           <p className="text-3xl font-extrabold text-gray-800 mb-6">{plan.price}</p>
-
-    //           <ul className="space-y-3 text-gray-700 mb-8">
-    //             {plan.features.map((feature, i) => (
-    //               <li key={i} className="flex items-center justify-center gap-2">
-    //                 <span className="text-indigo-500">✓</span> {feature}
-    //               </li>
-    //             ))}
-    //           </ul>
-
-    //           <button className={`px-6 py-3 rounded-full font-semibold transition-all ${plan.highlight ? "bg-indigo-600 text-white hover:bg-indigo-700" : "bg-blue-100 text-indigo-700 hover:bg-blue-200"}`}>
-    //             {plan.highlight ? "Get Started" : "Learn More"}
-    //           </button>
-    //         </motion.div>
-    //       ))}
-    //     </div>
-    //   </div>
-    // </section>
   );
 };
 

@@ -58,15 +58,14 @@ export default function About() {
             viewport={{ once: true }}
           >
             <h2 className="text-4xl font-bold text-gray-800 mb-4">
-              Read more about <span className="text-cyan-700">LISN</span>
+              Read more about <span className="text-cyan-600">LISN</span>
             </h2>
             <p className="text-gray-700 mb-8 leading-relaxed">
-              LISN (Listen, Interpret, Summarize, Narrate) is an AI-powered
-              meeting assistant that transforms spoken conversations into
-              structured, actionable insights. It records and transcribes
-              meetings in real time, summarizes key points, and generates
-              follow-up action items to help teams save time, stay aligned,
-              and never miss important details again.
+              LISN (Listen, Interpret, Summarize, Narrate) is an AI-powered meeting assistant that
+              transforms spoken conversations into structured, actionable insights. It records and
+              transcribes meetings in real time, summarizes key points, and generates follow-up
+              action items to help teams save time, stay aligned, and never miss important details
+              again.
             </p>
 
             {/* FAQ Accordion with Smooth Animation */}
@@ -91,13 +90,11 @@ export default function About() {
                   >
                     {/* Summary */}
                     <div className="p-5 flex justify-between items-center">
-                      <h3 className="font-semibold text-gray-800 text-lg pr-4">
-                        {item.q}
-                      </h3>
+                      <h3 className="font-semibold text-cyan-500 text-lg pr-4">{item.q}</h3>
                       <motion.span
                         animate={{ rotate: openIndex === i ? 45 : 0 }}
                         transition={{ duration: 0.3, ease: "easeInOut" }}
-                        className="text-cyan-600 text-2xl flex-shrink-0"
+                        className="text-cyan-500 text-2xl flex-shrink-0"
                       >
                         +
                       </motion.span>
