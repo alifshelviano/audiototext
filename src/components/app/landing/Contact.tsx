@@ -298,12 +298,12 @@ const Contact: React.FC = () => {
               <a href="#" className="text-gray-600 hover:text-cyan-500">
                 <FaInstagram size={20} />
               </a>
-              <a href="#" className="text-gray-600 hover:text-cyan-500">
+              {/* <a href="#" className="text-gray-600 hover:text-cyan-500">
                 <FaDiscord size={20} />
               </a>
               <a href="#" className="text-gray-600 hover:text-cyan-500">
                 <FaYoutube size={20} />
-              </a>
+              </a> */}
             </div>
           </div>
         </div>

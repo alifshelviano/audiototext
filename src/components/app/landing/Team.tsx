@@ -1,9 +1,12 @@
-// INI YANG KELIMA
+// INI YANG KEENAM
 "use client";
 
 import React from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import Particles from "react-tsparticles";
+// import { loadFull } from "tsparticles";
+import { loadSlim } from "tsparticles-slim";
 
 interface TeamMember {
   name: string;
@@ -60,28 +63,84 @@ const Team: React.FC = () => {
   ];
 
   return (
-    <section id="team" className="py-20 bg-[#f8ffff] flex flex-col items-center text-gray-900">
-      <div className="mb-12">
+    <section
+      id="team"
+      className="relative py-20 bg-[#f8ffff] flex flex-col items-center text-gray-900 overflow-hidden"
+    >
+      {/* Sparkling Background */}
+      <Particles
+        id="tsparticles"
+        init={async (engine) => {
+          await loadSlim(engine); // ✅ versi baru
+        }}
+        options={{
+          background: { color: "#f8ffff" },
+          fullScreen: { enable: false },
+          particles: {
+            number: { value: 40 },
+            color: { value: ["#00ffff", "#00bfff", "#7fffd4"] },
+            shape: { type: "circle" },
+            opacity: { value: { min: 0.3, max: 0.8 } },
+            size: { value: { min: 1, max: 3 } },
+            move: {
+              enable: true,
+              speed: 0.6,
+              direction: "none",
+              random: true,
+              straight: false,
+              outModes: { default: "out" },
+            },
+          },
+        }}
+        className="absolute inset-0 z-0"
+      />
+
+      {/* <Particles
+        id="tsparticles"
+        init={async (engine) => {
+          await loadFull(engine);
+        }}
+        options={{
+          background: { color: "#f8ffff" },
+          fullScreen: { enable: false },
+          particles: {
+            number: { value: 40 },
+            color: { value: ["#00ffff", "#00bfff", "#7fffd4"] },
+            shape: { type: "circle" },
+            opacity: { value: { min: 0.3, max: 0.8 } },
+            size: { value: { min: 1, max: 3 } },
+            move: {
+              enable: true,
+              speed: 0.6,
+              direction: "none",
+              random: true,
+              straight: false,
+              outModes: { default: "out" },
+            },
+          },
+        }}
+        className="absolute inset-0 z-0"
+      /> */}
+
+      {/* Title */}
+      <div className="relative z-10 mb-12 text-center">
         <h2 className="text-3xl md:text-4xl font-bold mb-4 flex items-center justify-center gap-2">
           Our <span className="text-cyan-600">Team Member</span>
         </h2>
-        {/* <h2 className="text-3xl md:text-4xl font-bold mb-4 flex items-center justify-center gap-2">
-          Our Team Member
-        </h2> */}
         <p className="text-base sm:text-lg md:text-xl text-gray-700 max-w-2xl mx-auto leading-relaxed">
           Passionate experts dedicated to transforming how teams communicate
         </p>
       </div>
 
-      {/* Wrapper */}
-      <div className="flex flex-wrap justify-center items-center gap-4 px-6 max-w-6xl">
+      {/* Members */}
+      <div className="relative z-10 flex flex-wrap justify-center items-center gap-4 px-6 max-w-6xl">
         {teamMembers.map((member, index) => (
           <motion.div
             key={index}
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: index * 0.1 }}
-            className="relative w-24 sm:w-28 md:w-32 lg:w-36 h-[200px] sm:h-[240px] md:h-[360px] overflow-hidden rounded-2xl group transition-all duration-500 hover:w-56 lg:hover:w-64 cursor-pointer"
+            className="relative w-24 sm:w-28 md:w-32 lg:w-36 h-[200px] sm:h-[240px] md:h-[360px] overflow-hidden rounded-2xl group transition-all duration-500 hover:w-56 lg:hover:w-64 cursor-pointer shadow-lg hover:shadow-cyan-200/40"
           >
             {/* Image */}
             <Image
@@ -116,6 +175,125 @@ const Team: React.FC = () => {
 };
 
 export default Team;
+
+// INI YANG KELIMA
+// "use client";
+
+// import React from "react";
+// import Image from "next/image";
+// import { motion } from "framer-motion";
+
+// interface TeamMember {
+//   name: string;
+//   role: string;
+//   bio: string;
+//   avatar: string;
+//   expertise: string[];
+// }
+
+// const Team: React.FC = () => {
+//   const teamMembers: TeamMember[] = [
+//     {
+//       name: "Filbert Leonardo",
+//       role: "Project Manager",
+//       bio: "Leads project execution with precision and ensures backend systems are smooth and reliable.",
+//       avatar: "/photos/filbert.png",
+//       expertise: ["Leadership", "Node.js", "Project Planning"],
+//     },
+//     {
+//       name: "Bagas Dwiprasandi",
+//       role: "Frontend Engineer",
+//       bio: "Crafts beautiful and functional user experiences, combining design and clean frontend development.",
+//       avatar: "/photos/bagas.png",
+//       expertise: ["NextJS", "ReactJS", "TailwindCSS"],
+//     },
+//     {
+//       name: "Muhammad Alif Shlviano",
+//       role: "Backend Engineer",
+//       bio: "Focuses on building scalable backend systems and managing cloud infrastructure with best practices.",
+//       avatar: "/photos/alif.png",
+//       expertise: ["Express.js", "MongoDB", "AWS"],
+//     },
+//     {
+//       name: "Gladys Aisha Rizkita",
+//       role: "UI/UX Designer",
+//       bio: "Bridges design and development, ensuring every product decision supports both user needs and business goals.",
+//       avatar: "/photos/gladys.png",
+//       expertise: ["React", "Product Strategy", "UX Research"],
+//     },
+//     {
+//       name: "Muhammad Farhan",
+//       role: "Marketing Specialist",
+//       bio: "Drives growth through creative campaigns and data-driven strategies that connect users to our vision.",
+//       avatar: "/photos/farhan.png",
+//       expertise: ["Digital Marketing", "Content Strategy", "SEO"],
+//     },
+//     {
+//       name: "Riyan Wahyu Prasetyo",
+//       role: "Graphic Designer",
+//       bio: "Transforms ideas into stunning visuals that represent the heart of our brand and product identity.",
+//       avatar: "/photos/riyan.png",
+//       expertise: ["Branding", "Illustration", "Canva"],
+//     },
+//   ];
+
+//   return (
+//     <section id="team" className="py-20 bg-[#f8ffff] flex flex-col items-center text-gray-900">
+//       <div className="mb-12">
+//         <h2 className="text-3xl md:text-4xl font-bold mb-4 flex items-center justify-center gap-2">
+//           Our <span className="text-cyan-600">Team Member</span>
+//         </h2>
+//         {/* <h2 className="text-3xl md:text-4xl font-bold mb-4 flex items-center justify-center gap-2">
+//           Our Team Member
+//         </h2> */}
+//         <p className="text-base sm:text-lg md:text-xl text-gray-700 max-w-2xl mx-auto leading-relaxed">
+//           Passionate experts dedicated to transforming how teams communicate
+//         </p>
+//       </div>
+
+//       {/* Wrapper */}
+//       <div className="flex flex-wrap justify-center items-center gap-4 px-6 max-w-6xl">
+//         {teamMembers.map((member, index) => (
+//           <motion.div
+//             key={index}
+//             initial={{ opacity: 0, y: 40 }}
+//             whileInView={{ opacity: 1, y: 0 }}
+//             transition={{ duration: 0.6, delay: index * 0.1 }}
+//             className="relative w-24 sm:w-28 md:w-32 lg:w-36 h-[200px] sm:h-[240px] md:h-[360px] overflow-hidden rounded-2xl group transition-all duration-500 hover:w-56 lg:hover:w-64 cursor-pointer"
+//           >
+//             {/* Image */}
+//             <Image
+//               src={member.avatar}
+//               alt={member.name}
+//               fill
+//               className="object-cover object-top transition-all duration-500 group-hover:scale-110"
+//             />
+
+//             {/* Overlay Info */}
+//             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-4">
+//               <h3 className="text-base sm:text-lg font-semibold text-white">{member.name}</h3>
+//               <p className="text-xs sm:text-sm text-indigo-200 mb-2">{member.role}</p>
+//               <p className="text-[10px] sm:text-xs text-gray-300 mb-3 leading-snug">{member.bio}</p>
+
+//               <div className="flex flex-wrap gap-1">
+//                 {member.expertise.map((skill, skillIndex) => (
+//                   <span
+//                     key={skillIndex}
+//                     className="text-[9px] sm:text-[10px] bg-white/20 border border-white/30 px-2 py-[2px] rounded-full text-white"
+//                   >
+//                     {skill}
+//                   </span>
+//                 ))}
+//               </div>
+//             </div>
+//           </motion.div>
+//         ))}
+//       </div>
+//     </section>
+//   );
+// };
+
+// export default Team;
 
 // INI YANG KEEMPAT
 // "use client";
