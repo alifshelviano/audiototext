@@ -95,28 +95,19 @@ export function QRCodeDisplay({ url, size = 160, className = "", onClose }: QRCo
       <div
         className={`relative bg-white rounded-2xl shadow-xl border border-gray-200 max-w-lg mx-auto p-6 sm:p-8 text-center ${className}`}
       >
-        {onClose && (
-          <>
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="text-xl font-semibold text-gray-900">Join on Mobile</h2>
+          {onClose && (
             <button
               onClick={onClose}
               type="button"
-              className="absolute top-4 right-4 w-8 h-8 flex sm:hidden items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-all"
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-all"
               aria-label="Close"
             >
               <X className="w-4 h-4" />
             </button>
-            <button
-              onClick={onClose}
-              type="button"
-              className="absolute top-4 right-4 w-8 h-8 hidden sm:flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-all"
-              aria-label="Close"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </>
-        )}
-
-        <h2 className="text-xl font-semibold text-gray-900 mb-1">Join on Mobile</h2>
+          )}
+        </div>
         <p className="text-sm text-gray-500 mb-6">Use your phone’s camera to scan the code.</p>
 
         {/* QR CODE SECTION */}
@@ -171,7 +162,7 @@ export function QRCodeDisplay({ url, size = 160, className = "", onClose }: QRCo
             ) : (
               <LinkIcon className="w-5 h-5 mb-1" />
             )}
-            <span className="text-xs">{copied ? "Copied" : "Copy Link"}</span>
+            <span className="text-xs">{copied ? "Copied" : "Copied"}</span>
           </button>
 
           <button
@@ -215,6 +206,8 @@ export function QRCodeDisplay({ url, size = 160, className = "", onClose }: QRCo
               <button
                 onClick={() => setExpanded(false)}
                 className="absolute top-4 right-4 bg-gray-100 hover:bg-gray-200 p-2 rounded-full text-gray-600"
+                type="button"
+                aria-label="Close"
               >
                 <X className="w-5 h-5" />
               </button>

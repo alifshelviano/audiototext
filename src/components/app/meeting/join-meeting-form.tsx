@@ -227,7 +227,7 @@ export function JoinMeetingForm({ onJoin }: { onJoin: (name: string, email: stri
             </div>
 
             {/* Sign In Button */}
-            <Button variant="outline" onClick={() => router.push("/auth/login")} className="w-full h-12 border-gray-300 hover:border-cyan-500 hover:bg-cyan-50 text-gray-700 font-medium transition-all duration-200">
+            <Button variant="outline" onClick={() => router.push("/auth/login")} className="w-full h-12 border-gray-300 hover:border-cyan-500 hover:bg-cyan-500 font-medium transition-all duration-200">
               <LogIn className="w-4 h-4 mr-2" />
               Sign In to Your Account
             </Button>
