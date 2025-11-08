@@ -174,7 +174,7 @@ export function MeetingHeader({ meeting, analysisStatus, lastAnalysisTime }: Mee
 
         {/* ----------  MOBILE: Dropdown  ---------- */}
         <div className="md:hidden relative mb-5" ref={dropdownRef}>
-          <button onClick={() => setShowInfoDropdown((v) => !v)} className="w-full bg-white/70 backdrop-blur-sm rounded-xl p-3 border border-cyan-100/50 flex items-center justify-between hover:bg-white/90 transition-all">
+          <button onClick={() => setShowInfoDropdown((v) => !v)} className="w-full bg-white/70 backdrop-blur-sm rounded-xl p-3 border border-cyan-100/50 flex items-center justify-between hover:bg-white/90 transition-all" aria-label="Toggle meeting info">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-cyan-50 rounded-lg">
                 <Calendar className="w-4 h-4 text-cyan-600" />
@@ -256,7 +256,7 @@ export function MeetingHeader({ meeting, analysisStatus, lastAnalysisTime }: Mee
                     <p className="text-xs sm:text-sm text-gray-600">All meeting members</p>
                   </div>
                 </div>
-                <button onClick={() => setShowParticipants(false)} className="p-1.5 rounded-lg hover:bg-gray-200 transition-colors">
+                <button onClick={() => setShowParticipants(false)} className="p-1.5 rounded-lg hover:bg-gray-200 transition-colors" aria-label="Close participants modal">
                   <X className="w-5 h-5 text-gray-500" />
                 </button>
               </div>

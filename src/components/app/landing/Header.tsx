@@ -51,7 +51,7 @@ export default function Header() {
           {/* CTA Button */}
           <Link href="/auth/login">
             <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }} className="hidden md:block bg-gradient-to-r from-cyan-400 to-cyan-600 text-white px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all">
-              Get Started
+              Try Now
             </motion.button>
           </Link>
 

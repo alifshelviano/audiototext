@@ -4,6 +4,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import Link from 'next/link';
 
 // Helper function to generate a smooth wave path string
 const generateWavePath = (
@@ -143,7 +144,7 @@ const Hero = () => {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto"
         >
-          Lisnize transcribes, summarizes, and extracts key insights from your meetings, so you never miss a beat.
+          Lisn transcribes, summarizes, and extracts key insights from your meetings, so you never miss a beat.
         </motion.p>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -151,13 +152,15 @@ const Hero = () => {
           transition={{ duration: 0.5, delay: 0.4 }}
           className="flex flex-col sm:flex-row gap-4 justify-center"
         >
-          <motion.button
-            whileHover={{ scale: 1.05, y: -5, boxShadow: "0px 10px 20px rgba(0, 0, 0, 0.1)" }}
-            whileTap={{ scale: 0.97 }}
-            className="bg-cyan-500 text-white px-8 py-3 rounded-lg hover:bg-cyan-600 transition text-lg shadow-lg"
-          >
-            Get Started Free
-          </motion.button>
+          <Link href="/auth/login">
+            <motion.button
+              whileHover={{ scale: 1.05, y: -5, boxShadow: "0px 10px 20px rgba(0, 0, 0, 0.1)" }}
+              whileTap={{ scale: 0.97 }}
+              className="bg-cyan-500 text-white px-8 py-3 rounded-lg hover:bg-cyan-600 transition text-lg shadow-lg"
+            >
+              Get Started Free
+            </motion.button>
+          </Link>
           <motion.button
             whileHover={{ scale: 1.05, y: -5, boxShadow: "0px 10px 20px rgba(0, 0, 0, 0.1)" }}
             whileTap={{ scale: 0.97 }}

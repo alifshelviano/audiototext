@@ -192,7 +192,7 @@ export function MeetingChat({ meetingId, transcript, summary }: MeetingChatProps
     <div className="bg-white rounded-2xl shadow-lg border border-gray-200 flex flex-col h-[600px]">
       <div className="flex items-center gap-3 p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50/30 rounded-t-2xl">
         <div className="w-10 h-10 bg-gradient-to-br from-white-500 to-white-600 rounded-full flex items-center justify-center shadow-lg">
-        <img src="/lisnize.png" alt="Lisnizebot"  className="object-contain w-5 h-5" />
+        <img src="/lisnize.png" alt="Lisnizebot"  className="object-contain w-full h-full" />
         
         </div>
         <div className="flex-1">

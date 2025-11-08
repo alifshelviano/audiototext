@@ -380,13 +380,13 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
         <h3 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent text-center sm:text-left">Meeting Summary</h3>
 
         <div className="hidden md:flex gap-2">
-          <Button onClick={onReanalyze} disabled={isAnalyzing || !meeting.transcripts?.length} variant="outline" size="sm" className="hover:bg-blue-50 border-blue-200">
+          <Button onClick={onReanalyze} disabled={isAnalyzing || !meeting.transcripts?.length} variant="outline" size="sm" className="bg-cyan-100 border-cyan-200 hover:bg-cyan-300">
             {isAnalyzing ? <WaveLoader /> : <RefreshCw className="w-4 h-4 mr-2" />} 
             {isAnalyzing ? "Analyzing..." : "Re-analyze"}
           </Button>
 
           <div className="relative">
-            <Button variant="outline" size="sm" disabled={!meeting.summary || isExporting} onClick={() => setShowExportMenu(!showExportMenu)} className="hover:bg-green-50 border-green-200">
+            <Button variant="outline" size="sm" disabled={!meeting.summary || isExporting} onClick={() => setShowExportMenu(!showExportMenu)} className="bg-cyan-100 border-cyan-200 hover:bg-cyan-300">
               <Download className="w-4 h-4 mr-2" />
               {isExporting ? "Exporting..." : "Export Document"}
               <ChevronDown className="w-4 h-4 ml-1" />
@@ -415,7 +415,7 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
           </div>
 
           {isCreator && (
-            <Button onClick={() => setShowEmailModal(true)} variant="outline" size="sm" disabled={!meeting.summary || isSendingEmail} className="hover:bg-orange-50 border-orange-200">
+            <Button onClick={() => setShowEmailModal(true)} variant="outline" size="sm" disabled={!meeting.summary || isSendingEmail} className="bg-cyan-100 border-cyan-200 hover:bg-cyan-300">
               <Mail className="w-4 h-4 mr-2" />
               {isSendingEmail ? "Sending..." : "Email Summary"}
               {participantCount > 0 && <span className="ml-2 bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">{participantCount}</span>}
@@ -438,7 +438,7 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
           <div className="bg-white rounded-xl shadow-lg max-w-2xl w-full max-h-[90vh] overflow-hidden">
             <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">Send Meeting Summary</h3>
-              <button onClick={handleCloseEmailModal} className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100" disabled={isSendingEmail}>
+              <button onClick={handleCloseEmailModal} className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100" disabled={isSendingEmail} aria-label="Close email modal">
                 <X className="w-5 h-5" />
               </button>
             </div>
