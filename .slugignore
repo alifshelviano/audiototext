@@ -1,0 +1,6 @@
+.xenova/
+/node_modules
+/npm-debug.log
+/.next/
+*.md
+*.mp4
