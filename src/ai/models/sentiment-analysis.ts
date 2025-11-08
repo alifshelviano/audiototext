@@ -29,7 +29,7 @@ interface EmotionAnalysisResult {
 // HuggingFace API configuration
 // const HF_API_URL = "https://router.huggingface.co/hf-inference/models/clapAI/modernBERT-base-multilingual-sentiment";
 //const HF_API_URL = "https://router.huggingface.co/hf-inference/models/tabularisai/multilingual-sentiment-analysis";
- const HF_API_URL = "https://router.huggingface.co/hf-inference/models/ayameRushia/bert-base-indonesian-1.5G-sentiment-analysis-smsa";
+const HF_API_URL = "https://router.huggingface.co/hf-inference/models/clapAI/modernBERT-base-multilingual-sentiment";
 const HF_TOKEN = process.env.HF_TOKEN;
 
 
