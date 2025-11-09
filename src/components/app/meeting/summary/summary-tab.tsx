@@ -415,7 +415,7 @@ export function SummaryTab({ meeting, isAnalyzing, onReanalyze }: SummaryTabProp
           </div>
 
           {isCreator && (
-            <Button onClick={() => setShowEmailModal(true)} variant="outline" size="sm" disabled={!meeting.summary || isSendingEmail} className="bg-gray-100 border-gray-200 hover:bg-cyan-4  00">
+            <Button onClick={() => setShowEmailModal(true)} variant="outline" size="sm" disabled={!meeting.summary || isSendingEmail} className="bg-gray-100 border-gray-200 hover:bg-cyan-400">
               <Mail className="w-4 h-4 mr-2" />
               {isSendingEmail ? "Sending..." : "Email Summary"}
               {participantCount > 0 && <span className="ml-2 bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">{participantCount}</span>}
