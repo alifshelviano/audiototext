@@ -24,7 +24,7 @@ export function MeetingChat({ meetingId, transcript, summary }: MeetingChatProps
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [chatCount, setChatCount] = useState(0);
-  const chatLimit = 100;
+  const chatLimit = 3;
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
