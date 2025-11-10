@@ -1,11 +1,7 @@
-"use server";
-
 import { NextRequest, NextResponse } from "next/server";
 
-export const config = {
-  runtime: "nodejs",
-  maxDuration: 300,
-};
+export const runtime = "nodejs";
+export const maxDuration = 300;
 
 export async function POST(req: NextRequest) {
   try {
