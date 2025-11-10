@@ -1,19 +1,12 @@
+"use server";
+
 import { NextRequest, NextResponse } from "next/server";
 
-// Increased timeout for Vercel/Heroku - adjust based on your platform
-export const maxDuration = 25; // seconds
-
 export async function POST(req: NextRequest) {
-  // Set up timeout for the entire operation
-  const requestTimeout = setTimeout(() => {
-    console.error("Request timeout - operation took too long");
-  }, 24000); // 24 seconds to stay under 25s limit
-
   try {
     const { prompt, context } = await req.json();
 
     if (!prompt || !context) {
-      clearTimeout(requestTimeout);
       return NextResponse.json({ error: "Prompt and context are required" }, { status: 400 });
     }
 
@@ -21,12 +14,29 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.ML_API_KEY;
 
     if (!baseUrl || !apiKey) {
-      clearTimeout(requestTimeout);
-      console.error("Missing ML_API_BASE or ML_API_KEY environment variables");
-      return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
+      throw new Error("ML_API_BASE or ML_API_KEY environment variables are not set.");
     }
 
     const url = `${baseUrl}/v1/chat/completions`;
+
+    //     const systemPrompt = `You are an expert meeting analysis assistant. Your role is to help users extract actionable insights from meeting transcripts.
+
+    // CORE PRINCIPLES:
+    // - Be concise and precise - get straight to the point
+    // - Ground every answer in the actual transcript content
+    // - Acknowledge when information isn't available in the transcript
+    // - Prioritize actionable insights over summaries
+
+    // FORMATTING GUIDELINES:
+    // - Use ## for main section headers (e.g., ## Key Decisions)
+    // - Use ### for subsections when needed
+    // - Use bullet points (•) for lists of 3+ items
+    // - Use numbered lists only for sequential steps or prioritized items
+    // - Use **bold** sparingly for critical terms or action owners
+    // - Use > blockquotes for direct quotes from the transcript
+    // - Use tables for comparing options, tracking items, or structured data
+
+    // TONE: Professional, clear, and helpful. Avoid fluff and corporate jargon.`;
 
     const systemPrompt = `You are an expert meeting analysis assistant specializing in extracting actionable insights from meeting transcripts.
 
@@ -57,8 +67,6 @@ RESPONSE TYPES BY QUESTION:
 - Decision questions: State the decision, rationale discussed, alternatives considered, and next steps
 - Timeline questions: Extract dates/deadlines in chronological order
 
-IMPORTANT: Keep responses concise and focused. Aim for clarity over comprehensiveness.
-
 TONE: Clear, professional, and scannable. Avoid filler phrases like "Based on the transcript..." or "It appears that...". Get straight to the substance.
 
 QUALITY CHECKS:
@@ -86,20 +94,10 @@ Instructions:
 - Quote specific statements when relevant (use > blockquotes)
 - If the transcript doesn't contain the answer, say so clearly
 - Highlight any action items, decisions, or risks related to this topic
-- Format your response for easy scanning
-- Keep response concise and focused`,
+- Format your response for easy scanning`,
         },
       ],
-      max_tokens: 800, // Reduced for faster responses
-      temperature: 0.7,
     };
-
-    // Create abort controller for external API timeout
-    const controller = new AbortController();
-    const apiTimeout = setTimeout(() => {
-      controller.abort();
-      console.error("External API timeout");
-    }, 22000); // 22 seconds for the external API call
 
     const response = await fetch(url, {
       method: "POST",
@@ -108,84 +106,23 @@ Instructions:
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify(payload),
-      signal: controller.signal,
     });
-
-    clearTimeout(apiTimeout);
-    clearTimeout(requestTimeout);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`ML API Error (${response.status}):`, errorText);
-      
-      // Return appropriate error based on status code
-      if (response.status === 503) {
-        return NextResponse.json(
-          { error: "AI service is temporarily busy. Please try again." },
-          { status: 503 }
-        );
-      } else if (response.status === 429) {
-        return NextResponse.json(
-          { error: "Rate limit reached. Please wait a moment." },
-          { status: 429 }
-        );
-      } else if (response.status >= 500) {
-        return NextResponse.json(
-          { error: "AI service is experiencing issues. Please try again." },
-          { status: 503 }
-        );
-      }
-      
-      return NextResponse.json(
-        { error: "Failed to process your request. Please try again." },
-        { status: 500 }
-      );
+      console.error(`API Error:`, errorText);
+      return NextResponse.json({ error: "Service temporarily unavailable" }, { status: 500 });
     }
 
     const data = await response.json();
-    const messageContent = data.choices?.[0]?.message?.content;
-
-    if (!messageContent) {
-      console.error("Invalid response structure from ML API:", data);
-      return NextResponse.json(
-        { error: "Invalid response from AI service" },
-        { status: 500 }
-      );
-    }
+    const messageContent = data.choices[0]?.message?.content;
 
     return NextResponse.json({
       response: messageContent,
       usage: data.usage,
     });
   } catch (error) {
-    clearTimeout(requestTimeout);
-    
-    // Handle different error types
-    if (error instanceof Error) {
-      if (error.name === 'AbortError') {
-        console.error("Request aborted due to timeout");
-        return NextResponse.json(
-          { error: "Request timeout. Please try a shorter question." },
-          { status: 408 }
-        );
-      }
-      
-      console.error("Error in chat API:", error.message);
-      
-      // Network errors
-      if (error.message.includes('fetch failed') || error.message.includes('ECONNREFUSED')) {
-        return NextResponse.json(
-          { error: "Cannot connect to AI service. Please try again later." },
-          { status: 503 }
-        );
-      }
-    }
-    
-    console.error("Unexpected error in chat API:", error);
-    return NextResponse.json(
-      { error: "An unexpected error occurred. Please try again." },
-      { status: 500 }
-    );
+    console.error("Error in chat API:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
-
