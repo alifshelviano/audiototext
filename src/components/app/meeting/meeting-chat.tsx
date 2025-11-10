@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Send, CornerDownLeft, BrainCircuit, User, Bot, ArrowRight } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { Components } from "react-markdown";
-import { WaveLoader } from "@/components/ui/wave-loader";
 
 interface Message {
   text: string;
@@ -24,7 +23,7 @@ export function MeetingChat({ meetingId, transcript, summary }: MeetingChatProps
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [chatCount, setChatCount] = useState(0);
-  const chatLimit = 100;
+  const chatLimit = 5;
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -48,6 +47,10 @@ export function MeetingChat({ meetingId, transcript, summary }: MeetingChatProps
     setIsLoading(true);
     setChatCount((prev) => prev + 1);
 
+    // Create abort controller for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 second timeout
+
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -56,22 +59,56 @@ export function MeetingChat({ meetingId, transcript, summary }: MeetingChatProps
           prompt: messageToSend,
           context: `Transcript: ${transcript}\n\nSummary: ${summary}`,
         }),
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        throw new Error("Failed to get response from AI");
+        // Handle specific HTTP errors
+        if (response.status === 503) {
+          throw new Error("The service is temporarily busy. Please try again in a moment.");
+        } else if (response.status === 504 || response.status === 408) {
+          throw new Error("Request timeout. Please try a shorter question or try again.");
+        }
+        throw new Error(`Server error (${response.status}). Please try again.`);
       }
 
       const data = await response.json();
+      
+      if (!data.response) {
+        throw new Error("Invalid response from AI");
+      }
+
       const aiMessage: Message = { text: data.response, isUser: false };
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
+      clearTimeout(timeoutId);
       console.error("Chat error:", error);
+      
+      let errorText = "**Sorry, I encountered an issue**\n\n";
+      
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          errorText += "The request took too long and was cancelled. Please try:\n" +
+                       "- Asking a more specific question\n" +
+                       "- Breaking complex questions into smaller parts\n" +
+                       "- Trying again in a moment";
+        } else {
+          errorText += error.message + "\n\nPlease try again.";
+        }
+      } else {
+        errorText += "An unexpected error occurred. Please refresh the page and try again.";
+      }
+
       const errorMessage: Message = {
-        text: "**Sorry, I encountered an issue**\n\nPlease try again in a moment. If the problem persists, refresh the page.",
+        text: errorText,
         isUser: false,
       };
       setMessages((prev) => [...prev, errorMessage]);
+      
+      // Revert chat count on error
+      setChatCount((prev) => Math.max(0, prev - 1));
     } finally {
       setIsLoading(false);
     }
@@ -92,8 +129,8 @@ export function MeetingChat({ meetingId, transcript, summary }: MeetingChatProps
     },
     {
       title: "Meeting Summary",
-      question: "Provide a comprehensive summary of the entire meeting",
-      description: "Get the full overview",
+      question: "Provide a brief summary of the meeting highlights",
+      description: "Get the quick overview",
       icon: "📋",
     },
     {
@@ -104,13 +141,13 @@ export function MeetingChat({ meetingId, transcript, summary }: MeetingChatProps
     },
     {
       title: "Timeline & Deadlines",
-      question: "What are the key deadlines and timeline discussed?",
+      question: "What are the key deadlines mentioned?",
       description: "Check important dates",
       icon: "⏰",
     },
     {
       title: "Participant Insights",
-      question: "Who said what and what were their main contributions?",
+      question: "Who were the main contributors in this meeting?",
       description: "Understand team input",
       icon: "👥",
     },
@@ -119,7 +156,7 @@ export function MeetingChat({ meetingId, transcript, summary }: MeetingChatProps
   const MarkdownMessage = ({ text, isUser }: { text: string; isUser: boolean }) => {
     const components: Partial<Components> = {
       h1: ({ children }) => <h1 className="text-xl font-bold mt-4 mb-2 first:mt-0">{children}</h1>,
-      h2: ({ children }) => <h2 className="text-lg font-semibold mt-3 mb-2 text-cyan-600 flex items-center gap-2">{children}</h2>,
+      h2: ({ children }) => <h2 className="text-lg font-semibold mt-3 mb-2 text-blue-600 flex items-center gap-2">{children}</h2>,
       h3: ({ children }) => <h3 className="text-md font-semibold mt-2 mb-1 text-gray-700">{children}</h3>,
       p: ({ children }) => <p className="mb-2 leading-relaxed">{children}</p>,
       ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
@@ -127,7 +164,7 @@ export function MeetingChat({ meetingId, transcript, summary }: MeetingChatProps
       li: ({ children }) => <li className="leading-relaxed">{children}</li>,
       strong: ({ children }) => <strong className="font-semibold text-gray-900">{children}</strong>,
       em: ({ children }) => <em className="italic text-gray-700">{children}</em>,
-      blockquote: ({ children }) => <blockquote className="border-l-4 border-cyan-400 pl-4 py-1 my-2 bg-blue-50 italic text-gray-700 rounded-r">{children}</blockquote>,
+      blockquote: ({ children }) => <blockquote className="border-l-4 border-blue-400 pl-4 py-1 my-2 bg-blue-50 italic text-gray-700 rounded-r">{children}</blockquote>,
       table: ({ children }) => (
         <div className="overflow-x-auto my-2">
           <table className="min-w-full border-collapse border border-gray-300 rounded-lg overflow-hidden">{children}</table>
@@ -144,16 +181,16 @@ export function MeetingChat({ meetingId, transcript, summary }: MeetingChatProps
     return (
       <div className={`flex items-start gap-3 ${message.isUser ? "justify-end" : "justify-start"}`}>
         {!message.isUser && (
-          <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-cyan-500 to-teal-600 rounded-full flex items-center justify-center shadow-sm">
+          <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-sm">
             <Bot className="h-4 w-4 text-white" />
           </div>
         )}
 
-        <div className={`max-w-[85%] rounded-2xl p-4 shadow-sm ${message.isUser ? "bg-gradient-to-br from-cyan-600 to-teal-700 text-white rounded-br-md" : "bg-gray-50 border border-gray-100 rounded-bl-md"}`}>
+        <div className={`max-w-[85%] rounded-2xl p-4 shadow-sm ${message.isUser ? "bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-br-md" : "bg-gray-50 border border-gray-100 rounded-bl-md"}`}>
           <div className={message.isUser ? "text-white" : "text-gray-800"}>
             <MarkdownMessage text={message.text} isUser={message.isUser} />
           </div>
-          <div className={`text-xs mt-2 ${message.isUser ? "text-cyan-100" : "text-gray-500"}`}>{message.isUser ? "You" : "AI Assistant"}</div>
+          <div className={`text-xs mt-2 ${message.isUser ? "text-blue-100" : "text-gray-500"}`}>{message.isUser ? "You" : "AI Assistant"}</div>
         </div>
 
         {message.isUser && (
@@ -170,16 +207,16 @@ export function MeetingChat({ meetingId, transcript, summary }: MeetingChatProps
       <button
         onClick={() => handleSend(question)}
         disabled={isLoading}
-        className="text-left p-4 rounded-xl border border-gray-200 hover:border-cyan-300 hover:shadow-md transition-all duration-200 bg-white hover:bg-cyan-50 group cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        className="text-left p-4 rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200 bg-white hover:bg-blue-50 group cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-cyan-100 to-teal-100 rounded-lg flex items-center justify-center group-hover:from-cyan-200 group-hover:to-teal-200 transition-colors">
+          <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center group-hover:from-blue-200 group-hover:to-purple-200 transition-colors">
             <span className="text-lg">{icon}</span>
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <h4 className="font-semibold text-gray-800 text-sm">{title}</h4>
-              <ArrowRight className="h-3 w-3 text-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <ArrowRight className="h-3 w-3 text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
             <p className="text-xs text-gray-600 line-clamp-2">{description}</p>
           </div>
@@ -190,13 +227,13 @@ export function MeetingChat({ meetingId, transcript, summary }: MeetingChatProps
 
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-gray-200 flex flex-col h-[600px]">
+      {/* Header */}
       <div className="flex items-center gap-3 p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50/30 rounded-t-2xl">
-        <div className="w-10 h-10 bg-gradient-to-br from-white-500 to-white-600 rounded-full flex items-center justify-center shadow-lg">
-        <img src="/lisnize.png" alt="Lisnizebot"  className="object-contain w-full h-full" />
-        
+        <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-teal-600 rounded-full flex items-center justify-center shadow-lg">
+          <BrainCircuit className="w-5 h-5 text-white" />
         </div>
         <div className="flex-1">
-          <h3 className="font-bold text-lg text-gray-800">Lisnize</h3>
+          <h3 className="font-bold text-lg text-gray-800">Meeting AI Assistant</h3>
           <p className="text-sm text-gray-600">Ask me anything about this meeting • {chatLimit - chatCount} questions remaining</p>
         </div>
         {chatCount > 0 && (
@@ -206,21 +243,24 @@ export function MeetingChat({ meetingId, transcript, summary }: MeetingChatProps
         )}
       </div>
 
+      {/* Messages Container */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gradient-to-b from-white to-gray-50/30">
         {messages.length === 0 && !isLoading && (
           <div className="text-center py-6">
-            <div className="w-16 h-16 bg-gradient-to-br from-cyan-100 to-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <BrainCircuit className="w-8 h-8 text-cyan-600" />
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <BrainCircuit className="w-8 h-8 text-blue-600" />
             </div>
             <h4 className="font-semibold text-gray-700 mb-2">Start a conversation</h4>
             <p className="text-sm text-gray-500 max-w-sm mx-auto mb-6">Ask questions about decisions, action items, or specific topics discussed in the meeting.</p>
 
+            {/* Example Questions Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-4xl mx-auto">
               {exampleQuestions.map((question, index) => (
                 <ExampleQuestionCard key={index} title={question.title} question={question.question} description={question.description} icon={question.icon} />
               ))}
             </div>
 
+            {/* Quick Tips */}
             <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200 max-w-md mx-auto">
               <p className="text-xs text-gray-600 text-center">
                 <strong>Tip:</strong> You can ask follow-up questions or request more details about any response
@@ -235,11 +275,18 @@ export function MeetingChat({ meetingId, transcript, summary }: MeetingChatProps
 
         {isLoading && (
           <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-8 h-8 bg-.gradient-to-br from-cyan-500 to-teal-600 rounded-full flex items-center justify-center shadow-sm">
+            <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-sm">
               <Bot className="h-4 w-4 text-white" />
             </div>
             <div className="max-w-[85%] rounded-2xl p-4 shadow-sm bg-gray-50 border border-gray-100 rounded-bl-md">
-              <WaveLoader text="Analyzing meeting content..." />
+              <div className="flex items-center gap-3">
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                </div>
+                <span className="text-sm text-gray-600">Analyzing meeting content...</span>
+              </div>
             </div>
           </div>
         )}
@@ -247,6 +294,7 @@ export function MeetingChat({ meetingId, transcript, summary }: MeetingChatProps
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Input Area */}
       <div className="p-6 border-t border-gray-100 bg-white rounded-b-2xl">
         {chatCount >= chatLimit ? (
           <div className="text-center p-4 bg-orange-50 rounded-xl border border-orange-200">
@@ -261,11 +309,11 @@ export function MeetingChat({ meetingId, transcript, summary }: MeetingChatProps
               placeholder={`Ask a question about the meeting... (${chatLimit - chatCount} remaining)`}
               onKeyDown={(e) => e.key === "Enter" && !isLoading && handleSend()}
               disabled={isLoading}
-              className="pr-12 py-4 text-base border-2 border-gray-200 rounded-xl focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 transition-all duration-200"
+              className="pr-12 py-4 text-base border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
             />
             <Button
               size="icon"
-              className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-teal-700 hover:to-purple-700 shadow-lg transition-all duration-200"
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg transition-all duration-200"
               onClick={() => handleSend()}
               disabled={isLoading || !input.trim()}
             >
@@ -277,3 +325,4 @@ export function MeetingChat({ meetingId, transcript, summary }: MeetingChatProps
     </div>
   );
 }
+
