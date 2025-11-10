@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export const runtime = "nodejs";
-export const maxDuration = 300;
+// Use the edge runtime for optimal streaming performance
+export const runtime = "edge";
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,7 +15,8 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.ML_API_KEY;
 
     if (!baseUrl || !apiKey) {
-      throw new Error("ML_API_BASE or ML_API_KEY environment variables are not set.");
+      console.error("ML_API_BASE or ML_API_KEY environment variables are not set.");
+      return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
     }
 
     const url = `${baseUrl}/v1/chat/completions`;
@@ -66,46 +67,74 @@ QUALITY CHECKS:
         },
         {
           role: "user",
-          content: `MEETING CONTEXT:
-${context}
-
-QUESTION: ${prompt}
-
-Instructions:
-- Answer the question directly using information from the transcript
-- Quote specific statements when relevant (use > blockquotes)
-- If the transcript doesn't contain the answer, say so clearly
-- Highlight any action items, decisions, or risks related to this topic
-- Format your response for easy scanning`,
+          content: `MEETING CONTEXT:\n${context}\n\nQUESTION: ${prompt}\n\nInstructions:\n- Answer the question directly using information from the transcript\n- Quote specific statements when relevant (use > blockquotes)\n- If the transcript doesn't contain the answer, say so clearly\n- Highlight any action items, decisions, or risks related to this topic\n- Format your response for easy scanning`,
         },
       ],
       stream: true,
     };
 
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+    // Create a streaming response that fetches from the ML API in the background
+    const stream = new ReadableStream({
+      async start(controller) {
+        const encoder = new TextEncoder();
+        try {
+          const response = await fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify(payload),
+            // Duplex streaming allows us to start sending our response while the fetch is ongoing
+            // @ts-expect-error
+            duplex: "half",
+          });
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`API Error:`, errorText);
+            const errorMessage = encoder.encode(`data: ${JSON.stringify({ error: "Service temporarily unavailable" })}\n\n`);
+            controller.enqueue(errorMessage);
+            controller.close();
+            return;
+          }
+
+          if (!response.body) {
+            throw new Error("The response body is empty.");
+          }
+
+          // Pipe the response stream from the ML API to our controller
+          const reader = response.body.getReader();
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+              break;
+            }
+            controller.enqueue(value);
+          }
+        } catch (error) {
+          console.error("Error fetching from ML API:", error);
+          const errorMessage = encoder.encode(`data: ${JSON.stringify({ error: "Internal server error" })}\n\n`);
+          controller.enqueue(errorMessage);
+        } finally {
+          controller.close();
+        }
       },
-      body: JSON.stringify(payload),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`API Error:`, errorText);
-      return NextResponse.json({ error: "Service temporarily unavailable" }, { status: 500 });
-    }
-
-    return new NextResponse(response.body, {
+    // Return the stream immediately to the client
+    return new NextResponse(stream, {
       headers: {
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
         "Connection": "keep-alive",
+        "X-Accel-Buffering": "no", // Disable buffering in proxies
       },
     });
+
   } catch (error) {
-    console.error("Error in chat API:", error);
+    // This catches errors from the initial setup (e.g., req.json())
+    console.error("Error in chat API setup:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
