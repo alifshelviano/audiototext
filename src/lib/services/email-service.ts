@@ -898,7 +898,7 @@ function generateEmailHTML(data: any): string {
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
       line-height: 1.6;
       color: #2d3748;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #00c3a7 0%, #77dcdb 100%);
       margin: 0;
       padding: 20px;
       min-height: 100vh;
@@ -923,7 +923,7 @@ function generateEmailHTML(data: any): string {
       margin-bottom: 32px;
       padding-bottom: 24px;
       border-bottom: 2px solid #e2e8f0;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #00c3a7 0%, #77dcdb 100%);
       margin: -40px -40px 32px -40px;
       padding: 40px;
       border-radius: 16px 16px 0 0;
@@ -955,7 +955,7 @@ function generateEmailHTML(data: any): string {
       background: #f8fafc;
       padding: 24px;
       border-radius: 12px;
-      border-left: 4px solid #667eea;
+      border-left: 4px solid #00c3a7;
     }
    
     .section-title {
@@ -980,7 +980,7 @@ function generateEmailHTML(data: any): string {
     }
    
     .participant-chip {
-      background: #667eea;
+      background: #00c3a7;
       color: white;
       padding: 8px 16px;
       border-radius: 20px;
@@ -1006,7 +1006,7 @@ function generateEmailHTML(data: any): string {
       padding: 16px;
       border-radius: 8px;
       margin-bottom: 8px;
-      border-left: 3px solid #667eea;
+      border-left: 3px solid #00c3a7;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
       transition: all 0.2s ease;
     }
@@ -1137,7 +1137,7 @@ function generateEmailHTML(data: any): string {
    
     /* Health Score */
     .health-score {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #00c3a7 0%, #77dcdb 100%);
       color: white;
       padding: 30px;
       border-radius: 16px;
@@ -1173,7 +1173,7 @@ function generateEmailHTML(data: any): string {
     .metric-value {
       font-size: 24px;
       font-weight: 700;
-      color: #667eea;
+      color: #00c3a7;
       margin-bottom: 4px;
     }
    
@@ -1533,9 +1533,9 @@ export async function sendPasswordResetEmail(email: string, resetToken: string):
           <style>
             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px; }
             .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; color: white; }
+            .header { background: linear-gradient(135deg, #00c3a7 0%, #77dcdb 100%); padding: 30px; text-align: center; color: white; }
             .content { padding: 30px; background: #f9f9f9; }
-            .button { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold; }
+            .button { background: linear-gradient(135deg, #00c3a7 0%, #77dcdb 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold; }
             .footer { text-align: center; margin-top: 20px; color: #666; font-size: 14px; }
             .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 4px; margin: 15px 0; font-size: 14px; }
           </style>
@@ -1566,7 +1566,7 @@ export async function sendPasswordResetEmail(email: string, resetToken: string):
 
               <p style="color: #666; font-size: 14px; margin-top: 20px;">
                 If the button doesn't work, copy and paste this URL into your browser:<br>
-                <a href="${resetUrl}" style="color: #667eea; word-break: break-all;">${resetUrl}</a>
+                <a href="${resetUrl}" style="color: #00c3a7; word-break: break-all;">${resetUrl}</a>
               </p>
 
 

@@ -265,7 +265,7 @@ export function MeetingChat({ meetingId, transcript, summary }: MeetingChatProps
             />
             <Button
               size="icon"
-              className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-teal-700 hover:to-purple-700 shadow-lg transition-all duration-200"
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 bg-gradient-to-r from-cyan-600 to-cyan-400 hover:from-teal-700 hover:to-cyan-500 shadow-lg transition-all duration-200"
               onClick={() => handleSend()}
               disabled={isLoading || !input.trim()}
             >
