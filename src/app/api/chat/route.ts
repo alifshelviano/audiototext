@@ -1,22 +1,23 @@
-import { NextRequest, NextResponse } from "next/server";
+"use server";
 
-// Use the edge runtime for optimal streaming performance
-export const runtime = "edge";
+import { NextRequest } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
     const { prompt, context } = await req.json();
 
     if (!prompt || !context) {
-      return NextResponse.json({ error: "Prompt and context are required" }, { status: 400 });
+      return new Response(
+        JSON.stringify({ error: "Prompt and context are required" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
     }
 
     const baseUrl = process.env.ML_API_BASE;
     const apiKey = process.env.ML_API_KEY;
 
     if (!baseUrl || !apiKey) {
-      console.error("ML_API_BASE or ML_API_KEY environment variables are not set.");
-      return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
+      throw new Error("ML_API_BASE or ML_API_KEY environment variables are not set.");
     }
 
     const url = `${baseUrl}/v1/chat/completions`;
@@ -67,74 +68,98 @@ QUALITY CHECKS:
         },
         {
           role: "user",
-          content: `MEETING CONTEXT:\n${context}\n\nQUESTION: ${prompt}\n\nInstructions:\n- Answer the question directly using information from the transcript\n- Quote specific statements when relevant (use > blockquotes)\n- If the transcript doesn't contain the answer, say so clearly\n- Highlight any action items, decisions, or risks related to this topic\n- Format your response for easy scanning`,
+          content: `MEETING CONTEXT:
+${context}
+
+QUESTION: ${prompt}
+
+Instructions:
+- Answer the question directly using information from the transcript
+- Quote specific statements when relevant (use > blockquotes)
+- If the transcript doesn't contain the answer, say so clearly
+- Highlight any action items, decisions, or risks related to this topic
+- Format your response for easy scanning`,
         },
       ],
-      stream: true,
+      stream: true, // Enable streaming
     };
 
-    // Create a streaming response that fetches from the ML API in the background
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`API Error:`, errorText);
+      return new Response(
+        JSON.stringify({ error: "Service temporarily unavailable" }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // Create a ReadableStream to forward the streaming response
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
+
     const stream = new ReadableStream({
       async start(controller) {
-        const encoder = new TextEncoder();
+        const reader = response.body?.getReader();
+        if (!reader) {
+          controller.close();
+          return;
+        }
+
         try {
-          const response = await fetch(url, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${apiKey}`,
-            },
-            body: JSON.stringify(payload),
-            // Duplex streaming allows us to start sending our response while the fetch is ongoing
-            // @ts-expect-error
-            duplex: "half",
-          });
-
-          if (!response.ok) {
-            const errorText = await response.text();
-            console.error(`API Error:`, errorText);
-            const errorMessage = encoder.encode(`data: ${JSON.stringify({ error: "Service temporarily unavailable" })}\n\n`);
-            controller.enqueue(errorMessage);
-            controller.close();
-            return;
-          }
-
-          if (!response.body) {
-            throw new Error("The response body is empty.");
-          }
-
-          // Pipe the response stream from the ML API to our controller
-          const reader = response.body.getReader();
           while (true) {
             const { done, value } = await reader.read();
-            if (done) {
-              break;
+            if (done) break;
+
+            const chunk = decoder.decode(value);
+            const lines = chunk.split("\n").filter((line) => line.trim() !== "");
+
+            for (const line of lines) {
+              if (line.startsWith("data: ")) {
+                const data = line.slice(6);
+                if (data === "[DONE]") continue;
+
+                try {
+                  const parsed = JSON.parse(data);
+                  const content = parsed.choices[0]?.delta?.content;
+                  if (content) {
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content })}\n\n`));
+                  }
+                } catch (e) {
+                  // Skip invalid JSON
+                }
+              }
             }
-            controller.enqueue(value);
           }
         } catch (error) {
-          console.error("Error fetching from ML API:", error);
-          const errorMessage = encoder.encode(`data: ${JSON.stringify({ error: "Internal server error" })}\n\n`);
-          controller.enqueue(errorMessage);
+          console.error("Stream error:", error);
         } finally {
           controller.close();
         }
       },
     });
 
-    // Return the stream immediately to the client
-    return new NextResponse(stream, {
+    return new Response(stream, {
       headers: {
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
-        "Connection": "keep-alive",
-        "X-Accel-Buffering": "no", // Disable buffering in proxies
+        Connection: "keep-alive",
       },
     });
-
   } catch (error) {
-    // This catches errors from the initial setup (e.g., req.json())
-    console.error("Error in chat API setup:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error("Error in chat API:", error);
+    return new Response(
+      JSON.stringify({ error: "Internal server error" }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
   }
 }
+

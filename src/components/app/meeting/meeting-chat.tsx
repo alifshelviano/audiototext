@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Send, CornerDownLeft, BrainCircuit, User, Bot, ArrowRight } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { Components } from "react-markdown";
-import { WaveLoader } from "@/components/ui/wave-loader";
 
 interface Message {
   text: string;
@@ -24,7 +23,7 @@ export function MeetingChat({ meetingId, transcript, summary }: MeetingChatProps
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [chatCount, setChatCount] = useState(0);
-  const chatLimit = 3;
+  const chatLimit = 5;
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -62,9 +61,47 @@ export function MeetingChat({ meetingId, transcript, summary }: MeetingChatProps
         throw new Error("Failed to get response from AI");
       }
 
-      const data = await response.json();
-      const aiMessage: Message = { text: data.response, isUser: false };
-      setMessages((prev) => [...prev, aiMessage]);
+      // Handle streaming response
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) {
+        throw new Error("No response body");
+      }
+
+      // Create initial AI message
+      const aiMessageIndex = messages.length + 1;
+      setMessages((prev) => [...prev, { text: "", isUser: false }]);
+
+      let accumulatedText = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split("\n").filter((line) => line.trim() !== "");
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const data = line.slice(6);
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.content) {
+                accumulatedText += parsed.content;
+                // Update the message in real-time
+                setMessages((prev) => {
+                  const updated = [...prev];
+                  updated[aiMessageIndex] = { text: accumulatedText, isUser: false };
+                  return updated;
+                });
+              }
+            } catch (e) {
+              // Skip invalid JSON
+            }
+          }
+        }
+      }
     } catch (error) {
       console.error("Chat error:", error);
       const errorMessage: Message = {
@@ -192,8 +229,7 @@ export function MeetingChat({ meetingId, transcript, summary }: MeetingChatProps
     <div className="bg-white rounded-2xl shadow-lg border border-gray-200 flex flex-col h-[600px]">
       <div className="flex items-center gap-3 p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50/30 rounded-t-2xl">
         <div className="w-10 h-10 bg-gradient-to-br from-white-500 to-white-600 rounded-full flex items-center justify-center shadow-lg">
-        <img src="/lisnize.png" alt="Lisnizebot"  className="object-contain w-full h-full" />
-        
+          <img src="/lisnize.png" alt="Lisnizebot" className="object-contain w-full h-full" />
         </div>
         <div className="flex-1">
           <h3 className="font-bold text-lg text-gray-800">Lisnize</h3>
@@ -235,11 +271,18 @@ export function MeetingChat({ meetingId, transcript, summary }: MeetingChatProps
 
         {isLoading && (
           <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-8 h-8 bg-.gradient-to-br from-cyan-500 to-teal-600 rounded-full flex items-center justify-center shadow-sm">
+            <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-cyan-500 to-teal-600 rounded-full flex items-center justify-center shadow-sm">
               <Bot className="h-4 w-4 text-white" />
             </div>
             <div className="max-w-[85%] rounded-2xl p-4 shadow-sm bg-gray-50 border border-gray-100 rounded-bl-md">
-              <WaveLoader text="Analyzing meeting content..." />
+              <div className="flex items-center gap-2">
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
+                  <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
+                  <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
+                </div>
+                <span className="text-sm text-gray-600">Analyzing meeting content...</span>
+              </div>
             </div>
           </div>
         )}
@@ -265,7 +308,7 @@ export function MeetingChat({ meetingId, transcript, summary }: MeetingChatProps
             />
             <Button
               size="icon"
-              className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 bg-gradient-to-r from-cyan-600 to-cyan-400 hover:from-teal-700 hover:to-cyan-500 shadow-lg transition-all duration-200"
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-teal-700 hover:to-cyan-700 shadow-lg transition-all duration-200"
               onClick={() => handleSend()}
               disabled={isLoading || !input.trim()}
             >
@@ -277,3 +320,4 @@ export function MeetingChat({ meetingId, transcript, summary }: MeetingChatProps
     </div>
   );
 }
+
