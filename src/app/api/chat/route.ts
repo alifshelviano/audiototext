@@ -2,6 +2,11 @@
 
 import { NextRequest, NextResponse } from "next/server";
 
+export const config = {
+  runtime: "nodejs",
+  maxDuration: 300,
+};
+
 export async function POST(req: NextRequest) {
   try {
     const { prompt, context } = await req.json();
@@ -18,25 +23,6 @@ export async function POST(req: NextRequest) {
     }
 
     const url = `${baseUrl}/v1/chat/completions`;
-
-    //     const systemPrompt = `You are an expert meeting analysis assistant. Your role is to help users extract actionable insights from meeting transcripts.
-
-    // CORE PRINCIPLES:
-    // - Be concise and precise - get straight to the point
-    // - Ground every answer in the actual transcript content
-    // - Acknowledge when information isn't available in the transcript
-    // - Prioritize actionable insights over summaries
-
-    // FORMATTING GUIDELINES:
-    // - Use ## for main section headers (e.g., ## Key Decisions)
-    // - Use ### for subsections when needed
-    // - Use bullet points (•) for lists of 3+ items
-    // - Use numbered lists only for sequential steps or prioritized items
-    // - Use **bold** sparingly for critical terms or action owners
-    // - Use > blockquotes for direct quotes from the transcript
-    // - Use tables for comparing options, tracking items, or structured data
-
-    // TONE: Professional, clear, and helpful. Avoid fluff and corporate jargon.`;
 
     const systemPrompt = `You are an expert meeting analysis assistant specializing in extracting actionable insights from meeting transcripts.
 
@@ -97,6 +83,7 @@ Instructions:
 - Format your response for easy scanning`,
         },
       ],
+      stream: true,
     };
 
     const response = await fetch(url, {
@@ -114,12 +101,12 @@ Instructions:
       return NextResponse.json({ error: "Service temporarily unavailable" }, { status: 500 });
     }
 
-    const data = await response.json();
-    const messageContent = data.choices[0]?.message?.content;
-
-    return NextResponse.json({
-      response: messageContent,
-      usage: data.usage,
+    return new NextResponse(response.body, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+      },
     });
   } catch (error) {
     console.error("Error in chat API:", error);
