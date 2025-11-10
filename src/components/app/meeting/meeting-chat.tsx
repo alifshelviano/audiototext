@@ -320,4 +320,3 @@ export function MeetingChat({ meetingId, transcript, summary }: MeetingChatProps
     </div>
   );
 }
-

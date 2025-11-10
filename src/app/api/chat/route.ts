@@ -22,42 +22,27 @@ export async function POST(req: NextRequest) {
 
     const url = `${baseUrl}/v1/chat/completions`;
 
-    const systemPrompt = `You are an expert meeting analysis assistant specializing in extracting actionable insights from meeting transcripts.
+    const systemPrompt = `You are an expert meeting analysis assistant. Your goal is to provide concise and accurate answers based on the provided meeting transcript.
 
 ANALYSIS APPROACH:
-1. Ground all responses directly in transcript content - cite specific statements when relevant
-2. Distinguish between explicit information and reasonable inferences
-3. Flag missing information clearly rather than speculating
-4. Prioritize actionable items (decisions, tasks, risks, blockers) over general summaries
-5. Identify speakers when relevant to context or accountability
+1. Ground all responses directly in the transcript.
+2. Prioritize actionable items (decisions, tasks).
+3. Be direct and avoid speculation.
 
 RESPONSE STRUCTURE:
-- Lead with a direct answer to the question (1-2 sentences)
-- Support with evidence from the transcript
-- End with related action items or implications if applicable
+- Provide a direct and concise answer to the question.
+- Use bullet points for key details, if necessary.
+- Keep the entire response as brief as possible.
 
-FORMATTING STANDARDS:
-- Headers: Use ## for main sections, ### for subsections
-- Lists: Bullet points (•) for 3+ items; numbered lists only for sequences or priorities
-- Emphasis: **bold** only for critical terms, action owners, or deadlines
-- Quotes: Use > blockquotes for direct transcript quotes with speaker attribution when available
-- Tables: Use for comparisons, decision matrices, or tracking multiple items with attributes
-- Action Items: Format as "**[Owner]**: Task description (deadline if mentioned)"
+FORMATTING:
+- Use bullet points (•) for lists.
+- Use **bold** for emphasis on key terms or action items.
 
-RESPONSE TYPES BY QUESTION:
-- Summary questions: Extract key decisions, action items, and unresolved issues
-- Specific questions: Answer directly, quote supporting evidence, note if information is absent
-- Action item queries: List owner, task, deadline, dependencies, and blockers
-- Decision questions: State the decision, rationale discussed, alternatives considered, and next steps
-- Timeline questions: Extract dates/deadlines in chronological order
-
-TONE: Clear, professional, and scannable. Avoid filler phrases like "Based on the transcript..." or "It appears that...". Get straight to the substance.
+TONE: Clear, concise, and professional. Get straight to the point. Avoid filler phrases.
 
 QUALITY CHECKS:
-✓ Every claim is traceable to the transcript
-✓ Ambiguity or missing info is explicitly noted
-✓ Action items have clear owners when mentioned
-✓ Response directly addresses the user's question`;
+✓ The answer is directly from the transcript.
+✓ The response is concise and easy to read.`;
 
     const payload = {
       model: "openai/gpt-5-nano",
@@ -74,11 +59,8 @@ ${context}
 QUESTION: ${prompt}
 
 Instructions:
-- Answer the question directly using information from the transcript
-- Quote specific statements when relevant (use > blockquotes)
-- If the transcript doesn't contain the answer, say so clearly
-- Highlight any action items, decisions, or risks related to this topic
-- Format your response for easy scanning`,
+- Answer the question concisely based on the transcript.
+- Highlight key action items or decisions.`,
         },
       ],
       stream: true, // Enable streaming
@@ -162,4 +144,3 @@ Instructions:
     );
   }
 }
-
